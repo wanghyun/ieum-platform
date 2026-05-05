@@ -1,0 +1,121 @@
+<?php
+$sub_menu = '950160';
+require_once './_common.php';
+
+$g5['title'] = '아이이음 부별 학생 보기';
+$academy = ieum_require_academy_page();
+$academy_id = (int) $academy['academy_id'];
+
+$class_time_id = isset($_GET['class_time_id']) ? (int) $_GET['class_time_id'] : 0;
+$grade_group = isset($_GET['grade_group']) ? preg_replace('/[^0-9A-Za-z_]/', '', trim($_GET['grade_group'])) : '';
+
+function ieum_group_grade_options()
+{
+    return array(
+        '' => '전체 학년',
+        'kindergarten' => '유치부',
+        'elementary_1' => '초등 1학년',
+        'elementary_2' => '초등 2학년',
+        'elementary_3' => '초등 3학년',
+        'elementary_4' => '초등 4학년',
+        'elementary_5' => '초등 5학년',
+        'elementary_6' => '초등 6학년',
+        'middle_1' => '중등 1학년',
+        'middle_2' => '중등 2학년',
+        'middle_3' => '중등 3학년',
+        'high_1' => '고등 1학년',
+        'high_2' => '고등 2학년',
+        'high_3' => '고등 3학년',
+    );
+}
+
+function ieum_group_grade_label($value)
+{
+    $options = ieum_group_grade_options();
+    return isset($options[$value]) ? $options[$value] : $value;
+}
+
+$class_times = sql_query("
+    select *
+      from " . IEUM_CLASS_TIME_TABLE . "
+     where academy_id = '{$academy_id}'
+       and is_active = 1
+  order by sort_order asc, start_time asc
+", false);
+
+$where = " where s.academy_id = '{$academy_id}' and s.is_active = 1 ";
+if ($class_time_id) {
+    $where .= " and s.class_time_id = '{$class_time_id}' ";
+}
+if ($grade_group !== '') {
+    $grade_sql = sql_escape_string($grade_group);
+    $where .= " and s.grade_group = '{$grade_sql}' ";
+}
+
+$students = sql_query("
+    select s.*, c.class_name, c.start_time
+      from " . IEUM_STUDENT_TABLE . " s
+ left join " . IEUM_CLASS_TIME_TABLE . " c on c.class_time_id = s.class_time_id
+      {$where}
+  order by c.sort_order asc, c.start_time asc, s.grade_group asc, s.student_name asc
+", false);
+?>
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><?php echo get_text($g5['title']); ?></title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}
+.wrap{max-width:1180px;margin:28px auto;padding:0 20px}.bar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+h1{margin:0;font-size:26px}.meta{color:#667085}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}select{height:38px;border:1px solid #cfd6df;border-radius:6px;padding:0 10px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}.student{border:1px solid #d8dee9;border-radius:8px;padding:14px;background:#fff}.name{font-size:18px;font-weight:900}.sub{color:#667085;margin-top:6px;font-size:13px}
+</style>
+</head>
+<body>
+<?php echo ieum_admin_header('groups'); ?>
+<main class="wrap">
+    <div class="bar">
+        <div>
+            <h1>부별 학생 보기</h1>
+            <div class="meta"><?php echo get_text($academy['academy_name']); ?></div>
+        </div>
+        <a class="btn primary" href="<?php echo IEUM_URL; ?>/admin/students.php">학생 관리</a>
+    </div>
+
+    <section class="panel">
+        <form method="get" class="filters">
+            <select name="class_time_id">
+                <option value="0">전체 부</option>
+                <?php while ($class = sql_fetch_array($class_times)) { ?>
+                <option value="<?php echo (int) $class['class_time_id']; ?>" <?php echo get_selected($class_time_id, (int) $class['class_time_id']); ?>>
+                    <?php echo get_text($class['class_name'] . ' ' . $class['start_time']); ?>
+                </option>
+                <?php } ?>
+            </select>
+            <select name="grade_group">
+                <?php foreach (ieum_group_grade_options() as $value => $label) { ?>
+                <option value="<?php echo get_text($value); ?>" <?php echo get_selected($grade_group, $value); ?>><?php echo get_text($label); ?></option>
+                <?php } ?>
+            </select>
+            <button class="btn primary" type="submit">보기</button>
+        </form>
+    </section>
+
+    <section class="cards">
+        <?php $i = 0; while ($row = sql_fetch_array($students)) { $i++; ?>
+        <article class="student">
+            <div class="name"><?php echo get_text($row['student_name']); ?></div>
+            <div class="sub"><?php echo get_text($row['student_code']); ?></div>
+            <div class="sub"><?php echo get_text(ieum_group_grade_label($row['grade_group'])); ?></div>
+            <div class="sub"><?php echo get_text($row['class_name'] ? $row['class_name'] . ' ' . $row['start_time'] : '부 미지정'); ?></div>
+        </article>
+        <?php } ?>
+        <?php if ($i === 0) { ?><article class="student">조건에 맞는 학생이 없습니다.</article><?php } ?>
+    </section>
+</main>
+</body>
+</html>

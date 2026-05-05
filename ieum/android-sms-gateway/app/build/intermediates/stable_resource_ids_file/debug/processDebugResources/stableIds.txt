@@ -1,0 +1,1 @@
+kr.ieum.smsgateway:style/AppTheme = 0x7f010000

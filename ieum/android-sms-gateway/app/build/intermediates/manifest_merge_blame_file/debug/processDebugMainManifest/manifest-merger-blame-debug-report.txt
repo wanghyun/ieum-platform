@@ -1,0 +1,69 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="kr.ieum.smsgateway"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="23"
+9        android:targetSdkVersion="35" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:3:5-67
+11-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:3:22-64
+12    <uses-permission android:name="android.permission.SEND_SMS" />
+12-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:4:5-67
+12-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:4:22-64
+13    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+13-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:5:5-77
+13-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:5:22-74
+14    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+14-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:6:5-87
+14-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:6:22-84
+15    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+15-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:7:5-77
+15-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:7:22-74
+16
+17    <application
+17-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:9:5-27:19
+18        android:allowBackup="false"
+18-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:10:9-36
+19        android:debuggable="true"
+20        android:extractNativeLibs="false"
+21        android:label="아이이음 문자 게이트웨이"
+21-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:13:9-38
+22        android:supportsRtl="true"
+22-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:14:9-35
+23        android:theme="@style/AppTheme"
+23-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:12:9-40
+24        android:usesCleartextTraffic="true" >
+24-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:11:9-44
+25        <service
+25-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:15:9-18:56
+26            android:name="kr.ieum.smsgateway.GatewayService"
+26-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:16:13-43
+27            android:exported="false"
+27-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:17:13-37
+28            android:foregroundServiceType="dataSync" />
+28-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:18:13-53
+29
+30        <activity
+30-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:19:9-26:20
+31            android:name="kr.ieum.smsgateway.MainActivity"
+31-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:20:13-41
+32            android:exported="true" >
+32-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:21:13-36
+33            <intent-filter>
+33-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:22:13-25:29
+34                <action android:name="android.intent.action.MAIN" />
+34-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:23:17-69
+34-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:23:25-66
+35
+36                <category android:name="android.intent.category.LAUNCHER" />
+36-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:24:17-77
+36-->D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\AndroidManifest.xml:24:27-74
+37            </intent-filter>
+38        </activity>
+39    </application>
+40
+41</manifest>

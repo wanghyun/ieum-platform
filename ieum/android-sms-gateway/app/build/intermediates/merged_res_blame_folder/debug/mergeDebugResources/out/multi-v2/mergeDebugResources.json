@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "kr.ieum.smsgateway.app-debug-4:/values_values.arsc.flat",
+            "map": [
+                {
+                    "source": "D:\\ieum-v1\\EB-4_7_10_package\\ieum\\android-sms-gateway\\app\\src\\main\\res\\values\\styles.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "6",
+                        "endColumns": "12",
+                        "endOffsets": "317"
+                    }
+                }
+            ]
+        }
+    ]
+}

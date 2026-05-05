@@ -1,0 +1,7 @@
+kr.ieum.smsgateway.app-pngs-0 D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\build\generated\res\pngs\debug
+kr.ieum.smsgateway.app-resValues-1 D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\build\generated\res\resValues\debug
+kr.ieum.smsgateway.app-packageDebugResources-2 D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+kr.ieum.smsgateway.app-packageDebugResources-3 D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+kr.ieum.smsgateway.app-debug-4 D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\build\intermediates\merged_res\debug\mergeDebugResources
+kr.ieum.smsgateway.app-debug-5 D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\debug\res
+kr.ieum.smsgateway.app-main-6 D:\ieum-v1\EB-4_7_10_package\ieum\android-sms-gateway\app\src\main\res
