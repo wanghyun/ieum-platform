@@ -128,20 +128,21 @@ function ieum_fetch_guardians($academy_id, $student_id)
 function ieum_fetch_vehicle_routes($academy_id)
 {
     $academy_id = (int) $academy_id;
-    $routes = array();
+    $stops = array();
     $result = sql_query("
-        select *
-          from " . IEUM_VEHICLE_ROUTE_TABLE . "
-         where academy_id = '{$academy_id}'
-           and is_active = 1
-      order by sort_order asc, route_name asc
+        select s.*, r.route_name, r.vehicle_label
+          from " . IEUM_VEHICLE_STOP_TABLE . " s
+     left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = s.route_id and r.academy_id = s.academy_id
+         where s.academy_id = '{$academy_id}'
+           and s.is_active = 1
+      order by field(s.stop_type, 'pickup', 'dropoff'), s.stop_time asc, s.sort_order asc, s.stop_name asc
     ", false);
 
     while ($row = sql_fetch_array($result)) {
-        $routes[] = $row;
+        $stops[] = $row;
     }
 
-    return $routes;
+    return $stops;
 }
 
 function ieum_fetch_vehicle_assignments($academy_id, $student_id)
@@ -158,9 +159,10 @@ function ieum_fetch_vehicle_assignments($academy_id, $student_id)
     }
 
     $result = sql_query("
-        select sv.*, r.route_name
+        select sv.*, r.route_name, r.vehicle_label, st.stop_name, st.stop_time
           from " . IEUM_STUDENT_VEHICLE_TABLE . " sv
      left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = sv.route_id and r.academy_id = sv.academy_id
+     left join " . IEUM_VEHICLE_STOP_TABLE . " st on st.stop_id = sv.stop_id and st.academy_id = sv.academy_id
          where sv.academy_id = '{$academy_id}'
            and sv.student_id = '{$student_id}'
            and sv.is_active = 1
@@ -176,13 +178,13 @@ function ieum_fetch_vehicle_assignments($academy_id, $student_id)
     return $items;
 }
 
-function ieum_save_vehicle_assignment($academy_id, $student_id, $ride_type, $enabled, $route_id, $place_name)
+function ieum_save_vehicle_assignment($academy_id, $student_id, $ride_type, $enabled, $stop_id, $place_name)
 {
     $academy_id = (int) $academy_id;
     $student_id = (int) $student_id;
     $ride_type = $ride_type === 'dropoff' ? 'dropoff' : 'pickup';
     $enabled = $enabled ? 1 : 0;
-    $route_id = (int) $route_id;
+    $stop_id = (int) $stop_id;
     $place_name = trim($place_name);
     $ride_type_sql = sql_escape_string($ride_type);
 
@@ -199,6 +201,25 @@ function ieum_save_vehicle_assignment($academy_id, $student_id, $ride_type, $ena
         return;
     }
 
+    $route_id = 0;
+    if ($stop_id) {
+        $stop = sql_fetch("
+            select route_id, stop_name
+              from " . IEUM_VEHICLE_STOP_TABLE . "
+             where academy_id = '{$academy_id}'
+               and stop_id = '{$stop_id}'
+               and stop_type = '{$ride_type_sql}'
+               and is_active = 1
+             limit 1
+        ", false);
+        if (isset($stop['route_id'])) {
+            $route_id = (int) $stop['route_id'];
+            if ($place_name === '') {
+                $place_name = $stop['stop_name'];
+            }
+        }
+    }
+
     $place_name_sql = sql_escape_string($place_name);
     sql_query("
         insert into " . IEUM_STUDENT_VEHICLE_TABLE . "
@@ -206,6 +227,7 @@ function ieum_save_vehicle_assignment($academy_id, $student_id, $ride_type, $ena
                 student_id = '{$student_id}',
                 ride_type = '{$ride_type_sql}',
                 route_id = '{$route_id}',
+                stop_id = '{$stop_id}',
                 place_name = '{$place_name_sql}',
                 is_active = 1,
                 created_at = '" . G5_TIME_YMDHIS . "'
@@ -338,10 +360,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $tuition_note = isset($_POST['tuition_note']) ? trim($_POST['tuition_note']) : '';
             $vehicle_pickup_enabled = isset($_POST['vehicle_pickup_enabled']) ? 1 : 0;
-            $vehicle_pickup_route_id = isset($_POST['vehicle_pickup_route_id']) ? (int) $_POST['vehicle_pickup_route_id'] : 0;
+            $vehicle_pickup_stop_id = isset($_POST['vehicle_pickup_stop_id']) ? (int) $_POST['vehicle_pickup_stop_id'] : 0;
             $vehicle_pickup_place = isset($_POST['vehicle_pickup_place']) ? trim($_POST['vehicle_pickup_place']) : '';
             $vehicle_dropoff_enabled = isset($_POST['vehicle_dropoff_enabled']) ? 1 : 0;
-            $vehicle_dropoff_route_id = isset($_POST['vehicle_dropoff_route_id']) ? (int) $_POST['vehicle_dropoff_route_id'] : 0;
+            $vehicle_dropoff_stop_id = isset($_POST['vehicle_dropoff_stop_id']) ? (int) $_POST['vehicle_dropoff_stop_id'] : 0;
             $vehicle_dropoff_place = isset($_POST['vehicle_dropoff_place']) ? trim($_POST['vehicle_dropoff_place']) : '';
             $guardian_names = isset($_POST['guardian_name']) && is_array($_POST['guardian_name']) ? $_POST['guardian_name'] : array();
             $guardian_relations = isset($_POST['guardian_relation']) && is_array($_POST['guardian_relation']) ? $_POST['guardian_relation'] : array();
@@ -471,8 +493,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                          where academy_id = '{$academy_id}'
                            and student_id = '{$saved_student_id}'
                     ");
-                    ieum_save_vehicle_assignment($academy_id, $saved_student_id, 'pickup', $vehicle_pickup_enabled, $vehicle_pickup_route_id, $vehicle_pickup_place);
-                    ieum_save_vehicle_assignment($academy_id, $saved_student_id, 'dropoff', $vehicle_dropoff_enabled, $vehicle_dropoff_route_id, $vehicle_dropoff_place);
+                    ieum_save_vehicle_assignment($academy_id, $saved_student_id, 'pickup', $vehicle_pickup_enabled, $vehicle_pickup_stop_id, $vehicle_pickup_place);
+                    ieum_save_vehicle_assignment($academy_id, $saved_student_id, 'dropoff', $vehicle_dropoff_enabled, $vehicle_dropoff_stop_id, $vehicle_dropoff_place);
                     $mode = 'list';
                     $student_id = 0;
                 }
@@ -535,9 +557,10 @@ $students = sql_query("
              where g.academy_id = s.academy_id
                and g.student_id = s.student_id
                and g.is_active = 1) as guardian_summary,
-           (select group_concat(concat(if(sv.ride_type='pickup', '등원', '하원'), ' ', ifnull(r.route_name, ''), if(sv.place_name <> '', concat(' ', sv.place_name), '')) order by field(sv.ride_type, 'pickup', 'dropoff') separator '<br>')
+           (select group_concat(concat(if(sv.ride_type='pickup', '등원', '하원'), ' ', ifnull(st.stop_time, ''), ' ', ifnull(st.stop_name, sv.place_name), if(r.route_name is not null and r.route_name <> '', concat(' / ', r.route_name), '')) order by field(sv.ride_type, 'pickup', 'dropoff') separator '<br>')
               from " . IEUM_STUDENT_VEHICLE_TABLE . " sv
          left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = sv.route_id and r.academy_id = sv.academy_id
+         left join " . IEUM_VEHICLE_STOP_TABLE . " st on st.stop_id = sv.stop_id and st.academy_id = sv.academy_id
              where sv.academy_id = s.academy_id
                and sv.student_id = s.student_id
                and sv.is_active = 1) as vehicle_summary
@@ -573,7 +596,7 @@ while ($plan = sql_fetch_array($tuition_plans)) {
     $tuition_plan_options[] = $plan;
 }
 
-$vehicle_route_options = ieum_fetch_vehicle_routes($academy_id);
+$vehicle_stop_options = ieum_fetch_vehicle_routes($academy_id);
 
 $total = sql_fetch("
     select count(*) as cnt
@@ -692,10 +715,10 @@ textarea{min-height:82px;resize:vertical}
             'tuition_due_day' => 5,
             'tuition_note' => '',
             'vehicle_pickup_enabled' => 0,
-            'vehicle_pickup_route_id' => 0,
+            'vehicle_pickup_stop_id' => 0,
             'vehicle_pickup_place' => '',
             'vehicle_dropoff_enabled' => 0,
-            'vehicle_dropoff_route_id' => 0,
+            'vehicle_dropoff_stop_id' => 0,
             'vehicle_dropoff_place' => '',
             'parent_name' => '',
             'parent_phone' => '',
@@ -717,17 +740,17 @@ textarea{min-height:82px;resize:vertical}
         $vehicle_assignments = $editing ? ieum_fetch_vehicle_assignments($academy_id, (int) $form['student_id']) : array('pickup' => null, 'dropoff' => null);
         if ($vehicle_assignments['pickup']) {
             $form['vehicle_pickup_enabled'] = 1;
-            $form['vehicle_pickup_route_id'] = (int) $vehicle_assignments['pickup']['route_id'];
+            $form['vehicle_pickup_stop_id'] = (int) $vehicle_assignments['pickup']['stop_id'];
             $form['vehicle_pickup_place'] = $vehicle_assignments['pickup']['place_name'];
-        } elseif (!isset($form['vehicle_pickup_route_id'])) {
-            $form['vehicle_pickup_route_id'] = 0;
+        } elseif (!isset($form['vehicle_pickup_stop_id'])) {
+            $form['vehicle_pickup_stop_id'] = 0;
         }
         if ($vehicle_assignments['dropoff']) {
             $form['vehicle_dropoff_enabled'] = 1;
-            $form['vehicle_dropoff_route_id'] = (int) $vehicle_assignments['dropoff']['route_id'];
+            $form['vehicle_dropoff_stop_id'] = (int) $vehicle_assignments['dropoff']['stop_id'];
             $form['vehicle_dropoff_place'] = $vehicle_assignments['dropoff']['place_name'];
-        } elseif (!isset($form['vehicle_dropoff_route_id'])) {
-            $form['vehicle_dropoff_route_id'] = 0;
+        } elseif (!isset($form['vehicle_dropoff_stop_id'])) {
+            $form['vehicle_dropoff_stop_id'] = 0;
         }
     ?>
     <section class="panel">
@@ -839,20 +862,22 @@ textarea{min-height:82px;resize:vertical}
                     <label class="vehicle-row">
                         <input type="checkbox" name="vehicle_pickup_enabled" id="vehicle_pickup_enabled" value="1" <?php echo !empty($form['vehicle_pickup_enabled']) ? 'checked' : ''; ?>>
                         <span>등원 차량</span>
-                        <select name="vehicle_pickup_route_id" id="vehicle_pickup_route_id">
+                        <select name="vehicle_pickup_stop_id" id="vehicle_pickup_stop_id">
                             <option value="0">노선 선택 안함</option>
-                            <?php foreach ($vehicle_route_options as $route) { if ($route['route_type'] === 'dropoff') { continue; } ?>
-                            <option value="<?php echo (int) $route['route_id']; ?>" <?php echo get_selected((int) $form['vehicle_pickup_route_id'], (int) $route['route_id']); ?>><?php echo get_text($route['route_name']); ?></option>
+                            <?php foreach ($vehicle_stop_options as $stop) { if ($stop['stop_type'] === 'dropoff') { continue; } ?>
+                            <?php $stop_label = trim($stop['stop_time'] . ' ' . $stop['stop_name'] . (isset($stop['route_name']) && $stop['route_name'] !== '' ? ' / ' . $stop['route_name'] : '')); ?>
+                            <option value="<?php echo (int) $stop['stop_id']; ?>" <?php echo get_selected((int) $form['vehicle_pickup_stop_id'], (int) $stop['stop_id']); ?>><?php echo get_text($stop_label); ?></option>
                             <?php } ?>
                         </select>                        <input type="text" name="vehicle_pickup_place" id="vehicle_pickup_place" value="<?php echo get_text($form['vehicle_pickup_place']); ?>" maxlength="100" placeholder="예: 아이이음초등학교">
                     </label>
                     <label class="vehicle-row">
                         <input type="checkbox" name="vehicle_dropoff_enabled" id="vehicle_dropoff_enabled" value="1" <?php echo !empty($form['vehicle_dropoff_enabled']) ? 'checked' : ''; ?>>
                         <span>하원 차량</span>
-                        <select name="vehicle_dropoff_route_id" id="vehicle_dropoff_route_id">
+                        <select name="vehicle_dropoff_stop_id" id="vehicle_dropoff_stop_id">
                             <option value="0">노선 선택 안함</option>
-                            <?php foreach ($vehicle_route_options as $route) { if ($route['route_type'] === 'pickup') { continue; } ?>
-                            <option value="<?php echo (int) $route['route_id']; ?>" <?php echo get_selected((int) $form['vehicle_dropoff_route_id'], (int) $route['route_id']); ?>><?php echo get_text($route['route_name']); ?></option>
+                            <?php foreach ($vehicle_stop_options as $stop) { if ($stop['stop_type'] === 'pickup') { continue; } ?>
+                            <?php $stop_label = trim($stop['stop_time'] . ' ' . $stop['stop_name'] . (isset($stop['route_name']) && $stop['route_name'] !== '' ? ' / ' . $stop['route_name'] : '')); ?>
+                            <option value="<?php echo (int) $stop['stop_id']; ?>" <?php echo get_selected((int) $form['vehicle_dropoff_stop_id'], (int) $stop['stop_id']); ?>><?php echo get_text($stop_label); ?></option>
                             <?php } ?>
                         </select>                        <input type="text" name="vehicle_dropoff_place" id="vehicle_dropoff_place" value="<?php echo get_text($form['vehicle_dropoff_place']); ?>" maxlength="100" placeholder="예: 아이이음 아파트 1004동">
                     </label>

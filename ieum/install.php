@@ -180,12 +180,31 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ");
 
     sql_query("
+        create table if not exists " . IEUM_VEHICLE_STOP_TABLE . " (
+            stop_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            route_id int unsigned not null default 0,
+            stop_type varchar(20) not null,
+            stop_name varchar(100) not null default '',
+            stop_time char(5) not null default '00:00',
+            sort_order int unsigned not null default 0,
+            is_active tinyint(1) not null default 1,
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (stop_id),
+            key idx_academy_type_time (academy_id, stop_type, is_active, stop_time),
+            key idx_route_sort (academy_id, route_id, sort_order)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
         create table if not exists " . IEUM_STUDENT_VEHICLE_TABLE . " (
             student_vehicle_id int unsigned not null auto_increment,
             academy_id int unsigned not null,
             student_id int unsigned not null,
             ride_type varchar(20) not null,
             route_id int unsigned not null default 0,
+            stop_id int unsigned not null default 0,
             place_name varchar(100) not null default '',
             memo varchar(255) not null default '',
             is_active tinyint(1) not null default 1,
@@ -193,9 +212,11 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             updated_at datetime null,
             primary key (student_vehicle_id),
             key idx_student_type (academy_id, student_id, ride_type, is_active),
+            key idx_stop (academy_id, stop_id, is_active),
             key idx_route (academy_id, route_id, is_active)
         ) engine={$engine} default charset={$charset}
     ");
+    ieum_install_add_column_if_missing(IEUM_STUDENT_VEHICLE_TABLE, 'stop_id', 'int unsigned not null default 0 after route_id');
 
     sql_query("
         create table if not exists " . IEUM_ATTENDANCE_TABLE . " (

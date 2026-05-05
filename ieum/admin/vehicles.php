@@ -17,61 +17,125 @@ function ieum_vehicle_type_options()
     );
 }
 
+function ieum_stop_type_options()
+{
+    return array(
+        'pickup' => '픽업',
+        'dropoff' => '하차',
+    );
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrf_token = isset($_POST['csrf_token']) ? trim($_POST['csrf_token']) : '';
     if (!ieum_verify_csrf_token($csrf_token)) {
         $error = '보안 토큰이 올바르지 않습니다.';
     } else {
-        $route_id = isset($_POST['route_id']) ? (int) $_POST['route_id'] : 0;
-        $route_type = isset($_POST['route_type']) ? preg_replace('/[^0-9a-z_]/', '', trim($_POST['route_type'])) : 'both';
-        $route_name = isset($_POST['route_name']) ? trim($_POST['route_name']) : '';
-        $vehicle_label = isset($_POST['vehicle_label']) ? trim($_POST['vehicle_label']) : '';
-        $driver_name = isset($_POST['driver_name']) ? trim($_POST['driver_name']) : '';
-        $driver_phone = isset($_POST['driver_phone']) ? preg_replace('/[^0-9+\-]/', '', trim($_POST['driver_phone'])) : '';
-        $sort_order = isset($_POST['sort_order']) ? max(0, (int) $_POST['sort_order']) : 0;
-        $is_active = isset($_POST['is_active']) ? 1 : 0;
+        $action = isset($_POST['action']) ? trim($_POST['action']) : '';
 
-        if (!isset(ieum_vehicle_type_options()[$route_type])) {
-            $route_type = 'both';
-        }
-        if ($route_name === '') {
-            $error = '노선명을 입력하세요.';
-        } else {
-            $route_type_sql = sql_escape_string($route_type);
-            $route_name_sql = sql_escape_string($route_name);
-            $vehicle_label_sql = sql_escape_string($vehicle_label);
-            $driver_name_sql = sql_escape_string($driver_name);
-            $driver_phone_sql = sql_escape_string($driver_phone);
+        if ($action === 'save_route') {
+            $route_id = isset($_POST['route_id']) ? (int) $_POST['route_id'] : 0;
+            $route_type = isset($_POST['route_type']) ? preg_replace('/[^0-9a-z_]/', '', trim($_POST['route_type'])) : 'both';
+            $route_name = isset($_POST['route_name']) ? trim($_POST['route_name']) : '';
+            $vehicle_label = isset($_POST['vehicle_label']) ? trim($_POST['vehicle_label']) : '';
+            $driver_name = isset($_POST['driver_name']) ? trim($_POST['driver_name']) : '';
+            $driver_phone = isset($_POST['driver_phone']) ? preg_replace('/[^0-9+\-]/', '', trim($_POST['driver_phone'])) : '';
+            $sort_order = isset($_POST['sort_order']) ? max(0, (int) $_POST['sort_order']) : 0;
+            $is_active = isset($_POST['is_active']) ? 1 : 0;
 
-            if ($route_id) {
-                sql_query("
-                    update " . IEUM_VEHICLE_ROUTE_TABLE . "
-                       set route_type = '{$route_type_sql}',
-                           route_name = '{$route_name_sql}',
-                           vehicle_label = '{$vehicle_label_sql}',
-                           driver_name = '{$driver_name_sql}',
-                           driver_phone = '{$driver_phone_sql}',
-                           sort_order = '{$sort_order}',
-                           is_active = '{$is_active}',
-                           updated_at = '" . G5_TIME_YMDHIS . "'
-                     where route_id = '{$route_id}'
-                       and academy_id = '{$academy_id}'
-                ");
-                $message = '차량 노선을 수정했습니다.';
+            if (!isset(ieum_vehicle_type_options()[$route_type])) {
+                $route_type = 'both';
+            }
+            if ($route_name === '') {
+                $error = '노선명을 입력하세요.';
             } else {
-                sql_query("
-                    insert into " . IEUM_VEHICLE_ROUTE_TABLE . "
-                        set academy_id = '{$academy_id}',
-                            route_type = '{$route_type_sql}',
-                            route_name = '{$route_name_sql}',
-                            vehicle_label = '{$vehicle_label_sql}',
-                            driver_name = '{$driver_name_sql}',
-                            driver_phone = '{$driver_phone_sql}',
-                            sort_order = '{$sort_order}',
-                            is_active = '{$is_active}',
-                            created_at = '" . G5_TIME_YMDHIS . "'
-                ");
-                $message = '차량 노선을 등록했습니다.';
+                $route_type_sql = sql_escape_string($route_type);
+                $route_name_sql = sql_escape_string($route_name);
+                $vehicle_label_sql = sql_escape_string($vehicle_label);
+                $driver_name_sql = sql_escape_string($driver_name);
+                $driver_phone_sql = sql_escape_string($driver_phone);
+
+                if ($route_id) {
+                    sql_query("
+                        update " . IEUM_VEHICLE_ROUTE_TABLE . "
+                           set route_type = '{$route_type_sql}',
+                               route_name = '{$route_name_sql}',
+                               vehicle_label = '{$vehicle_label_sql}',
+                               driver_name = '{$driver_name_sql}',
+                               driver_phone = '{$driver_phone_sql}',
+                               sort_order = '{$sort_order}',
+                               is_active = '{$is_active}',
+                               updated_at = '" . G5_TIME_YMDHIS . "'
+                         where route_id = '{$route_id}'
+                           and academy_id = '{$academy_id}'
+                    ");
+                    $message = '차량 노선을 수정했습니다.';
+                } else {
+                    sql_query("
+                        insert into " . IEUM_VEHICLE_ROUTE_TABLE . "
+                            set academy_id = '{$academy_id}',
+                                route_type = '{$route_type_sql}',
+                                route_name = '{$route_name_sql}',
+                                vehicle_label = '{$vehicle_label_sql}',
+                                driver_name = '{$driver_name_sql}',
+                                driver_phone = '{$driver_phone_sql}',
+                                sort_order = '{$sort_order}',
+                                is_active = '{$is_active}',
+                                created_at = '" . G5_TIME_YMDHIS . "'
+                    ");
+                    $message = '차량 노선을 등록했습니다.';
+                }
+            }
+        } elseif ($action === 'save_stop') {
+            $stop_id = isset($_POST['stop_id']) ? (int) $_POST['stop_id'] : 0;
+            $route_id = isset($_POST['route_id']) ? (int) $_POST['route_id'] : 0;
+            $stop_type = isset($_POST['stop_type']) ? preg_replace('/[^0-9a-z_]/', '', trim($_POST['stop_type'])) : 'pickup';
+            $stop_name = isset($_POST['stop_name']) ? trim($_POST['stop_name']) : '';
+            $stop_time = isset($_POST['stop_time']) ? preg_replace('/[^0-9:]/', '', trim($_POST['stop_time'])) : '00:00';
+            $sort_order = isset($_POST['sort_order']) ? max(0, (int) $_POST['sort_order']) : 0;
+            $is_active = isset($_POST['is_active']) ? 1 : 0;
+
+            if (!isset(ieum_stop_type_options()[$stop_type])) {
+                $stop_type = 'pickup';
+            }
+            if (!preg_match('/^\d{2}:\d{2}$/', $stop_time)) {
+                $stop_time = '00:00';
+            }
+            if ($stop_name === '') {
+                $error = '장소명을 입력하세요.';
+            } else {
+                $route_id_sql = (int) $route_id;
+                $stop_type_sql = sql_escape_string($stop_type);
+                $stop_name_sql = sql_escape_string($stop_name);
+                $stop_time_sql = sql_escape_string($stop_time);
+
+                if ($stop_id) {
+                    sql_query("
+                        update " . IEUM_VEHICLE_STOP_TABLE . "
+                           set route_id = '{$route_id_sql}',
+                               stop_type = '{$stop_type_sql}',
+                               stop_name = '{$stop_name_sql}',
+                               stop_time = '{$stop_time_sql}',
+                               sort_order = '{$sort_order}',
+                               is_active = '{$is_active}',
+                               updated_at = '" . G5_TIME_YMDHIS . "'
+                         where stop_id = '{$stop_id}'
+                           and academy_id = '{$academy_id}'
+                    ");
+                    $message = '운행 지점을 수정했습니다.';
+                } else {
+                    sql_query("
+                        insert into " . IEUM_VEHICLE_STOP_TABLE . "
+                            set academy_id = '{$academy_id}',
+                                route_id = '{$route_id_sql}',
+                                stop_type = '{$stop_type_sql}',
+                                stop_name = '{$stop_name_sql}',
+                                stop_time = '{$stop_time_sql}',
+                                sort_order = '{$sort_order}',
+                                is_active = '{$is_active}',
+                                created_at = '" . G5_TIME_YMDHIS . "'
+                    ");
+                    $message = '운행 지점을 등록했습니다.';
+                }
             }
         }
     }
@@ -89,6 +153,26 @@ $routes = sql_query("
      where r.academy_id = '{$academy_id}'
   order by r.is_active desc, r.sort_order asc, r.route_name asc
 ", false);
+
+$route_options = array();
+$route_options_result = sql_query("
+    select *
+      from " . IEUM_VEHICLE_ROUTE_TABLE . "
+     where academy_id = '{$academy_id}'
+       and is_active = 1
+  order by sort_order asc, route_name asc
+", false);
+while ($route = sql_fetch_array($route_options_result)) {
+    $route_options[] = $route;
+}
+
+$stops = sql_query("
+    select s.*, r.route_name, r.vehicle_label
+      from " . IEUM_VEHICLE_STOP_TABLE . " s
+ left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = s.route_id and r.academy_id = s.academy_id
+     where s.academy_id = '{$academy_id}'
+  order by s.is_active desc, field(s.stop_type, 'pickup', 'dropoff'), s.stop_time asc, s.sort_order asc, s.stop_name asc
+", false);
 ?>
 <!doctype html>
 <html lang="ko">
@@ -99,31 +183,36 @@ $routes = sql_query("
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}
-.wrap{max-width:1160px;margin:28px auto;padding:0 20px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px}
+.wrap{max-width:1240px;margin:28px auto;padding:0 20px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px}
 h1{margin:0 0 8px;font-size:26px}.meta{color:#667085;margin-bottom:16px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}
-input,select{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid{display:grid;grid-template-columns:130px 1fr 120px 130px 130px 130px 90px 90px;gap:8px;align-items:center}
-.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}
-table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}th{background:#72829d;color:#fff}.left{text-align:left}.muted{color:#667085}.inactive{background:#fafafa;color:#8a94a6}
-@media(max-width:980px){.grid{grid-template-columns:1fr}table{display:block;overflow-x:auto;white-space:nowrap}}
+input,select{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid.route{display:grid;grid-template-columns:130px 1fr 120px 130px 130px 90px 90px 90px;gap:8px;align-items:center}.grid.stop{display:grid;grid-template-columns:120px 1fr 1fr 130px 90px 90px 90px;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.print{background:#111827;border-color:#111827;color:#fff}
+table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}th{background:#72829d;color:#fff}.left{text-align:left}.muted{color:#667085}.inactive{background:#fafafa;color:#8a94a6}.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 14px}
+@media(max-width:980px){.grid.route,.grid.stop{grid-template-columns:1fr}table{display:block;overflow-x:auto;white-space:nowrap}}
 </style>
 </head>
 <body>
 <?php echo ieum_admin_header('vehicles'); ?>
 <main class="wrap">
     <h1>차량 관리</h1>
-    <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 등원/하원 노선을 등록하면 학생 관리에서 바로 배정할 수 있습니다.</div>
+    <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 노선은 차량/기사 묶음, 운행 지점은 장소+시간입니다. 학생은 픽업 지점과 하차 지점을 각각 선택합니다.</div>
     <?php if ($message) { ?><p class="notice ok"><?php echo get_text($message); ?></p><?php } ?>
     <?php if ($error) { ?><p class="notice err"><?php echo get_text($error); ?></p><?php } ?>
 
     <section class="panel">
-        <form method="post" class="grid">
+        <div class="section-title">
+            <h2>노선 등록</h2>
+            <a class="btn print" href="<?php echo IEUM_URL; ?>/admin/vehicle_journal.php" target="_blank" rel="noopener">차량 일지 인쇄</a>
+        </div>
+        <form method="post" class="grid route">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+            <input type="hidden" name="action" value="save_route">
             <select name="route_type">
                 <?php foreach (ieum_vehicle_type_options() as $value => $label) { ?>
                 <option value="<?php echo get_text($value); ?>"><?php echo get_text($label); ?></option>
                 <?php } ?>
             </select>
-            <input type="text" name="route_name" placeholder="노선명 예: A코스, 학교픽업" maxlength="80" required>
+            <input type="text" name="route_name" placeholder="노선명 예: 1호차 A코스" maxlength="80" required>
             <input type="text" name="vehicle_label" placeholder="차량명" maxlength="50">
             <input type="text" name="driver_name" placeholder="기사/사범" maxlength="50">
             <input type="text" name="driver_phone" placeholder="연락처" maxlength="30">
@@ -134,24 +223,81 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
     </section>
 
     <section class="panel">
+        <h2>운행 지점 등록</h2>
+        <form method="post" class="grid stop">
+            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+            <input type="hidden" name="action" value="save_stop">
+            <select name="stop_type">
+                <?php foreach (ieum_stop_type_options() as $value => $label) { ?>
+                <option value="<?php echo get_text($value); ?>"><?php echo get_text($label); ?></option>
+                <?php } ?>
+            </select>
+            <select name="route_id">
+                <option value="0">노선 선택 안함</option>
+                <?php foreach ($route_options as $route) { ?>
+                <option value="<?php echo (int) $route['route_id']; ?>"><?php echo get_text($route['route_name']); ?></option>
+                <?php } ?>
+            </select>
+            <input type="text" name="stop_name" placeholder="장소 예: 아이이음초등학교" maxlength="100" required>
+            <input type="time" name="stop_time" value="14:10" required>
+            <input type="number" name="sort_order" placeholder="순서" min="0">
+            <label><input type="checkbox" name="is_active" value="1" checked> 사용</label>
+            <button type="submit" class="btn primary">추가</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>운행 지점</h2>
         <table>
-            <thead>
-                <tr>
-                    <th>구분</th>
-                    <th>노선명</th>
-                    <th>차량</th>
-                    <th>담당</th>
-                    <th>연락처</th>
-                    <th>배정 학생</th>
-                    <th>상태</th>
-                    <th>수정</th>
-                </tr>
-            </thead>
+            <thead><tr><th>구분</th><th>시간</th><th>장소</th><th>노선</th><th>차량</th><th>상태</th><th>수정</th></tr></thead>
+            <tbody>
+            <?php $i = 0; while ($row = sql_fetch_array($stops)) { $i++; ?>
+            <tr class="<?php echo $row['is_active'] ? '' : 'inactive'; ?>">
+                <form method="post">
+                    <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                    <input type="hidden" name="action" value="save_stop">
+                    <input type="hidden" name="stop_id" value="<?php echo (int) $row['stop_id']; ?>">
+                    <td>
+                        <select name="stop_type">
+                            <?php foreach (ieum_stop_type_options() as $value => $label) { ?>
+                            <option value="<?php echo get_text($value); ?>" <?php echo get_selected($row['stop_type'], $value); ?>><?php echo get_text($label); ?></option>
+                            <?php } ?>
+                        </select>
+                    </td>
+                    <td><input type="time" name="stop_time" value="<?php echo get_text($row['stop_time']); ?>"></td>
+                    <td><input type="text" name="stop_name" value="<?php echo get_text($row['stop_name']); ?>" maxlength="100"></td>
+                    <td>
+                        <select name="route_id">
+                            <option value="0">노선 선택 안함</option>
+                            <?php foreach ($route_options as $route) { ?>
+                            <option value="<?php echo (int) $route['route_id']; ?>" <?php echo get_selected((int) $row['route_id'], (int) $route['route_id']); ?>><?php echo get_text($route['route_name']); ?></option>
+                            <?php } ?>
+                        </select>
+                    </td>
+                    <td><?php echo get_text($row['vehicle_label']); ?></td>
+                    <td><label><input type="checkbox" name="is_active" value="1" <?php echo $row['is_active'] ? 'checked' : ''; ?>> 사용</label></td>
+                    <td>
+                        <input type="hidden" name="sort_order" value="<?php echo (int) $row['sort_order']; ?>">
+                        <button type="submit" class="btn">저장</button>
+                    </td>
+                </form>
+            </tr>
+            <?php } ?>
+            <?php if ($i === 0) { ?><tr><td colspan="7">등록된 운행 지점이 없습니다.</td></tr><?php } ?>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="panel">
+        <h2>노선</h2>
+        <table>
+            <thead><tr><th>구분</th><th>노선명</th><th>차량</th><th>담당</th><th>연락처</th><th>배정 학생</th><th>상태</th><th>수정</th></tr></thead>
             <tbody>
             <?php $i = 0; while ($row = sql_fetch_array($routes)) { $i++; ?>
                 <tr class="<?php echo $row['is_active'] ? '' : 'inactive'; ?>">
                     <form method="post">
                         <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                        <input type="hidden" name="action" value="save_route">
                         <input type="hidden" name="route_id" value="<?php echo (int) $row['route_id']; ?>">
                         <td>
                             <select name="route_type">
