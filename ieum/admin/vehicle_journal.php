@@ -49,7 +49,7 @@ $routes = sql_query("
 ", false);
 
 $rows = sql_query("
-    select sv.ride_type, sv.place_name, s.student_code, s.student_name, s.student_phone, s.grade_group, s.memo as student_memo,
+    select sv.ride_type, sv.place_name, sv.memo as vehicle_memo, s.student_code, s.student_name, s.student_phone, s.grade_group, s.memo as student_memo,
            c.class_name, c.start_time as class_start_time,
            st.stop_id, st.stop_name, st.stop_time,
            r.route_id, r.route_name, r.vehicle_label, r.driver_name, r.driver_phone,
@@ -141,7 +141,7 @@ $rows = sql_query("
         echo '<td>' . get_text(trim(($row['class_name'] ?: '') . ' ' . ($row['class_start_time'] ?: ''))) . '</td>';
         echo '<td class="phone">' . get_text($row['student_phone']) . '</td>';
         echo '<td class="phone">' . get_text($row['guardian_phone']) . '</td>';
-        $memo = trim(($row['place_name'] ?: '') . ($row['student_memo'] ? ' / ' . $row['student_memo'] : ''));
+        $memo = trim(($row['vehicle_memo'] ?: $row['place_name']) . ($row['student_memo'] ? ' / ' . $row['student_memo'] : ''));
         echo '<td class="left memo">' . get_text($memo) . '</td>';
         echo '</tr>';
     }
