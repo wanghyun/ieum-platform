@@ -69,7 +69,7 @@ $rows = sql_query("
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1120px;margin:20px auto;padding:0 18px}.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}h1{margin:0;font-size:26px}.meta{color:#667085;margin-top:6px}.filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}.btn,select{border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:700}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.group{background:#fff;border:1px solid #d9dee7;border-radius:8px;margin-bottom:14px;overflow:hidden}.group-head{display:flex;justify-content:space-between;gap:12px;background:#15204a;color:#fff;padding:10px 12px;font-weight:900}.group-head small{font-weight:600;color:#dbeafe}.stop-head{background:#eef2f7;padding:8px 12px;font-weight:900;border-top:1px solid #d9dee7}table{width:100%;border-collapse:collapse}th,td{border-top:1px solid #e2e8f0;padding:6px 7px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}.left{text-align:left}.check{width:42px}.phone{white-space:nowrap}.memo{min-width:180px}.empty{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:32px;text-align:center;color:#667085}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1120px;margin:20px auto;padding:0 18px}.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}h1{margin:0;font-size:26px}.meta{color:#667085;margin-top:6px}.filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}.btn,select{border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:700}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.group{background:#fff;border:1px solid #d9dee7;border-radius:8px;margin-bottom:14px;overflow:hidden}.group-head{display:flex;justify-content:space-between;gap:12px;background:#15204a;color:#fff;padding:10px 12px;font-weight:900}.group-head small{font-weight:600;color:#dbeafe}.stop-head{background:#eef2f7;padding:8px 12px;font-weight:900;border-top:1px solid #d9dee7}table{width:100%;border-collapse:collapse}th,td{border-top:1px solid #e2e8f0;padding:6px 7px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}.left{text-align:left}.phone{white-space:nowrap}.memo{min-width:180px}.empty{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:32px;text-align:center;color:#667085}
 @media print{@page{size:A4;margin:8mm}body{background:#fff;font-size:11px}.filter,.print-hide{display:none}.wrap{max-width:none;margin:0;padding:0}.topline{margin-bottom:8px}h1{font-size:20px}.meta{font-size:11px}.group{break-inside:avoid;border-color:#999;margin-bottom:8px}.group-head{background:#eee!important;color:#111!important;padding:6px 8px}.group-head small{color:#333}.stop-head{background:#f4f4f4!important;padding:5px 8px}th{background:#ddd!important;color:#111!important}th,td{font-size:10.5px;padding:4px 5px}.memo{min-width:120px}}
 </style>
 </head>
@@ -123,11 +123,10 @@ $rows = sql_query("
             }
             $current_stop = $stop_key;
             echo '<div class="stop-head">' . get_text($row['stop_time'] . ' ' . $row['stop_name']) . '</div>';
-            echo '<table><thead><tr><th class="check">확인</th><th>학생명</th><th>학년/부</th><th>수업부</th><th>연락처</th><th class="left memo">메모</th></tr></thead><tbody>';
+            echo '<table><thead><tr><th>학생명</th><th>학년/부</th><th>수업부</th><th>연락처</th><th class="left memo">메모</th></tr></thead><tbody>';
         }
         $student_count++;
         echo '<tr>';
-        echo '<td class="check">□</td>';
         echo '<td>' . get_text($row['student_name']) . '</td>';
         echo '<td>' . get_text(ieum_journal_grade_label($row['grade_group'])) . '</td>';
         echo '<td>' . get_text(trim(($row['class_name'] ?: '') . ' ' . ($row['class_start_time'] ?: ''))) . '</td>';

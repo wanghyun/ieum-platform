@@ -686,8 +686,8 @@ textarea{min-height:82px;resize:vertical}
 .actions{margin-top:18px;display:flex;gap:8px}
 .count{color:#5b6472}
 .summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.chip{background:#eef2f7;border:1px solid #d8dee9;border-radius:999px;padding:6px 10px;font-weight:800;color:#344054;text-decoration:none}.chip.active{background:#1769c2;color:#fff;border-color:#1769c2}
-.guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px 1fr 120px 1fr;gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-row{display:grid;grid-template-columns:auto 90px 120px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}.vehicle-memo{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-contact{display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-memo span,.vehicle-contact span{font-weight:900;color:#344054}
-@media (max-width:720px){.form-grid{grid-template-columns:1fr}.search input{min-width:0;width:100%}.search{width:100%;align-items:stretch}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}}
+.guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px minmax(160px,1fr) 120px minmax(140px,1fr);gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.money-field{display:grid;grid-template-columns:auto 1fr auto;align-items:center;border:1px solid #cfd6df;border-radius:6px;background:#fff;overflow:hidden}.money-field span,.money-field em{height:40px;display:flex;align-items:center;padding:0 10px;background:#f8fafc;color:#667085;font-style:normal;font-weight:900;white-space:nowrap}.money-field input{border:0;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-radius:0;text-align:right;font-weight:800}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-row{display:grid;grid-template-columns:auto 90px 120px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}.vehicle-memo{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-contact{display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-memo span,.vehicle-contact span{font-weight:900;color:#344054}
+@media (max-width:720px){.form-grid{grid-template-columns:1fr}.search input{min-width:0;width:100%}.search{width:100%;align-items:stretch}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.guardian-row{grid-template-columns:1fr}.weekday-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}}
 </style>
 </head>
 <body>
@@ -888,9 +888,9 @@ textarea{min-height:82px;resize:vertical}
                             <option value="<?php echo get_text($value); ?>" <?php echo get_selected($form['tuition_week_type'] ?: $form['attendance_week_type'], $value); ?>><?php echo get_text($label); ?></option>
                             <?php } ?>
                         </select>
-                        <input type="number" name="tuition_amount" id="tuition_amount" value="<?php echo (int) $form['tuition_amount']; ?>" min="0" placeholder="월 수련비">
+                        <label class="money-field" for="tuition_amount"><span>월</span><input type="number" name="tuition_amount" id="tuition_amount" value="<?php echo (int) $form['tuition_amount']; ?>" min="0" placeholder="수련비"><em>원</em></label>
                         <label class="inline-check"><input type="checkbox" name="sibling_discount_enabled" id="sibling_discount_enabled" value="1" <?php echo !empty($form['sibling_discount_enabled']) ? 'checked' : ''; ?>> 형제할인</label>
-                        <input type="number" name="sibling_discount_amount" id="sibling_discount_amount" value="<?php echo (int) $form['sibling_discount_amount']; ?>" min="0" placeholder="할인금액">
+                        <label class="money-field" for="sibling_discount_amount"><span>할인</span><input type="number" name="sibling_discount_amount" id="sibling_discount_amount" value="<?php echo (int) $form['sibling_discount_amount']; ?>" min="0" placeholder="금액"><em>원</em></label>
                     </div>
                     <div class="tuition-row second">
                         <label class="due-label" for="tuition_due_day">매월 납부일</label>
@@ -1113,6 +1113,26 @@ const weekdayInputs = document.querySelectorAll('#weekdayCards input[type="check
 function digitsOnly(value) {
     return (value || '').replace(/\D/g, '');
 }
+function formatKoreanPhone(value) {
+    const digits = digitsOnly(value).slice(0, 11);
+    if (digits.length <= 2) return digits;
+    if (digits.startsWith('02')) {
+        if (digits.length <= 5) return digits.slice(0, 2) + '-' + digits.slice(2);
+        if (digits.length <= 9) return digits.slice(0, 2) + '-' + digits.slice(2, 5) + '-' + digits.slice(5);
+        return digits.slice(0, 2) + '-' + digits.slice(2, 6) + '-' + digits.slice(6);
+    }
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 7) return digits.slice(0, 3) + '-' + digits.slice(3);
+    return digits.slice(0, 3) + '-' + digits.slice(3, 7) + '-' + digits.slice(7);
+}
+function bindPhoneFormatter(input) {
+    if (!input || input.dataset.phoneBound === '1') return;
+    input.dataset.phoneBound = '1';
+    input.value = formatKoreanPhone(input.value);
+    input.addEventListener('input', () => {
+        input.value = formatKoreanPhone(input.value);
+    });
+}
 function syncWeekdayCards() {
     weekdayCards.forEach((card) => {
         const input = card.querySelector('input[type="checkbox"]');
@@ -1230,6 +1250,7 @@ function bindGuardianRow(row) {
     const remove = row.querySelector('.remove-guardian');
     const useCode = row.querySelector('.use-code');
     const primary = row.querySelector('.primary-guardian');
+    bindPhoneFormatter(row.querySelector('input[name="guardian_phone[]"]'));
     if (remove) {
         remove.addEventListener('click', () => {
             if (!guardianList || guardianList.querySelectorAll('.guardian-row').length <= 1) return;
@@ -1316,10 +1337,13 @@ document.querySelectorAll('.vehicle-contact-select').forEach((select) => {
     select.addEventListener('change', () => {
         const target = document.getElementById(select.dataset.target);
         if (target && select.value) {
-            target.value = select.value;
+            target.value = formatKoreanPhone(select.value);
         }
     });
 });
+bindPhoneFormatter(document.getElementById('student_phone'));
+bindPhoneFormatter(document.getElementById('vehicle_pickup_contact_phone'));
+bindPhoneFormatter(document.getElementById('vehicle_dropoff_contact_phone'));
 </script>
 </body>
 </html>
