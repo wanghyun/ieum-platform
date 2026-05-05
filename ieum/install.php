@@ -162,6 +162,42 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ");
 
     sql_query("
+        create table if not exists " . IEUM_VEHICLE_ROUTE_TABLE . " (
+            route_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            route_type varchar(20) not null default 'both',
+            route_name varchar(80) not null default '',
+            vehicle_label varchar(50) not null default '',
+            driver_name varchar(50) not null default '',
+            driver_phone varchar(30) not null default '',
+            sort_order int unsigned not null default 0,
+            is_active tinyint(1) not null default 1,
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (route_id),
+            key idx_academy_type (academy_id, route_type, is_active, sort_order)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
+        create table if not exists " . IEUM_STUDENT_VEHICLE_TABLE . " (
+            student_vehicle_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            student_id int unsigned not null,
+            ride_type varchar(20) not null,
+            route_id int unsigned not null default 0,
+            place_name varchar(100) not null default '',
+            memo varchar(255) not null default '',
+            is_active tinyint(1) not null default 1,
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (student_vehicle_id),
+            key idx_student_type (academy_id, student_id, ride_type, is_active),
+            key idx_route (academy_id, route_id, is_active)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
         create table if not exists " . IEUM_ATTENDANCE_TABLE . " (
             attendance_id int unsigned not null auto_increment,
             academy_id int unsigned not null default 1,

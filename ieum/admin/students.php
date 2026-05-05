@@ -125,6 +125,93 @@ function ieum_fetch_guardians($academy_id, $student_id)
     return $rows;
 }
 
+function ieum_fetch_vehicle_routes($academy_id)
+{
+    $academy_id = (int) $academy_id;
+    $routes = array();
+    $result = sql_query("
+        select *
+          from " . IEUM_VEHICLE_ROUTE_TABLE . "
+         where academy_id = '{$academy_id}'
+           and is_active = 1
+      order by sort_order asc, route_name asc
+    ", false);
+
+    while ($row = sql_fetch_array($result)) {
+        $routes[] = $row;
+    }
+
+    return $routes;
+}
+
+function ieum_fetch_vehicle_assignments($academy_id, $student_id)
+{
+    $academy_id = (int) $academy_id;
+    $student_id = (int) $student_id;
+    $items = array(
+        'pickup' => null,
+        'dropoff' => null,
+    );
+
+    if (!$student_id) {
+        return $items;
+    }
+
+    $result = sql_query("
+        select sv.*, r.route_name
+          from " . IEUM_STUDENT_VEHICLE_TABLE . " sv
+     left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = sv.route_id and r.academy_id = sv.academy_id
+         where sv.academy_id = '{$academy_id}'
+           and sv.student_id = '{$student_id}'
+           and sv.is_active = 1
+      order by sv.student_vehicle_id desc
+    ", false);
+
+    while ($row = sql_fetch_array($result)) {
+        if ($row['ride_type'] === 'pickup' || $row['ride_type'] === 'dropoff') {
+            $items[$row['ride_type']] = $row;
+        }
+    }
+
+    return $items;
+}
+
+function ieum_save_vehicle_assignment($academy_id, $student_id, $ride_type, $enabled, $route_id, $place_name)
+{
+    $academy_id = (int) $academy_id;
+    $student_id = (int) $student_id;
+    $ride_type = $ride_type === 'dropoff' ? 'dropoff' : 'pickup';
+    $enabled = $enabled ? 1 : 0;
+    $route_id = (int) $route_id;
+    $place_name = trim($place_name);
+    $ride_type_sql = sql_escape_string($ride_type);
+
+    sql_query("
+        update " . IEUM_STUDENT_VEHICLE_TABLE . "
+           set is_active = 0,
+               updated_at = '" . G5_TIME_YMDHIS . "'
+         where academy_id = '{$academy_id}'
+           and student_id = '{$student_id}'
+           and ride_type = '{$ride_type_sql}'
+    ");
+
+    if (!$enabled) {
+        return;
+    }
+
+    $place_name_sql = sql_escape_string($place_name);
+    sql_query("
+        insert into " . IEUM_STUDENT_VEHICLE_TABLE . "
+            set academy_id = '{$academy_id}',
+                student_id = '{$student_id}',
+                ride_type = '{$ride_type_sql}',
+                route_id = '{$route_id}',
+                place_name = '{$place_name_sql}',
+                is_active = 1,
+                created_at = '" . G5_TIME_YMDHIS . "'
+    ");
+}
+
 function ieum_save_guardians($academy_id, $student_id, $names, $relations, $phones, $checkin_flags, $checkout_flags, $code_flags, $primary_flags)
 {
     $academy_id = (int) $academy_id;
@@ -251,8 +338,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $tuition_note = isset($_POST['tuition_note']) ? trim($_POST['tuition_note']) : '';
             $vehicle_pickup_enabled = isset($_POST['vehicle_pickup_enabled']) ? 1 : 0;
+            $vehicle_pickup_route_id = isset($_POST['vehicle_pickup_route_id']) ? (int) $_POST['vehicle_pickup_route_id'] : 0;
             $vehicle_pickup_place = isset($_POST['vehicle_pickup_place']) ? trim($_POST['vehicle_pickup_place']) : '';
             $vehicle_dropoff_enabled = isset($_POST['vehicle_dropoff_enabled']) ? 1 : 0;
+            $vehicle_dropoff_route_id = isset($_POST['vehicle_dropoff_route_id']) ? (int) $_POST['vehicle_dropoff_route_id'] : 0;
             $vehicle_dropoff_place = isset($_POST['vehicle_dropoff_place']) ? trim($_POST['vehicle_dropoff_place']) : '';
             $guardian_names = isset($_POST['guardian_name']) && is_array($_POST['guardian_name']) ? $_POST['guardian_name'] : array();
             $guardian_relations = isset($_POST['guardian_relation']) && is_array($_POST['guardian_relation']) ? $_POST['guardian_relation'] : array();
@@ -382,6 +471,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                          where academy_id = '{$academy_id}'
                            and student_id = '{$saved_student_id}'
                     ");
+                    ieum_save_vehicle_assignment($academy_id, $saved_student_id, 'pickup', $vehicle_pickup_enabled, $vehicle_pickup_route_id, $vehicle_pickup_place);
+                    ieum_save_vehicle_assignment($academy_id, $saved_student_id, 'dropoff', $vehicle_dropoff_enabled, $vehicle_dropoff_route_id, $vehicle_dropoff_place);
                     $mode = 'list';
                     $student_id = 0;
                 }
@@ -443,8 +534,14 @@ $students = sql_query("
               from " . IEUM_STUDENT_GUARDIAN_TABLE . " g
              where g.academy_id = s.academy_id
                and g.student_id = s.student_id
-               and g.is_active = 1) as guardian_summary
-      from " . IEUM_STUDENT_TABLE . " s
+               and g.is_active = 1) as guardian_summary,
+           (select group_concat(concat(if(sv.ride_type='pickup', '등원', '하원'), ' ', ifnull(r.route_name, ''), if(sv.place_name <> '', concat(' ', sv.place_name), '')) order by field(sv.ride_type, 'pickup', 'dropoff') separator '<br>')
+              from " . IEUM_STUDENT_VEHICLE_TABLE . " sv
+         left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = sv.route_id and r.academy_id = sv.academy_id
+             where sv.academy_id = s.academy_id
+               and sv.student_id = s.student_id
+               and sv.is_active = 1) as vehicle_summary
+     from " . IEUM_STUDENT_TABLE . " s
  left join " . IEUM_CLASS_TIME_TABLE . " c on c.class_time_id = s.class_time_id and c.academy_id = s.academy_id
       {$where}
   order by s.is_active desc, s.student_name asc, s.student_code asc
@@ -475,6 +572,8 @@ $tuition_plan_options = array();
 while ($plan = sql_fetch_array($tuition_plans)) {
     $tuition_plan_options[] = $plan;
 }
+
+$vehicle_route_options = ieum_fetch_vehicle_routes($academy_id);
 
 $total = sql_fetch("
     select count(*) as cnt
@@ -543,7 +642,7 @@ textarea{min-height:82px;resize:vertical}
 .actions{margin-top:18px;display:flex;gap:8px}
 .count{color:#5b6472}
 .summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.chip{background:#eef2f7;border:1px solid #d8dee9;border-radius:999px;padding:6px 10px;font-weight:800;color:#344054;text-decoration:none}.chip.active{background:#1769c2;color:#fff;border-color:#1769c2}
-.guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px 1fr 120px 1fr;gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-row{display:grid;grid-template-columns:auto 80px 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}
+.guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px 1fr 120px 1fr;gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-row{display:grid;grid-template-columns:auto 90px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}
 @media (max-width:720px){.form-grid{grid-template-columns:1fr}.search input{min-width:0;width:100%}.search{width:100%;align-items:stretch}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}}
 </style>
 </head>
@@ -593,8 +692,10 @@ textarea{min-height:82px;resize:vertical}
             'tuition_due_day' => 5,
             'tuition_note' => '',
             'vehicle_pickup_enabled' => 0,
+            'vehicle_pickup_route_id' => 0,
             'vehicle_pickup_place' => '',
             'vehicle_dropoff_enabled' => 0,
+            'vehicle_dropoff_route_id' => 0,
             'vehicle_dropoff_place' => '',
             'parent_name' => '',
             'parent_phone' => '',
@@ -612,6 +713,21 @@ textarea{min-height:82px;resize:vertical}
                 'use_for_student_code' => 0,
                 'is_primary' => 1,
             );
+        }
+        $vehicle_assignments = $editing ? ieum_fetch_vehicle_assignments($academy_id, (int) $form['student_id']) : array('pickup' => null, 'dropoff' => null);
+        if ($vehicle_assignments['pickup']) {
+            $form['vehicle_pickup_enabled'] = 1;
+            $form['vehicle_pickup_route_id'] = (int) $vehicle_assignments['pickup']['route_id'];
+            $form['vehicle_pickup_place'] = $vehicle_assignments['pickup']['place_name'];
+        } elseif (!isset($form['vehicle_pickup_route_id'])) {
+            $form['vehicle_pickup_route_id'] = 0;
+        }
+        if ($vehicle_assignments['dropoff']) {
+            $form['vehicle_dropoff_enabled'] = 1;
+            $form['vehicle_dropoff_route_id'] = (int) $vehicle_assignments['dropoff']['route_id'];
+            $form['vehicle_dropoff_place'] = $vehicle_assignments['dropoff']['place_name'];
+        } elseif (!isset($form['vehicle_dropoff_route_id'])) {
+            $form['vehicle_dropoff_route_id'] = 0;
         }
     ?>
     <section class="panel">
@@ -723,12 +839,22 @@ textarea{min-height:82px;resize:vertical}
                     <label class="vehicle-row">
                         <input type="checkbox" name="vehicle_pickup_enabled" id="vehicle_pickup_enabled" value="1" <?php echo !empty($form['vehicle_pickup_enabled']) ? 'checked' : ''; ?>>
                         <span>등원 차량</span>
-                        <input type="text" name="vehicle_pickup_place" id="vehicle_pickup_place" value="<?php echo get_text($form['vehicle_pickup_place']); ?>" maxlength="100" placeholder="예: 아이이음초등학교">
+                        <select name="vehicle_pickup_route_id" id="vehicle_pickup_route_id">
+                            <option value="0">노선 선택 안함</option>
+                            <?php foreach ($vehicle_route_options as $route) { if ($route['route_type'] === 'dropoff') { continue; } ?>
+                            <option value="<?php echo (int) $route['route_id']; ?>" <?php echo get_selected((int) $form['vehicle_pickup_route_id'], (int) $route['route_id']); ?>><?php echo get_text($route['route_name']); ?></option>
+                            <?php } ?>
+                        </select>                        <input type="text" name="vehicle_pickup_place" id="vehicle_pickup_place" value="<?php echo get_text($form['vehicle_pickup_place']); ?>" maxlength="100" placeholder="예: 아이이음초등학교">
                     </label>
                     <label class="vehicle-row">
                         <input type="checkbox" name="vehicle_dropoff_enabled" id="vehicle_dropoff_enabled" value="1" <?php echo !empty($form['vehicle_dropoff_enabled']) ? 'checked' : ''; ?>>
                         <span>하원 차량</span>
-                        <input type="text" name="vehicle_dropoff_place" id="vehicle_dropoff_place" value="<?php echo get_text($form['vehicle_dropoff_place']); ?>" maxlength="100" placeholder="예: 아이이음 아파트 1004동">
+                        <select name="vehicle_dropoff_route_id" id="vehicle_dropoff_route_id">
+                            <option value="0">노선 선택 안함</option>
+                            <?php foreach ($vehicle_route_options as $route) { if ($route['route_type'] === 'pickup') { continue; } ?>
+                            <option value="<?php echo (int) $route['route_id']; ?>" <?php echo get_selected((int) $form['vehicle_dropoff_route_id'], (int) $route['route_id']); ?>><?php echo get_text($route['route_name']); ?></option>
+                            <?php } ?>
+                        </select>                        <input type="text" name="vehicle_dropoff_place" id="vehicle_dropoff_place" value="<?php echo get_text($form['vehicle_dropoff_place']); ?>" maxlength="100" placeholder="예: 아이이음 아파트 1004동">
                     </label>
                     <div class="weekday-help">등원/하원 위치를 따로 관리하면 차량표, 미탑승 확인, 하원 알림 문구에 활용할 수 있습니다.</div>
                 </div>
@@ -797,6 +923,7 @@ textarea{min-height:82px;resize:vertical}
                 <th scope="col">수업 부</th>
                 <th scope="col">출석 요일</th>
                 <th scope="col">보호자</th>
+                <th scope="col">차량</th>
                 <th scope="col">메모</th>
                 <th scope="col">관리</th>
             </tr>
@@ -816,6 +943,7 @@ textarea{min-height:82px;resize:vertical}
                 <td><?php echo get_text($row['class_name'] ? $row['class_name'] . ' ' . $row['start_time'] : ''); ?></td>
                 <td><?php echo get_text(ieum_attendance_days_label(isset($row['attendance_days']) ? $row['attendance_days'] : '')); ?></td>
                 <td class="left"><?php echo $row['guardian_summary'] ? nl2br(get_text(str_replace('<br>', "\n", $row['guardian_summary']))) : ''; ?></td>
+                <td class="left"><?php echo $row['vehicle_summary'] ? nl2br(get_text(str_replace('<br>', "\n", $row['vehicle_summary']))) : ''; ?></td>
                 <td class="left"><?php echo get_text($row['memo']); ?></td>
                 <td>
                     <a class="btn" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form&amp;student_id=<?php echo (int) $row['student_id']; ?>">수정</a>

@@ -16,6 +16,7 @@ function ieum_admin_nav_items()
         'classes' => array('label' => '수업 시간표', 'url' => IEUM_URL . '/admin/class_times.php'),
         'contacts' => array('label' => '알림 담당자', 'url' => IEUM_URL . '/admin/contacts.php'),
         'tuition' => array('label' => '수련비', 'url' => IEUM_URL . '/admin/tuition.php'),
+        'vehicles' => array('label' => '차량 관리', 'url' => IEUM_URL . '/admin/vehicles.php'),
         'project' => array('label' => '진행 현황', 'url' => IEUM_URL . '/project_status.php?token=' . (defined('IEUM_PROJECT_STATUS_TOKEN') ? IEUM_PROJECT_STATUS_TOKEN : '')),
     );
 
