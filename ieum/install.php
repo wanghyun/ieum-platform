@@ -207,6 +207,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             route_id int unsigned not null default 0,
             stop_id int unsigned not null default 0,
             place_name varchar(100) not null default '',
+            contact_phone varchar(30) not null default '',
             memo varchar(255) not null default '',
             is_active tinyint(1) not null default 1,
             created_at datetime not null,
@@ -218,6 +219,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
         ) engine={$engine} default charset={$charset}
     ");
     ieum_install_add_column_if_missing(IEUM_STUDENT_VEHICLE_TABLE, 'stop_id', 'int unsigned not null default 0 after route_id');
+    ieum_install_add_column_if_missing(IEUM_STUDENT_VEHICLE_TABLE, 'contact_phone', "varchar(30) not null default '' after place_name");
 
     sql_query("
         create table if not exists " . IEUM_ATTENDANCE_TABLE . " (

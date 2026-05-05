@@ -49,17 +49,10 @@ $routes = sql_query("
 ", false);
 
 $rows = sql_query("
-    select sv.ride_type, sv.place_name, sv.memo as vehicle_memo, s.student_code, s.student_name, s.student_phone, s.grade_group, s.memo as student_memo,
+    select sv.ride_type, sv.place_name, sv.contact_phone, sv.memo as vehicle_memo, s.student_name, s.grade_group, s.memo as student_memo,
            c.class_name, c.start_time as class_start_time,
            st.stop_id, st.stop_name, st.stop_time,
-           r.route_id, r.route_name, r.vehicle_label, r.driver_name, r.driver_phone,
-           (select g.guardian_phone
-              from " . IEUM_STUDENT_GUARDIAN_TABLE . " g
-             where g.academy_id = s.academy_id
-               and g.student_id = s.student_id
-               and g.is_active = 1
-          order by g.is_primary desc, g.sms_attendance desc, g.sort_order asc, g.guardian_id asc
-             limit 1) as guardian_phone
+           r.route_id, r.route_name, r.vehicle_label, r.driver_name, r.driver_phone
       from " . IEUM_STUDENT_VEHICLE_TABLE . " sv
       join " . IEUM_STUDENT_TABLE . " s on s.student_id = sv.student_id and s.academy_id = sv.academy_id
  left join " . IEUM_CLASS_TIME_TABLE . " c on c.class_time_id = s.class_time_id and c.academy_id = s.academy_id
@@ -76,8 +69,8 @@ $rows = sql_query("
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1240px;margin:24px auto;padding:0 20px}.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}h1{margin:0;font-size:26px}.meta{color:#667085;margin-top:6px}.filter{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}.btn,select{border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:700}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.group{background:#fff;border:1px solid #d9dee7;border-radius:8px;margin-bottom:18px;overflow:hidden}.group-head{display:flex;justify-content:space-between;gap:12px;background:#15204a;color:#fff;padding:12px 14px;font-weight:900}.group-head small{font-weight:600;color:#dbeafe}.stop-head{background:#eef2f7;padding:10px 14px;font-weight:900;border-top:1px solid #d9dee7}table{width:100%;border-collapse:collapse}th,td{border-top:1px solid #e2e8f0;padding:8px 9px;text-align:center}th{background:#72829d;color:#fff}.left{text-align:left}.check{width:48px}.phone{white-space:nowrap}.memo{min-width:180px}.empty{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:32px;text-align:center;color:#667085}
-@media print{body{background:#fff}.filter,.print-hide{display:none}.wrap{max-width:none;margin:0;padding:0}.group{break-inside:avoid;border-color:#999}.group-head{background:#eee!important;color:#111!important}.stop-head{background:#f4f4f4!important}th{background:#ddd!important;color:#111!important}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1120px;margin:20px auto;padding:0 18px}.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}h1{margin:0;font-size:26px}.meta{color:#667085;margin-top:6px}.filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}.btn,select{border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:700}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.group{background:#fff;border:1px solid #d9dee7;border-radius:8px;margin-bottom:14px;overflow:hidden}.group-head{display:flex;justify-content:space-between;gap:12px;background:#15204a;color:#fff;padding:10px 12px;font-weight:900}.group-head small{font-weight:600;color:#dbeafe}.stop-head{background:#eef2f7;padding:8px 12px;font-weight:900;border-top:1px solid #d9dee7}table{width:100%;border-collapse:collapse}th,td{border-top:1px solid #e2e8f0;padding:6px 7px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}.left{text-align:left}.check{width:42px}.phone{white-space:nowrap}.memo{min-width:180px}.empty{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:32px;text-align:center;color:#667085}
+@media print{@page{size:A4;margin:8mm}body{background:#fff;font-size:11px}.filter,.print-hide{display:none}.wrap{max-width:none;margin:0;padding:0}.topline{margin-bottom:8px}h1{font-size:20px}.meta{font-size:11px}.group{break-inside:avoid;border-color:#999;margin-bottom:8px}.group-head{background:#eee!important;color:#111!important;padding:6px 8px}.group-head small{color:#333}.stop-head{background:#f4f4f4!important;padding:5px 8px}th{background:#ddd!important;color:#111!important}th,td{font-size:10.5px;padding:4px 5px}.memo{min-width:120px}}
 </style>
 </head>
 <body>
@@ -130,17 +123,15 @@ $rows = sql_query("
             }
             $current_stop = $stop_key;
             echo '<div class="stop-head">' . get_text($row['stop_time'] . ' ' . $row['stop_name']) . '</div>';
-            echo '<table><thead><tr><th class="check">확인</th><th>학생번호</th><th>학생명</th><th>학년/부</th><th>수업부</th><th>학생 연락처</th><th>보호자 연락처</th><th class="left memo">메모</th></tr></thead><tbody>';
+            echo '<table><thead><tr><th class="check">확인</th><th>학생명</th><th>학년/부</th><th>수업부</th><th>연락처</th><th class="left memo">메모</th></tr></thead><tbody>';
         }
         $student_count++;
         echo '<tr>';
         echo '<td class="check">□</td>';
-        echo '<td>' . get_text($row['student_code']) . '</td>';
         echo '<td>' . get_text($row['student_name']) . '</td>';
         echo '<td>' . get_text(ieum_journal_grade_label($row['grade_group'])) . '</td>';
         echo '<td>' . get_text(trim(($row['class_name'] ?: '') . ' ' . ($row['class_start_time'] ?: ''))) . '</td>';
-        echo '<td class="phone">' . get_text($row['student_phone']) . '</td>';
-        echo '<td class="phone">' . get_text($row['guardian_phone']) . '</td>';
+        echo '<td class="phone">' . get_text($row['contact_phone']) . '</td>';
         $memo = trim(($row['vehicle_memo'] ?: $row['place_name']) . ($row['student_memo'] ? ' / ' . $row['student_memo'] : ''));
         echo '<td class="left memo">' . get_text($memo) . '</td>';
         echo '</tr>';

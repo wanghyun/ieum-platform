@@ -178,7 +178,7 @@ function ieum_fetch_vehicle_assignments($academy_id, $student_id)
     return $items;
 }
 
-function ieum_save_vehicle_assignment($academy_id, $student_id, $ride_type, $enabled, $stop_id, $place_name, $vehicle_memo)
+function ieum_save_vehicle_assignment($academy_id, $student_id, $ride_type, $enabled, $stop_id, $place_name, $contact_phone, $vehicle_memo)
 {
     $academy_id = (int) $academy_id;
     $student_id = (int) $student_id;
@@ -186,6 +186,7 @@ function ieum_save_vehicle_assignment($academy_id, $student_id, $ride_type, $ena
     $enabled = $enabled ? 1 : 0;
     $stop_id = (int) $stop_id;
     $place_name = trim($place_name);
+    $contact_phone = ieum_student_clean_phone($contact_phone);
     $vehicle_memo = trim($vehicle_memo);
     $ride_type_sql = sql_escape_string($ride_type);
 
@@ -222,6 +223,7 @@ function ieum_save_vehicle_assignment($academy_id, $student_id, $ride_type, $ena
     }
 
     $place_name_sql = sql_escape_string($place_name);
+    $contact_phone_sql = sql_escape_string($contact_phone);
     $vehicle_memo_sql = sql_escape_string($vehicle_memo);
     sql_query("
         insert into " . IEUM_STUDENT_VEHICLE_TABLE . "
@@ -231,6 +233,7 @@ function ieum_save_vehicle_assignment($academy_id, $student_id, $ride_type, $ena
                 route_id = '{$route_id}',
                 stop_id = '{$stop_id}',
                 place_name = '{$place_name_sql}',
+                contact_phone = '{$contact_phone_sql}',
                 memo = '{$vehicle_memo_sql}',
                 is_active = 1,
                 created_at = '" . G5_TIME_YMDHIS . "'
@@ -366,10 +369,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $vehicle_pickup_enabled = isset($_POST['vehicle_pickup_enabled']) ? 1 : 0;
             $vehicle_pickup_stop_id = isset($_POST['vehicle_pickup_stop_id']) ? (int) $_POST['vehicle_pickup_stop_id'] : 0;
             $vehicle_pickup_place = isset($_POST['vehicle_pickup_place']) ? trim($_POST['vehicle_pickup_place']) : '';
+            $vehicle_pickup_contact_phone = isset($_POST['vehicle_pickup_contact_phone']) ? ieum_student_clean_phone($_POST['vehicle_pickup_contact_phone']) : '';
             $vehicle_pickup_memo = isset($_POST['vehicle_pickup_memo']) ? trim($_POST['vehicle_pickup_memo']) : '';
             $vehicle_dropoff_enabled = isset($_POST['vehicle_dropoff_enabled']) ? 1 : 0;
             $vehicle_dropoff_stop_id = isset($_POST['vehicle_dropoff_stop_id']) ? (int) $_POST['vehicle_dropoff_stop_id'] : 0;
             $vehicle_dropoff_place = isset($_POST['vehicle_dropoff_place']) ? trim($_POST['vehicle_dropoff_place']) : '';
+            $vehicle_dropoff_contact_phone = isset($_POST['vehicle_dropoff_contact_phone']) ? ieum_student_clean_phone($_POST['vehicle_dropoff_contact_phone']) : '';
             $vehicle_dropoff_memo = isset($_POST['vehicle_dropoff_memo']) ? trim($_POST['vehicle_dropoff_memo']) : '';
             $guardian_names = isset($_POST['guardian_name']) && is_array($_POST['guardian_name']) ? $_POST['guardian_name'] : array();
             $guardian_relations = isset($_POST['guardian_relation']) && is_array($_POST['guardian_relation']) ? $_POST['guardian_relation'] : array();
@@ -502,8 +507,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                          where academy_id = '{$academy_id}'
                            and student_id = '{$saved_student_id}'
                     ");
-                    ieum_save_vehicle_assignment($academy_id, $saved_student_id, 'pickup', $vehicle_pickup_enabled, $vehicle_pickup_stop_id, $vehicle_pickup_place, $vehicle_pickup_memo);
-                    ieum_save_vehicle_assignment($academy_id, $saved_student_id, 'dropoff', $vehicle_dropoff_enabled, $vehicle_dropoff_stop_id, $vehicle_dropoff_place, $vehicle_dropoff_memo);
+                    ieum_save_vehicle_assignment($academy_id, $saved_student_id, 'pickup', $vehicle_pickup_enabled, $vehicle_pickup_stop_id, $vehicle_pickup_place, $vehicle_pickup_contact_phone, $vehicle_pickup_memo);
+                    ieum_save_vehicle_assignment($academy_id, $saved_student_id, 'dropoff', $vehicle_dropoff_enabled, $vehicle_dropoff_stop_id, $vehicle_dropoff_place, $vehicle_dropoff_contact_phone, $vehicle_dropoff_memo);
                     $mode = 'list';
                     $student_id = 0;
                 }
@@ -681,7 +686,7 @@ textarea{min-height:82px;resize:vertical}
 .actions{margin-top:18px;display:flex;gap:8px}
 .count{color:#5b6472}
 .summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.chip{background:#eef2f7;border:1px solid #d8dee9;border-radius:999px;padding:6px 10px;font-weight:800;color:#344054;text-decoration:none}.chip.active{background:#1769c2;color:#fff;border-color:#1769c2}
-.guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px 1fr 120px 1fr;gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-row{display:grid;grid-template-columns:auto 90px 120px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}.vehicle-memo{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-memo span{font-weight:900;color:#344054}
+.guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px 1fr 120px 1fr;gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-row{display:grid;grid-template-columns:auto 90px 120px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}.vehicle-memo{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-contact{display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-memo span,.vehicle-contact span{font-weight:900;color:#344054}
 @media (max-width:720px){.form-grid{grid-template-columns:1fr}.search input{min-width:0;width:100%}.search{width:100%;align-items:stretch}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}}
 </style>
 </head>
@@ -734,10 +739,12 @@ textarea{min-height:82px;resize:vertical}
             'vehicle_pickup_enabled' => 0,
             'vehicle_pickup_stop_id' => 0,
             'vehicle_pickup_place' => '',
+            'vehicle_pickup_contact_phone' => '',
             'vehicle_pickup_memo' => '',
             'vehicle_dropoff_enabled' => 0,
             'vehicle_dropoff_stop_id' => 0,
             'vehicle_dropoff_place' => '',
+            'vehicle_dropoff_contact_phone' => '',
             'vehicle_dropoff_memo' => '',
             'parent_name' => '',
             'parent_phone' => '',
@@ -756,11 +763,27 @@ textarea{min-height:82px;resize:vertical}
                 'is_primary' => 1,
             );
         }
+        $vehicle_contact_options = array();
+        if (!empty($form['student_phone'])) {
+            $vehicle_contact_options[] = array('label' => '학생', 'phone' => $form['student_phone']);
+        }
+        foreach ($guardians as $guardian) {
+            $guardian_phone = isset($guardian['guardian_phone']) ? trim($guardian['guardian_phone']) : '';
+            if ($guardian_phone === '') {
+                continue;
+            }
+            $guardian_label = isset($guardian['guardian_name']) && $guardian['guardian_name'] !== '' ? $guardian['guardian_name'] : '보호자';
+            if (isset($guardian['guardian_relation']) && $guardian['guardian_relation'] !== '') {
+                $guardian_label .= '(' . $guardian['guardian_relation'] . ')';
+            }
+            $vehicle_contact_options[] = array('label' => $guardian_label, 'phone' => $guardian_phone);
+        }
         $vehicle_assignments = $editing ? ieum_fetch_vehicle_assignments($academy_id, (int) $form['student_id']) : array('pickup' => null, 'dropoff' => null);
         if ($vehicle_assignments['pickup']) {
             $form['vehicle_pickup_enabled'] = 1;
             $form['vehicle_pickup_stop_id'] = (int) $vehicle_assignments['pickup']['stop_id'];
             $form['vehicle_pickup_place'] = $vehicle_assignments['pickup']['place_name'];
+            $form['vehicle_pickup_contact_phone'] = isset($vehicle_assignments['pickup']['contact_phone']) ? $vehicle_assignments['pickup']['contact_phone'] : '';
             $form['vehicle_pickup_memo'] = isset($vehicle_assignments['pickup']['memo']) ? $vehicle_assignments['pickup']['memo'] : '';
         } elseif (!isset($form['vehicle_pickup_stop_id'])) {
             $form['vehicle_pickup_stop_id'] = 0;
@@ -769,6 +792,7 @@ textarea{min-height:82px;resize:vertical}
             $form['vehicle_dropoff_enabled'] = 1;
             $form['vehicle_dropoff_stop_id'] = (int) $vehicle_assignments['dropoff']['stop_id'];
             $form['vehicle_dropoff_place'] = $vehicle_assignments['dropoff']['place_name'];
+            $form['vehicle_dropoff_contact_phone'] = isset($vehicle_assignments['dropoff']['contact_phone']) ? $vehicle_assignments['dropoff']['contact_phone'] : '';
             $form['vehicle_dropoff_memo'] = isset($vehicle_assignments['dropoff']['memo']) ? $vehicle_assignments['dropoff']['memo'] : '';
         } elseif (!isset($form['vehicle_dropoff_stop_id'])) {
             $form['vehicle_dropoff_stop_id'] = 0;
@@ -904,6 +928,16 @@ textarea{min-height:82px;resize:vertical}
                         <span>등원 메모</span>
                         <input type="text" name="vehicle_pickup_memo" id="vehicle_pickup_memo" value="<?php echo get_text(isset($form['vehicle_pickup_memo']) ? $form['vehicle_pickup_memo'] : ''); ?>" maxlength="255" placeholder="예: 정문 말고 후문, 금요일만 픽업 없음">
                     </label>
+                    <label class="vehicle-contact">
+                        <span>차량 연락처</span>
+                        <select class="vehicle-contact-select" data-target="vehicle_pickup_contact_phone">
+                            <option value="">직접 입력</option>
+                            <?php foreach ($vehicle_contact_options as $contact_option) { ?>
+                            <option value="<?php echo get_text($contact_option['phone']); ?>" <?php echo get_selected(isset($form['vehicle_pickup_contact_phone']) ? $form['vehicle_pickup_contact_phone'] : '', $contact_option['phone']); ?>><?php echo get_text($contact_option['label'] . ' ' . $contact_option['phone']); ?></option>
+                            <?php } ?>
+                        </select>
+                        <input type="text" name="vehicle_pickup_contact_phone" id="vehicle_pickup_contact_phone" value="<?php echo get_text(isset($form['vehicle_pickup_contact_phone']) ? $form['vehicle_pickup_contact_phone'] : ''); ?>" maxlength="30" placeholder="일지에 표시할 연락처 1개">
+                    </label>
                     <label class="vehicle-row">
                         <input type="checkbox" name="vehicle_dropoff_enabled" id="vehicle_dropoff_enabled" value="1" <?php echo !empty($form['vehicle_dropoff_enabled']) ? 'checked' : ''; ?>>
                         <span>하원 차량</span>
@@ -924,6 +958,16 @@ textarea{min-height:82px;resize:vertical}
                     <label class="vehicle-memo">
                         <span>하원 메모</span>
                         <input type="text" name="vehicle_dropoff_memo" id="vehicle_dropoff_memo" value="<?php echo get_text(isset($form['vehicle_dropoff_memo']) ? $form['vehicle_dropoff_memo'] : ''); ?>" maxlength="255" placeholder="예: 어학원 앞 하차, 보호자 확인 후 하차">
+                    </label>
+                    <label class="vehicle-contact">
+                        <span>차량 연락처</span>
+                        <select class="vehicle-contact-select" data-target="vehicle_dropoff_contact_phone">
+                            <option value="">직접 입력</option>
+                            <?php foreach ($vehicle_contact_options as $contact_option) { ?>
+                            <option value="<?php echo get_text($contact_option['phone']); ?>" <?php echo get_selected(isset($form['vehicle_dropoff_contact_phone']) ? $form['vehicle_dropoff_contact_phone'] : '', $contact_option['phone']); ?>><?php echo get_text($contact_option['label'] . ' ' . $contact_option['phone']); ?></option>
+                            <?php } ?>
+                        </select>
+                        <input type="text" name="vehicle_dropoff_contact_phone" id="vehicle_dropoff_contact_phone" value="<?php echo get_text(isset($form['vehicle_dropoff_contact_phone']) ? $form['vehicle_dropoff_contact_phone'] : ''); ?>" maxlength="30" placeholder="일지에 표시할 연락처 1개">
                     </label>
                     <div class="weekday-help">등원/하원 위치를 따로 관리하면 차량표, 미탑승 확인, 하원 알림 문구에 활용할 수 있습니다.</div>
                 </div>
@@ -1267,6 +1311,14 @@ function applyVehicleFilter(filter) {
 document.querySelectorAll('.vehicle-filter').forEach((filter) => {
     syncVehicleFilter(filter);
     filter.addEventListener('change', () => applyVehicleFilter(filter));
+});
+document.querySelectorAll('.vehicle-contact-select').forEach((select) => {
+    select.addEventListener('change', () => {
+        const target = document.getElementById(select.dataset.target);
+        if (target && select.value) {
+            target.value = select.value;
+        }
+    });
 });
 </script>
 </body>
