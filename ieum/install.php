@@ -95,6 +95,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             academy_id int unsigned not null default 1,
             student_code varchar(20) not null,
             student_name varchar(50) not null,
+            student_phone varchar(30) not null default '',
             grade_group varchar(20) not null default '',
             class_time_id int unsigned not null default 0,
             attendance_week_type varchar(20) not null default '5',
@@ -259,6 +260,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ieum_install_add_column_if_missing(IEUM_CLASS_TIME_TABLE, 'absent_alert_enabled', 'tinyint(1) not null default 1');
     ieum_install_add_column_if_missing(IEUM_CLASS_TIME_TABLE, 'absent_alert_after_minutes', 'smallint unsigned not null default 10');
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'attendance_week_type', "varchar(20) not null default '5'");
+    ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'student_phone', "varchar(30) not null default '' after student_name");
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'attendance_days', "varchar(50) not null default 'mon,tue,wed,thu,fri'");
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'admission_date', 'date null');
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'tuition_week_type', "varchar(20) not null default '5'");

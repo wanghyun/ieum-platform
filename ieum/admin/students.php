@@ -326,6 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'save') {
             $student_code = isset($_POST['student_code']) ? preg_replace('/[^0-9A-Za-z_-]/', '', trim($_POST['student_code'])) : '';
             $student_name = isset($_POST['student_name']) ? trim($_POST['student_name']) : '';
+            $student_phone = isset($_POST['student_phone']) ? ieum_student_clean_phone($_POST['student_phone']) : '';
             $grade_group = isset($_POST['grade_group']) ? preg_replace('/[^0-9A-Za-z_]/', '', trim($_POST['grade_group'])) : '';
             $class_time_id = isset($_POST['class_time_id']) ? (int) $_POST['class_time_id'] : 0;
             $attendance_week_type = isset($_POST['attendance_week_type']) ? preg_replace('/[^0-9a-z_]/', '', trim($_POST['attendance_week_type'])) : '5';
@@ -408,6 +409,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $error = '이미 사용 중인 학생번호입니다.';
                 } else {
                     $student_name_sql = sql_escape_string($student_name);
+                    $student_phone_sql = sql_escape_string($student_phone);
                     $grade_group_sql = sql_escape_string($grade_group);
                     $attendance_week_type_sql = sql_escape_string($attendance_week_type);
                     $attendance_days_sql = sql_escape_string($attendance_days);
@@ -424,6 +426,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             update " . IEUM_STUDENT_TABLE . "
                                set student_code = '{$student_code_sql}',
                                    student_name = '{$student_name_sql}',
+                                   student_phone = '{$student_phone_sql}',
                                    grade_group = '{$grade_group_sql}',
                                    class_time_id = '{$class_time_id}',
                                    attendance_week_type = '{$attendance_week_type_sql}',
@@ -453,6 +456,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 set academy_id = '{$academy_id}',
                                     student_code = '{$student_code_sql}',
                                     student_name = '{$student_name_sql}',
+                                    student_phone = '{$student_phone_sql}',
                                     grade_group = '{$grade_group_sql}',
                                     class_time_id = '{$class_time_id}',
                                     attendance_week_type = '{$attendance_week_type_sql}',
@@ -538,7 +542,7 @@ $q_sql = sql_escape_string($q);
 $where = " where 1 ";
 $where .= " and s.academy_id = '{$academy_id}' ";
 if ($q !== '') {
-    $where .= " and (s.student_code like '%{$q_sql}%' or s.student_name like '%{$q_sql}%' or exists (select 1 from " . IEUM_STUDENT_GUARDIAN_TABLE . " g where g.student_id = s.student_id and g.is_active = 1 and (g.guardian_name like '%{$q_sql}%' or g.guardian_phone like '%{$q_sql}%'))) ";
+    $where .= " and (s.student_code like '%{$q_sql}%' or s.student_name like '%{$q_sql}%' or s.student_phone like '%{$q_sql}%' or exists (select 1 from " . IEUM_STUDENT_GUARDIAN_TABLE . " g where g.student_id = s.student_id and g.is_active = 1 and (g.guardian_name like '%{$q_sql}%' or g.guardian_phone like '%{$q_sql}%'))) ";
 }
 if ($filter_grade !== '') {
     $filter_grade_sql = sql_escape_string($filter_grade);
@@ -597,6 +601,13 @@ while ($plan = sql_fetch_array($tuition_plans)) {
 }
 
 $vehicle_stop_options = ieum_fetch_vehicle_routes($academy_id);
+$vehicle_label_options = array();
+foreach ($vehicle_stop_options as $stop_option) {
+    $vehicle_label = isset($stop_option['vehicle_label']) ? trim($stop_option['vehicle_label']) : '';
+    if ($vehicle_label !== '' && !in_array($vehicle_label, $vehicle_label_options, true)) {
+        $vehicle_label_options[] = $vehicle_label;
+    }
+}
 
 $total = sql_fetch("
     select count(*) as cnt
@@ -665,7 +676,7 @@ textarea{min-height:82px;resize:vertical}
 .actions{margin-top:18px;display:flex;gap:8px}
 .count{color:#5b6472}
 .summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.chip{background:#eef2f7;border:1px solid #d8dee9;border-radius:999px;padding:6px 10px;font-weight:800;color:#344054;text-decoration:none}.chip.active{background:#1769c2;color:#fff;border-color:#1769c2}
-.guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px 1fr 120px 1fr;gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-row{display:grid;grid-template-columns:auto 90px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}
+.guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px 1fr 120px 1fr;gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-row{display:grid;grid-template-columns:auto 90px 120px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}
 @media (max-width:720px){.form-grid{grid-template-columns:1fr}.search input{min-width:0;width:100%}.search{width:100%;align-items:stretch}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}}
 </style>
 </head>
@@ -703,6 +714,7 @@ textarea{min-height:82px;resize:vertical}
             'student_id' => 0,
             'student_code' => '',
             'student_name' => '',
+            'student_phone' => '',
             'grade_group' => '',
             'class_time_id' => 0,
             'attendance_week_type' => '5',
@@ -764,6 +776,9 @@ textarea{min-height:82px;resize:vertical}
 
                 <label for="student_name">학생명</label>
                 <input type="text" name="student_name" id="student_name" value="<?php echo get_text($form['student_name']); ?>" maxlength="50" required>
+
+                <label for="student_phone">학생 연락처</label>
+                <input type="text" name="student_phone" id="student_phone" value="<?php echo get_text(isset($form['student_phone']) ? $form['student_phone'] : ''); ?>" maxlength="30" placeholder="학생 휴대폰이 있으면 입력">
 
                 <label for="grade_group">학년/부</label>
                 <select name="grade_group" id="grade_group">
@@ -862,22 +877,34 @@ textarea{min-height:82px;resize:vertical}
                     <label class="vehicle-row">
                         <input type="checkbox" name="vehicle_pickup_enabled" id="vehicle_pickup_enabled" value="1" <?php echo !empty($form['vehicle_pickup_enabled']) ? 'checked' : ''; ?>>
                         <span>등원 차량</span>
+                        <select id="vehicle_pickup_vehicle" class="vehicle-filter" data-target="vehicle_pickup_stop_id">
+                            <option value="">전체 차량</option>
+                            <?php foreach ($vehicle_label_options as $vehicle_label) { ?>
+                            <option value="<?php echo get_text($vehicle_label); ?>"><?php echo get_text($vehicle_label); ?></option>
+                            <?php } ?>
+                        </select>
                         <select name="vehicle_pickup_stop_id" id="vehicle_pickup_stop_id">
                             <option value="0">노선 선택 안함</option>
                             <?php foreach ($vehicle_stop_options as $stop) { if ($stop['stop_type'] === 'dropoff') { continue; } ?>
                             <?php $stop_label = trim($stop['stop_time'] . ' ' . $stop['stop_name'] . (isset($stop['route_name']) && $stop['route_name'] !== '' ? ' / ' . $stop['route_name'] : '')); ?>
-                            <option value="<?php echo (int) $stop['stop_id']; ?>" <?php echo get_selected((int) $form['vehicle_pickup_stop_id'], (int) $stop['stop_id']); ?>><?php echo get_text($stop_label); ?></option>
+                            <option value="<?php echo (int) $stop['stop_id']; ?>" data-vehicle="<?php echo get_text(isset($stop['vehicle_label']) ? $stop['vehicle_label'] : ''); ?>" <?php echo get_selected((int) $form['vehicle_pickup_stop_id'], (int) $stop['stop_id']); ?>><?php echo get_text($stop_label); ?></option>
                             <?php } ?>
                         </select>                        <input type="text" name="vehicle_pickup_place" id="vehicle_pickup_place" value="<?php echo get_text($form['vehicle_pickup_place']); ?>" maxlength="100" placeholder="예: 아이이음초등학교">
                     </label>
                     <label class="vehicle-row">
                         <input type="checkbox" name="vehicle_dropoff_enabled" id="vehicle_dropoff_enabled" value="1" <?php echo !empty($form['vehicle_dropoff_enabled']) ? 'checked' : ''; ?>>
                         <span>하원 차량</span>
+                        <select id="vehicle_dropoff_vehicle" class="vehicle-filter" data-target="vehicle_dropoff_stop_id">
+                            <option value="">전체 차량</option>
+                            <?php foreach ($vehicle_label_options as $vehicle_label) { ?>
+                            <option value="<?php echo get_text($vehicle_label); ?>"><?php echo get_text($vehicle_label); ?></option>
+                            <?php } ?>
+                        </select>
                         <select name="vehicle_dropoff_stop_id" id="vehicle_dropoff_stop_id">
                             <option value="0">노선 선택 안함</option>
                             <?php foreach ($vehicle_stop_options as $stop) { if ($stop['stop_type'] === 'pickup') { continue; } ?>
                             <?php $stop_label = trim($stop['stop_time'] . ' ' . $stop['stop_name'] . (isset($stop['route_name']) && $stop['route_name'] !== '' ? ' / ' . $stop['route_name'] : '')); ?>
-                            <option value="<?php echo (int) $stop['stop_id']; ?>" <?php echo get_selected((int) $form['vehicle_dropoff_stop_id'], (int) $stop['stop_id']); ?>><?php echo get_text($stop_label); ?></option>
+                            <option value="<?php echo (int) $stop['stop_id']; ?>" data-vehicle="<?php echo get_text(isset($stop['vehicle_label']) ? $stop['vehicle_label'] : ''); ?>" <?php echo get_selected((int) $form['vehicle_dropoff_stop_id'], (int) $stop['stop_id']); ?>><?php echo get_text($stop_label); ?></option>
                             <?php } ?>
                         </select>                        <input type="text" name="vehicle_dropoff_place" id="vehicle_dropoff_place" value="<?php echo get_text($form['vehicle_dropoff_place']); ?>" maxlength="100" placeholder="예: 아이이음 아파트 1004동">
                     </label>
@@ -1192,6 +1219,38 @@ if (addGuardian) {
         bindGuardianRow(row);
     });
 }
+function syncVehicleFilter(filter) {
+    const target = document.getElementById(filter.dataset.target);
+    if (!target) return;
+    const selected = target.options[target.selectedIndex];
+    if (selected && selected.dataset.vehicle) {
+        filter.value = selected.dataset.vehicle;
+    }
+    applyVehicleFilter(filter);
+}
+function applyVehicleFilter(filter) {
+    const target = document.getElementById(filter.dataset.target);
+    if (!target) return;
+    const vehicle = filter.value;
+    Array.from(target.options).forEach((option) => {
+        if (!option.value) {
+            option.hidden = false;
+            option.disabled = false;
+            return;
+        }
+        const matched = !vehicle || option.dataset.vehicle === vehicle;
+        option.hidden = !matched;
+        option.disabled = !matched;
+    });
+    const current = target.options[target.selectedIndex];
+    if (current && current.disabled) {
+        target.value = '0';
+    }
+}
+document.querySelectorAll('.vehicle-filter').forEach((filter) => {
+    syncVehicleFilter(filter);
+    filter.addEventListener('change', () => applyVehicleFilter(filter));
+});
 </script>
 </body>
 </html>
