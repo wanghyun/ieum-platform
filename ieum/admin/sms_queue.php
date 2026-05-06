@@ -11,6 +11,30 @@ $status = isset($_GET['status']) ? preg_replace('/[^a-z_]/', '', trim($_GET['sta
 $date = isset($_GET['date']) ? preg_replace('/[^0-9-]/', '', $_GET['date']) : '';
 $q = isset($_GET['q']) ? trim($_GET['q']) : '';
 
+function ieum_sms_status_label($status)
+{
+    $labels = array(
+        'pending' => '전송 대기',
+        'processing' => '전송 처리중',
+        'sent' => '전송 완료',
+        'failed' => '전송 실패',
+    );
+
+    return isset($labels[$status]) ? $labels[$status] : $status;
+}
+
+function ieum_sms_type_label($type)
+{
+    $labels = array(
+        'checkin' => '등원 문자',
+        'checkout' => '하원 문자',
+        'absent_alert' => '미등원 알림',
+        'vehicle_alert' => '차량 알림',
+    );
+
+    return isset($labels[$type]) ? $labels[$type] : $type;
+}
+
 $where = " where q.academy_id = '{$academy_id}' ";
 if ($status !== '') {
     $status_sql = sql_escape_string($status);
@@ -61,27 +85,8 @@ $rows = sql_query("
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}
-.wrap{max-width:1280px;margin:28px auto;padding:0 20px}
-.bar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap}
-h1{margin:0;font-size:26px}
-.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06)}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
-.chip{background:#eef2f7;border-radius:999px;padding:6px 10px;color:#344054;font-weight:700}
-.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-input,select{height:38px;border:1px solid #cfd6df;border-radius:6px;padding:0 10px}
-.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}
-.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}
-table{width:100%;border-collapse:collapse;background:#fff}
-th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px;vertical-align:top}
-th{background:#72829d;color:#fff}
-td.left{text-align:left}
-.status-pending{color:#9a5b00;font-weight:700}
-.status-sent{color:#176b2c;font-weight:700}
-.status-failed{color:#a4262c;font-weight:700}
-.token{margin-top:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;color:#475467}
-code{background:#eef2f7;border-radius:4px;padding:2px 6px}
-@media (max-width:900px){table{display:block;overflow-x:auto;white-space:nowrap}.filters{align-items:stretch}.filters input{width:100%}}
+.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a,.nav-group-title{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover,.nav-group:hover .nav-group-title{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.nav-group{position:relative}.nav-group-title{display:inline-flex;color:#d8e2ff;cursor:default}.nav-sub{display:none;position:absolute;left:0;top:100%;z-index:20;min-width:170px;background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:6px;box-shadow:0 12px 26px rgba(15,23,42,.18)}.nav-group:hover .nav-sub{display:grid;gap:4px}.nav-sub a{color:#111827;white-space:nowrap}.nav-sub a:hover,.nav-sub a.active{background:#eef2ff;color:#15204a}
+.wrap{max-width:1280px;margin:28px auto;padding:0 20px}.bar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap}h1{margin:0;font-size:26px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}.chip{background:#eef2f7;border-radius:999px;padding:6px 10px;color:#344054;font-weight:700}.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}input,select{height:38px;border:1px solid #cfd6df;border-radius:6px;padding:0 10px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px;vertical-align:top}th{background:#72829d;color:#fff}td.left{text-align:left}.status-pending{color:#9a5b00;font-weight:700}.status-processing{color:#175cd3;font-weight:700}.status-sent{color:#176b2c;font-weight:700}.status-failed{color:#a4262c;font-weight:700}.token{margin-top:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;color:#475467}code{background:#eef2f7;border-radius:4px;padding:2px 6px}@media (max-width:900px){table{display:block;overflow-x:auto;white-space:nowrap}.filters{align-items:stretch}.filters input{width:100%}.nav-sub{position:static}.nav-group:hover .nav-sub{display:grid}}
 </style>
 </head>
 <body>
@@ -97,19 +102,19 @@ code{background:#eef2f7;border-radius:4px;padding:2px 6px}
 
     <section class="panel">
         <div class="chips">
-            <span class="chip">pending <?php echo number_format(isset($summary['pending']) ? $summary['pending'] : 0); ?></span>
-            <span class="chip">processing <?php echo number_format(isset($summary['processing']) ? $summary['processing'] : 0); ?></span>
-            <span class="chip">sent <?php echo number_format(isset($summary['sent']) ? $summary['sent'] : 0); ?></span>
-            <span class="chip">failed <?php echo number_format(isset($summary['failed']) ? $summary['failed'] : 0); ?></span>
+            <span class="chip">전송 대기 <?php echo number_format(isset($summary['pending']) ? $summary['pending'] : 0); ?>건</span>
+            <span class="chip">전송 처리중 <?php echo number_format(isset($summary['processing']) ? $summary['processing'] : 0); ?>건</span>
+            <span class="chip">전송 완료 <?php echo number_format(isset($summary['sent']) ? $summary['sent'] : 0); ?>건</span>
+            <span class="chip">전송 실패 <?php echo number_format(isset($summary['failed']) ? $summary['failed'] : 0); ?>건</span>
         </div>
 
         <form method="get" class="filters">
             <select name="status">
                 <option value="">전체 상태</option>
-                <option value="pending" <?php echo get_selected($status, 'pending'); ?>>pending</option>
-                <option value="processing" <?php echo get_selected($status, 'processing'); ?>>processing</option>
-                <option value="sent" <?php echo get_selected($status, 'sent'); ?>>sent</option>
-                <option value="failed" <?php echo get_selected($status, 'failed'); ?>>failed</option>
+                <option value="pending" <?php echo get_selected($status, 'pending'); ?>>전송 대기</option>
+                <option value="processing" <?php echo get_selected($status, 'processing'); ?>>전송 처리중</option>
+                <option value="sent" <?php echo get_selected($status, 'sent'); ?>>전송 완료</option>
+                <option value="failed" <?php echo get_selected($status, 'failed'); ?>>전송 실패</option>
             </select>
             <input type="date" name="date" value="<?php echo get_text($date); ?>">
             <input type="text" name="q" value="<?php echo get_text($q); ?>" placeholder="학생, 연락처, 메시지 검색">
@@ -144,12 +149,13 @@ code{background:#eef2f7;border-radius:4px;padding:2px 6px}
             while ($row = sql_fetch_array($rows)) {
                 $i++;
                 $status_class = 'status-' . $row['status'];
+                $type = isset($row['message_type']) ? $row['message_type'] : 'checkin';
             ?>
             <tr>
                 <td><?php echo (int) $row['sms_id']; ?></td>
-                <td class="<?php echo get_text($status_class); ?>"><?php echo get_text($row['status']); ?></td>
-                <td><?php echo get_text(isset($row['message_type']) ? $row['message_type'] : 'checkin'); ?></td>
-                <td><?php echo get_text($row['student_code'] . ' ' . $row['student_name']); ?></td>
+                <td class="<?php echo get_text($status_class); ?>"><?php echo get_text(ieum_sms_status_label($row['status'])); ?></td>
+                <td><?php echo get_text(ieum_sms_type_label($type)); ?></td>
+                <td><?php echo get_text(trim($row['student_code'] . ' ' . $row['student_name'])); ?></td>
                 <td><?php echo get_text(ieum_mask_phone($row['recipient_phone'])); ?></td>
                 <td class="left"><?php echo get_text($row['message']); ?></td>
                 <td><?php echo get_text($row['created_at']); ?></td>

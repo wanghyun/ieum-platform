@@ -330,7 +330,9 @@ $vehicle_notes = sql_query("
                 </table>
             </article>
             <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php"><strong>수련비 납부</strong><span>월별 결제/미결제 관리</span></a>
+            <?php if ($is_admin === 'super') { ?>
             <a class="link-card" href="<?php echo IEUM_URL; ?>/project_status.php"><strong>프로젝트 진행</strong><span>작업 요청과 결과 확인</span></a>
+            <?php } ?>
             <a class="link-card" href="<?php echo IEUM_URL; ?>/kiosk.php?tablet=1"><strong>태블릿 출석</strong><span>번호 입력 화면</span></a>
             <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/students.php"><strong>학생 관리</strong><span>등록/수정/중지</span></a>
             <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php"><strong>차량 탑승확인</strong><span>기사님 모바일 기록</span></a>

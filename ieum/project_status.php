@@ -10,6 +10,9 @@ $token_ok = $expected_token !== '' && hash_equals($expected_token, $token);
 if (!$is_member && !$token_ok) {
     goto_url(G5_BBS_URL . '/login.php?url=' . urlencode(IEUM_URL . '/project_status.php'));
 }
+if ($is_member && $is_admin !== 'super' && !$token_ok) {
+    alert('본사 관리자만 확인할 수 있습니다.', IEUM_URL . '/dashboard.php');
+}
 
 $message = '';
 $error = '';
