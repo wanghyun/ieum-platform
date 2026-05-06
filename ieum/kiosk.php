@@ -10,6 +10,7 @@ if (!$is_member) {
 $current_academy = ieum_require_academy_page();
 $token = ieum_new_csrf_token();
 $tablet_mode = isset($_GET['tablet']) && $_GET['tablet'] === '1';
+$tablet_layout = isset($_GET['layout']) && $_GET['layout'] === 'portrait' ? 'portrait' : 'landscape';
 ?>
 <!doctype html>
 <html lang="ko">
@@ -87,9 +88,47 @@ body.tablet .progress-line{font-size:14px}
 body.tablet .meta{margin-top:8px;font-size:12px}
 body.tablet .status .choice-btn{height:auto;min-height:46px;font-size:14px}
 }
+body.tablet.layout-landscape .wrap{padding:8px}
+body.tablet.layout-landscape .panel{width:calc(100vw - 16px);height:calc(100vh - 16px);padding:14px;display:grid;grid-template-columns:minmax(340px,1fr) minmax(300px,.9fr);grid-template-rows:auto auto 1fr auto;gap:8px 14px}
+body.tablet.layout-landscape h1{grid-column:1 / 3;font-size:30px;margin:0}
+body.tablet.layout-landscape .sub{grid-column:1 / 3;margin:0;font-size:14px}
+body.tablet.layout-landscape .display{grid-column:1;height:58px;font-size:36px;margin:0}
+body.tablet.layout-landscape .keys{grid-column:1;align-self:start;gap:6px}
+body.tablet.layout-landscape button{height:48px;font-size:24px}
+body.tablet.layout-landscape .status{grid-column:2;grid-row:3 / 5;height:100%;margin:0;padding:10px;font-size:15px}
+body.tablet.layout-landscape .student-photo{width:82px;height:82px}
+body.tablet.layout-landscape .progress-card strong{font-size:20px}
+body.tablet.layout-landscape .progress-line{font-size:15px}
+body.tablet.layout-landscape .motivation{font-size:15px}
+body.tablet.layout-landscape .meta{grid-column:1;margin:0;font-size:12px}
+body.tablet.layout-landscape .status .choice-btn{height:auto;min-height:48px;font-size:14px}
+body.tablet.layout-portrait .wrap{padding:8px}
+body.tablet.layout-portrait .panel{width:min(760px,calc(100vw - 16px));height:calc(100vh - 16px);padding:14px}
+body.tablet.layout-portrait h1{font-size:30px}
+body.tablet.layout-portrait .sub{margin-bottom:10px;font-size:14px}
+body.tablet.layout-portrait .display{height:64px;font-size:38px;margin-bottom:8px}
+body.tablet.layout-portrait .keys{gap:6px}
+body.tablet.layout-portrait button{height:54px;font-size:24px}
+body.tablet.layout-portrait .status{height:188px;margin-top:10px;font-size:15px;padding:10px}
+body.tablet.layout-portrait .student-photo{width:74px;height:74px}
+body.tablet.layout-portrait .progress-card{gap:5px}
+body.tablet.layout-portrait .progress-card strong{font-size:19px}
+body.tablet.layout-portrait .progress-line{font-size:14px}
+body.tablet.layout-portrait .meta{margin-top:8px;font-size:12px}
+body.tablet.layout-portrait .status .choice-btn{height:auto;min-height:46px;font-size:14px}
+.layout-switch{position:fixed;right:12px;top:12px;z-index:50;display:flex;gap:6px}
+.layout-switch a{display:inline-flex;align-items:center;justify-content:center;min-height:36px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(15,23,42,.82);color:#fff;text-decoration:none;padding:8px 12px;font-size:13px;font-weight:900}
+.layout-switch a.active{background:#1769c2;border-color:#1769c2}
+body:not(.tablet) .layout-switch{display:none}
 </style>
 </head>
-<body class="<?php echo $tablet_mode ? 'tablet' : ''; ?>">
+<body class="<?php echo $tablet_mode ? 'tablet layout-' . $tablet_layout : ''; ?>">
+<?php if ($tablet_mode) { ?>
+<div class="layout-switch" aria-label="태블릿 화면 방향 선택">
+    <a class="<?php echo $tablet_layout === 'landscape' ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/kiosk.php?tablet=1&amp;layout=landscape">가로버전</a>
+    <a class="<?php echo $tablet_layout === 'portrait' ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/kiosk.php?tablet=1&amp;layout=portrait">세로버전</a>
+</div>
+<?php } ?>
 <main class="wrap">
     <section class="panel">
         <h1><?php echo get_text($current_academy['academy_name']); ?></h1>
