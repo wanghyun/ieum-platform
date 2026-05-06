@@ -25,6 +25,27 @@ $status_labels = array(
     'called' => '보호자 통화',
 );
 
+function ieum_boarding_grade_label($value)
+{
+    $labels = array(
+        'kindergarten' => '유치부',
+        'elementary_1' => '초등/1학년',
+        'elementary_2' => '초등/2학년',
+        'elementary_3' => '초등/3학년',
+        'elementary_4' => '초등/4학년',
+        'elementary_5' => '초등/5학년',
+        'elementary_6' => '초등/6학년',
+        'middle_1' => '중등/1학년',
+        'middle_2' => '중등/2학년',
+        'middle_3' => '중등/3학년',
+        'high_1' => '고등/1학년',
+        'high_2' => '고등/2학년',
+        'high_3' => '고등/3학년',
+    );
+
+    return isset($labels[$value]) ? $labels[$value] : $value;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrf_token = isset($_POST['csrf_token']) ? trim($_POST['csrf_token']) : '';
     if (!ieum_verify_csrf_token($csrf_token)) {
@@ -117,7 +138,7 @@ $rows = sql_query("
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:760px;margin:18px auto;padding:0 14px}h1{margin:0 0 6px;font-size:24px}.meta{color:#667085;margin-bottom:14px}.filter{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:12px}.filter input,.filter select,.note{width:100%;border:1px solid #cfd6df;border-radius:8px;padding:10px;font-size:15px}.btn{border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:10px 12px;font-weight:900;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.notice{padding:10px 12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.stop{margin:14px 0 8px;padding:9px 10px;background:#15204a;color:#fff;border-radius:8px;font-weight:900}.card{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:0 4px 12px rgba(15,23,42,.05)}.student{display:flex;justify-content:space-between;gap:10px;font-size:18px;font-weight:900}.student small{font-size:13px;color:#667085}.info{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:6px;color:#344054;font-size:14px}.phone{font-weight:900;white-space:nowrap}.memo{margin-top:6px;color:#667085;font-size:13px}.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:10px}.actions button{min-height:42px}.status{display:inline-flex;margin-top:8px;padding:5px 8px;border-radius:999px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900}.status.boarded{background:#e8f7ee;color:#176b2c}.status.missed{background:#fdecec;color:#a4262c}.status.called{background:#fff4df;color:#915c00}.empty{padding:28px;text-align:center;color:#667085;background:#fff;border:1px solid #d9dee7;border-radius:10px}@media(max-width:680px){.filter{grid-template-columns:1fr 1fr}.filter .primary{grid-column:1/-1}.info{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.top{display:none}.wrap{margin-top:12px}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:760px;margin:18px auto;padding:0 14px}h1{margin:0 0 6px;font-size:24px}.meta{color:#667085;margin-bottom:14px}.filter{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:12px}.filter input,.filter select,.note{width:100%;border:1px solid #cfd6df;border-radius:8px;padding:10px;font-size:15px}.btn{border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:10px 12px;font-weight:900;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.notice{padding:10px 12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.route-head{margin:16px 0 8px;padding:11px 12px;background:#101a42;color:#fff;border-radius:10px;font-weight:900}.route-head small{display:block;margin-top:3px;color:#cbd5e1;font-size:12px}.stop{margin:10px 0 8px;padding:8px 10px;background:#e8edf5;color:#111827;border-radius:8px;font-weight:900}.card{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:0 4px 12px rgba(15,23,42,.05)}.student{display:flex;justify-content:space-between;gap:10px;font-size:18px;font-weight:900}.student small{font-size:13px;color:#667085}.info{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:6px;color:#344054;font-size:14px}.phone{font-weight:900;white-space:nowrap}.memo{margin-top:6px;color:#667085;font-size:13px}.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:10px}.actions button{min-height:42px}.status{display:inline-flex;margin-top:8px;padding:5px 8px;border-radius:999px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900}.status.boarded{background:#e8f7ee;color:#176b2c}.status.missed{background:#fdecec;color:#a4262c}.status.called{background:#fff4df;color:#915c00}.empty{padding:28px;text-align:center;color:#667085;background:#fff;border:1px solid #d9dee7;border-radius:10px}@media(max-width:680px){.filter{grid-template-columns:1fr 1fr}.filter .primary{grid-column:1/-1}.info{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.top{display:none}.wrap{margin-top:12px}}
 </style>
 </head>
 <body>
@@ -142,10 +163,19 @@ $rows = sql_query("
         <button type="submit" class="btn primary">조회</button>
     </form>
     <?php
+    $current_route = '';
     $current_stop = '';
     $has_rows = false;
     while ($row = sql_fetch_array($rows)) {
         $has_rows = true;
+        $route_key = trim(($row['vehicle_label'] ?: '') . '|' . ($row['route_name'] ?: ''));
+        if ($current_route !== $route_key) {
+            $current_route = $route_key;
+            $current_stop = '';
+            $route_title = trim(($row['vehicle_label'] ?: '차량 미지정') . ' · ' . ($row['route_name'] ?: '노선 미지정'));
+            $driver = trim(($row['driver_name'] ?: '') . ' ' . ($row['driver_phone'] ?: ''));
+            echo '<div class="route-head">' . get_text($route_title) . ($driver !== '' ? '<small>' . get_text($driver) . '</small>' : '') . '</div>';
+        }
         $stop_key = $row['stop_time'] . '|' . $row['stop_name'];
         if ($current_stop !== $stop_key) {
             $current_stop = $stop_key;
@@ -156,7 +186,7 @@ $rows = sql_query("
         $memo = trim(($row['vehicle_memo'] ?: $row['place_name']) . ($row['student_memo'] ? ' / ' . $row['student_memo'] : ''));
     ?>
     <section class="card">
-        <div class="student"><span><?php echo get_text($row['student_name']); ?></span><small><?php echo get_text($row['grade_group']); ?></small></div>
+        <div class="student"><span><?php echo get_text($row['student_name']); ?></span><small><?php echo get_text(ieum_boarding_grade_label($row['grade_group'])); ?></small></div>
         <div class="info">
             <span><?php echo get_text(trim(($row['class_name'] ?: '') . ' ' . ($row['class_start_time'] ?: ''))); ?></span>
             <span class="phone"><?php echo get_text($row['contact_phone']); ?></span>
