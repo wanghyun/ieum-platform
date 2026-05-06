@@ -37,6 +37,42 @@ function ieum_install_add_column_if_missing($table, $column, $definition)
     }
 }
 
+function ieum_install_drop_index_if_exists($table, $index)
+{
+    $table_sql = sql_escape_string($table);
+    $index_sql = sql_escape_string($index);
+    $schema_sql = sql_escape_string(G5_MYSQL_DB);
+    $exists = sql_fetch("
+        select count(*) as cnt
+          from information_schema.STATISTICS
+         where TABLE_SCHEMA = '{$schema_sql}'
+           and TABLE_NAME = '{$table_sql}'
+           and INDEX_NAME = '{$index_sql}'
+    ", false);
+
+    if ((int) $exists['cnt']) {
+        sql_query("alter table {$table} drop index {$index}");
+    }
+}
+
+function ieum_install_add_index_if_missing($table, $index, $definition)
+{
+    $table_sql = sql_escape_string($table);
+    $index_sql = sql_escape_string($index);
+    $schema_sql = sql_escape_string(G5_MYSQL_DB);
+    $exists = sql_fetch("
+        select count(*) as cnt
+          from information_schema.STATISTICS
+         where TABLE_SCHEMA = '{$schema_sql}'
+           and TABLE_NAME = '{$table_sql}'
+           and INDEX_NAME = '{$index_sql}'
+    ", false);
+
+    if (!(int) $exists['cnt']) {
+        sql_query("alter table {$table} add index {$index} {$definition}");
+    }
+}
+
 if (isset($_GET['run']) && $_GET['run'] === '1') {
     $token = isset($_GET['ieum_token']) ? trim($_GET['ieum_token']) : '';
     if (!ieum_verify_csrf_token($token)) {
@@ -96,6 +132,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             student_code varchar(20) not null,
             student_name varchar(50) not null,
             student_phone varchar(30) not null default '',
+            student_photo varchar(255) not null default '',
             birth_date date null,
             school_name varchar(100) not null default '',
             grade_group varchar(20) not null default '',
@@ -124,7 +161,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             created_at datetime not null,
             updated_at datetime null,
             primary key (student_id),
-            unique key uq_academy_student_code (academy_id, student_code),
+            key idx_academy_student_code (academy_id, student_code),
             key idx_active_name (academy_id, is_active, student_name)
         ) engine={$engine} default charset={$charset}
     ");
@@ -315,6 +352,9 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ieum_install_add_column_if_missing(IEUM_CLASS_TIME_TABLE, 'absent_alert_after_minutes', 'smallint unsigned not null default 10');
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'attendance_week_type', "varchar(20) not null default '5'");
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'student_phone', "varchar(30) not null default '' after student_name");
+    ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'student_photo', "varchar(255) not null default '' after student_phone");
+    ieum_install_drop_index_if_exists(IEUM_STUDENT_TABLE, 'uq_academy_student_code');
+    ieum_install_add_index_if_missing(IEUM_STUDENT_TABLE, 'idx_academy_student_code', '(academy_id, student_code)');
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'birth_date', 'date null after student_phone');
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'school_name', "varchar(100) not null default '' after birth_date");
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'attendance_days', "varchar(50) not null default 'mon,tue,wed,thu,fri'");

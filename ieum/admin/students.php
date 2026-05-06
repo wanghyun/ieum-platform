@@ -16,6 +16,55 @@ function ieum_student_clean_phone($phone)
     return preg_replace('/[^0-9+\-]/', '', trim($phone));
 }
 
+function ieum_student_photo_url($path)
+{
+    $path = trim((string) $path);
+    return $path === '' ? '' : G5_URL . '/' . ltrim($path, '/');
+}
+
+function ieum_save_student_photo_upload($academy_id, $student_id)
+{
+    $academy_id = (int) $academy_id;
+    $student_id = (int) $student_id;
+    if (!$academy_id || !$student_id || empty($_FILES['student_photo_file']['name'])) {
+        return '';
+    }
+
+    if (!is_uploaded_file($_FILES['student_photo_file']['tmp_name'])) {
+        return '';
+    }
+
+    $allowed = array(
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        'image/gif' => 'gif',
+    );
+    $mime = function_exists('mime_content_type') ? mime_content_type($_FILES['student_photo_file']['tmp_name']) : $_FILES['student_photo_file']['type'];
+    if (!isset($allowed[$mime])) {
+        return '';
+    }
+
+    if ((int) $_FILES['student_photo_file']['size'] > 5 * 1024 * 1024) {
+        return '';
+    }
+
+    $dir = G5_DATA_PATH . '/ieum/student_photos';
+    if (!is_dir($dir)) {
+        @mkdir($dir, G5_DIR_PERMISSION, true);
+        @chmod($dir, G5_DIR_PERMISSION);
+    }
+
+    $filename = 'academy' . $academy_id . '_student' . $student_id . '_' . date('YmdHis') . '.' . $allowed[$mime];
+    $target = $dir . '/' . $filename;
+    if (!move_uploaded_file($_FILES['student_photo_file']['tmp_name'], $target)) {
+        return '';
+    }
+    @chmod($target, G5_FILE_PERMISSION);
+
+    return 'data/ieum/student_photos/' . $filename;
+}
+
 function ieum_grade_options()
 {
     return array(
@@ -544,6 +593,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $guardian_primary = isset($_POST['guardian_primary']) && is_array($_POST['guardian_primary']) ? $_POST['guardian_primary'] : array();
             $memo = isset($_POST['memo']) ? trim($_POST['memo']) : '';
             $is_active = isset($_POST['is_active']) ? 1 : 0;
+            $delete_photo = isset($_POST['delete_student_photo']) ? 1 : 0;
             $has_guardian_phone = false;
             foreach ($guardian_phones as $phone_value) {
                 if (ieum_student_clean_phone($phone_value) !== '') {
@@ -562,21 +612,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = '보호자 연락처를 1개 이상 입력하세요.';
             } else {
                 $student_code_sql = sql_escape_string($student_code);
-                $duplicate_sql = "
-                    select student_id
-                      from " . IEUM_STUDENT_TABLE . "
-                     where student_code = '{$student_code_sql}'
-                       and academy_id = '{$academy_id}'
-                ";
-                if ($post_student_id) {
-                    $duplicate_sql .= " and student_id <> '{$post_student_id}'";
-                }
-                $duplicate_sql .= " limit 1";
-                $duplicate = sql_fetch($duplicate_sql, false);
-
-                if (isset($duplicate['student_id'])) {
-                    $error = '이미 사용 중인 학생번호입니다.';
-                } else {
                     $student_name_sql = sql_escape_string($student_name);
                     $student_phone_sql = sql_escape_string($student_phone);
                     $birth_date_sql = sql_escape_string($birth_date);
@@ -691,9 +726,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ");
                     ieum_save_vehicle_assignment($academy_id, $saved_student_id, 'pickup', $vehicle_pickup_enabled, $vehicle_pickup_stop_id, $vehicle_pickup_place, $vehicle_pickup_contact_phone, $vehicle_pickup_days, $vehicle_pickup_memo);
                     ieum_save_vehicle_assignment($academy_id, $saved_student_id, 'dropoff', $vehicle_dropoff_enabled, $vehicle_dropoff_stop_id, $vehicle_dropoff_place, $vehicle_dropoff_contact_phone, $vehicle_dropoff_days, $vehicle_dropoff_memo);
+                    if ($delete_photo) {
+                        sql_query("
+                            update " . IEUM_STUDENT_TABLE . "
+                               set student_photo = '',
+                                   updated_at = '" . G5_TIME_YMDHIS . "'
+                             where academy_id = '{$academy_id}'
+                               and student_id = '{$saved_student_id}'
+                        ");
+                    }
+                    $uploaded_photo = ieum_save_student_photo_upload($academy_id, $saved_student_id);
+                    if ($uploaded_photo !== '') {
+                        sql_query("
+                            update " . IEUM_STUDENT_TABLE . "
+                               set student_photo = '" . sql_escape_string($uploaded_photo) . "',
+                                   updated_at = '" . G5_TIME_YMDHIS . "'
+                             where academy_id = '{$academy_id}'
+                               and student_id = '{$saved_student_id}'
+                        ");
+                    }
                     $mode = 'list';
                     $student_id = 0;
-                }
             }
         } elseif ($action === 'toggle') {
             $target = ieum_fetch_student($post_student_id);
@@ -874,7 +927,8 @@ textarea{min-height:82px;resize:vertical}
 .count{color:#5b6472}
 .summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.chip{background:#eef2f7;border:1px solid #d8dee9;border-radius:999px;padding:6px 10px;font-weight:800;color:#344054;text-decoration:none}.chip.active{background:#1769c2;color:#fff;border-color:#1769c2}
 .guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card,.ride-day-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input,.ride-day-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected,.ride-day-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px minmax(160px,1fr) 120px minmax(140px,1fr);gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.money-field{display:grid;grid-template-columns:auto 1fr auto;align-items:center;border:1px solid #cfd6df;border-radius:6px;background:#fff;overflow:hidden}.money-field span,.money-field em{height:40px;display:flex;align-items:center;padding:0 10px;background:#f8fafc;color:#667085;font-style:normal;font-weight:900;white-space:nowrap}.money-field input{border:0;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-radius:0;text-align:right;font-weight:800}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-row{display:grid;grid-template-columns:auto 90px 120px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}.vehicle-memo,.vehicle-days{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-contact{display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-memo span,.vehicle-contact span,.vehicle-days span{font-weight:900;color:#344054}.ride-day-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.ride-day-card{min-height:40px;font-size:15px}
-@media (max-width:720px){.form-grid{grid-template-columns:1fr}.search input{min-width:0;width:100%}.search{width:100%;align-items:stretch}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}}
+.photo-box{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:12px}.photo-preview{width:112px;height:112px;border-radius:12px;object-fit:cover;background:#e5e7eb;border:1px solid #d8dee9}.photo-empty{width:112px;height:112px;border-radius:12px;background:#e5e7eb;color:#667085;display:flex;align-items:center;justify-content:center;font-weight:900}.photo-controls{display:grid;gap:8px}.photo-controls input[type=file]{width:100%;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:10px}.photo-controls label{font-size:13px;color:#344054}
+@media (max-width:720px){.form-grid{grid-template-columns:1fr}.search input{min-width:0;width:100%}.search{width:100%;align-items:stretch}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.photo-box{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}}
 </style>
 </head>
 <body>
@@ -912,6 +966,7 @@ textarea{min-height:82px;resize:vertical}
             'student_code' => '',
             'student_name' => '',
             'student_phone' => '',
+            'student_photo' => '',
             'birth_date' => '',
             'school_name' => '',
             'grade_group' => '',
@@ -996,7 +1051,7 @@ textarea{min-height:82px;resize:vertical}
         }
     ?>
     <section class="panel">
-        <form method="post" autocomplete="off">
+        <form method="post" autocomplete="off" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <input type="hidden" name="action" value="save">
             <input type="hidden" name="student_id" value="<?php echo (int) $form['student_id']; ?>">
@@ -1009,6 +1064,23 @@ textarea{min-height:82px;resize:vertical}
 
                 <label for="student_phone">학생 연락처</label>
                 <input type="text" name="student_phone" id="student_phone" value="<?php echo get_text(isset($form['student_phone']) ? $form['student_phone'] : ''); ?>" maxlength="30" placeholder="학생 휴대폰이 있으면 입력">
+
+                <label for="student_photo_file">학생 사진</label>
+                <div class="photo-box">
+                    <?php $student_photo_url = ieum_student_photo_url(isset($form['student_photo']) ? $form['student_photo'] : ''); ?>
+                    <?php if ($student_photo_url !== '') { ?>
+                    <img class="photo-preview" src="<?php echo get_text($student_photo_url); ?>" alt="">
+                    <?php } else { ?>
+                    <div class="photo-empty">사진 없음</div>
+                    <?php } ?>
+                    <div class="photo-controls">
+                        <input type="file" name="student_photo_file" id="student_photo_file" accept="image/*">
+                        <?php if ($student_photo_url !== '') { ?>
+                        <label><input type="checkbox" name="delete_student_photo" value="1"> 현재 사진 삭제</label>
+                        <?php } ?>
+                        <div class="weekday-help">태블릿 등원 완료 화면에 표시됩니다. 정면 얼굴이 보이는 사진이 가장 좋습니다.</div>
+                    </div>
+                </div>
                 <label for="birth_year">생년월일</label>
                 <div class="date-selects">
                     <?php

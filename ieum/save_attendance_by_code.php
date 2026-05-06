@@ -18,16 +18,17 @@ if (!ieum_verify_csrf_token($csrf_token)) {
 
 $student_code = isset($_POST['student_code']) ? $_POST['student_code'] : '';
 $student_code = ieum_normalize_student_code($student_code);
+$selected_student_id = isset($_POST['student_id']) ? (int) $_POST['student_id'] : 0;
 
 if ($student_code === '') {
     ieum_json_response(false, '학생번호를 입력하세요.', array(), 422);
 }
 
-$result = ieum_save_attendance_by_code($student_code, 'kiosk');
+$result = ieum_save_attendance_by_code($student_code, 'kiosk', $selected_student_id);
 
 $photo_url = '';
 if (isset($result['student']['student_photo']) && $result['student']['student_photo'] !== '') {
-    $photo_url = IEUM_URL . '/' . ltrim($result['student']['student_photo'], '/');
+    $photo_url = G5_URL . '/' . ltrim($result['student']['student_photo'], '/');
 }
 
 if ($result['status'] === 'forbidden') {
@@ -36,6 +37,13 @@ if ($result['status'] === 'forbidden') {
 
 if ($result['status'] === 'not_found') {
     ieum_json_response(false, $result['message'], array('status' => 'not_found'), 404);
+}
+
+if ($result['status'] === 'needs_selection') {
+    ieum_json_response(true, $result['message'], array(
+        'status' => 'needs_selection',
+        'students' => isset($result['students']) ? $result['students'] : array(),
+    ));
 }
 
 if ($result['status'] === 'duplicate') {

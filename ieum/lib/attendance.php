@@ -34,6 +34,59 @@ function ieum_find_active_student_by_code($code, $academy_id = null)
     return isset($row['student_id']) ? $row : null;
 }
 
+function ieum_find_active_students_by_code($code, $academy_id = null)
+{
+    if ($academy_id === null) {
+        $academy = ieum_current_academy();
+        $academy_id = $academy ? (int) $academy['academy_id'] : ieum_default_academy_id();
+    }
+
+    $code = sql_escape_string(ieum_normalize_student_code($code));
+    $students = array();
+    if ($code === '') {
+        return $students;
+    }
+
+    $rows = sql_query("
+        select *
+         from " . IEUM_STUDENT_TABLE . "
+         where student_code = '{$code}'
+           and academy_id = '" . (int) $academy_id . "'
+           and is_active = 1
+      order by student_name asc, birth_date asc, student_id asc
+    ", false);
+
+    if (!$rows) {
+        return $students;
+    }
+
+    while ($row = sql_fetch_array($rows)) {
+        $students[] = $row;
+    }
+
+    return $students;
+}
+
+function ieum_find_active_student_by_id($student_id, $academy_id)
+{
+    $student_id = (int) $student_id;
+    $academy_id = (int) $academy_id;
+    if (!$student_id || !$academy_id) {
+        return null;
+    }
+
+    $row = sql_fetch("
+        select *
+         from " . IEUM_STUDENT_TABLE . "
+         where student_id = '{$student_id}'
+           and academy_id = '{$academy_id}'
+           and is_active = 1
+         limit 1
+    ", false);
+
+    return isset($row['student_id']) ? $row : null;
+}
+
 function ieum_get_today_attendance($student_id, $academy_id = null)
 {
     if ($academy_id === null) {
@@ -190,7 +243,19 @@ function ieum_attendance_month_progress($student, $academy_id)
     );
 }
 
-function ieum_save_attendance_by_code($student_code, $input_source)
+function ieum_attendance_student_choice($student)
+{
+    return array(
+        'student_id' => (int) $student['student_id'],
+        'student_name' => $student['student_name'],
+        'birth_date' => isset($student['birth_date']) ? $student['birth_date'] : '',
+        'grade_group' => isset($student['grade_group']) ? $student['grade_group'] : '',
+        'school_name' => isset($student['school_name']) ? $student['school_name'] : '',
+        'photo_url' => isset($student['student_photo']) && $student['student_photo'] !== '' ? G5_URL . '/' . ltrim($student['student_photo'], '/') : '',
+    );
+}
+
+function ieum_save_attendance_by_code($student_code, $input_source, $selected_student_id = 0)
 {
     global $member;
 
@@ -203,7 +268,32 @@ function ieum_save_attendance_by_code($student_code, $input_source)
     }
 
     $academy_id = (int) $academy['academy_id'];
-    $student = ieum_find_active_student_by_code($student_code, $academy_id);
+    $selected_student_id = (int) $selected_student_id;
+    if ($selected_student_id) {
+        $student = ieum_find_active_student_by_id($selected_student_id, $academy_id);
+        if (!$student || ieum_normalize_student_code($student['student_code']) !== ieum_normalize_student_code($student_code)) {
+            return array(
+                'status' => 'not_found',
+                'message' => '선택한 학생 정보를 확인할 수 없습니다.',
+            );
+        }
+    } else {
+        $matches = ieum_find_active_students_by_code($student_code, $academy_id);
+        if (count($matches) > 1) {
+            $choices = array();
+            foreach ($matches as $match) {
+                $choices[] = ieum_attendance_student_choice($match);
+            }
+
+            return array(
+                'status' => 'needs_selection',
+                'message' => '같은 학생번호가 있습니다. 생년월일을 확인하고 학생을 선택하세요.',
+                'students' => $choices,
+            );
+        }
+        $student = $matches ? $matches[0] : null;
+    }
+
     if (!$student) {
         return array(
             'status' => 'not_found',

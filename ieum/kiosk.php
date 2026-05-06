@@ -23,7 +23,7 @@ body{margin:0;background:#f6f7f9;color:#111827;font-family:system-ui,-apple-syst
 body.tablet{background:#111827}
 .wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
 .panel{width:min(560px,100%);background:#fff;border:1px solid #dde1e7;border-radius:8px;padding:28px;box-shadow:0 10px 30px rgba(15,23,42,.08)}
-body.tablet .panel{width:min(760px,100%);padding:40px}
+body.tablet .panel{width:min(760px,calc(100vw - 24px));max-height:calc(100vh - 24px);padding:24px;overflow:hidden}
 body.tablet .wrap{padding:16px}
 h1{margin:0 0 10px;font-size:28px;line-height:1.2}
 body.tablet h1{font-size:42px}
@@ -49,7 +49,44 @@ body.tablet .student-photo{width:112px;height:112px}
 .progress-bar{height:12px;background:#dbe4ef;border-radius:999px;overflow:hidden}
 .progress-fill{height:100%;background:#1769c2;border-radius:999px}
 .motivation{font-weight:800;color:#146c2e;line-height:1.35}
+.choice-list{display:grid;gap:8px;width:100%}
+.status .choice-btn{height:auto;min-height:56px;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;text-align:left;padding:8px 10px;font-size:16px;background:#fff}
+.choice-btn img{width:44px;height:44px;border-radius:999px;object-fit:cover}
+.choice-thumb{width:44px;height:44px;border-radius:999px;background:#dbe4ef;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#536176}
+.choice-btn strong{font-size:18px}.choice-btn span{display:block;color:#5b6472;font-size:14px}
 .meta{margin-top:12px;color:#697386;font-size:14px}
+@media (orientation:landscape) and (max-height:720px){
+body.tablet .wrap{padding:8px}
+body.tablet .panel{width:calc(100vw - 16px);height:calc(100vh - 16px);padding:14px;display:grid;grid-template-columns:minmax(340px,1fr) minmax(300px,.9fr);grid-template-rows:auto auto 1fr auto;gap:8px 14px}
+body.tablet h1{grid-column:1 / 3;font-size:30px;margin:0}
+body.tablet .sub{grid-column:1 / 3;margin:0;font-size:14px}
+body.tablet .display{grid-column:1;height:58px;font-size:36px;margin:0}
+body.tablet .keys{grid-column:1;align-self:start;gap:6px}
+body.tablet button{height:48px;font-size:24px}
+body.tablet .status{grid-column:2;grid-row:3 / 5;height:100%;margin:0;padding:10px;font-size:15px}
+body.tablet .student-photo{width:82px;height:82px}
+body.tablet .progress-card strong{font-size:20px}
+body.tablet .progress-line{font-size:15px}
+body.tablet .motivation{font-size:15px}
+body.tablet .meta{grid-column:1;margin:0;font-size:12px}
+body.tablet .status .choice-btn{height:auto;min-height:48px;font-size:14px}
+}
+@media (orientation:portrait) and (max-width:720px){
+body.tablet .wrap{padding:8px}
+body.tablet .panel{width:calc(100vw - 16px);height:calc(100vh - 16px);padding:14px}
+body.tablet h1{font-size:30px}
+body.tablet .sub{margin-bottom:10px;font-size:14px}
+body.tablet .display{height:64px;font-size:38px;margin-bottom:8px}
+body.tablet .keys{gap:6px}
+body.tablet button{height:54px;font-size:24px}
+body.tablet .status{height:188px;margin-top:10px;font-size:15px;padding:10px}
+body.tablet .student-photo{width:74px;height:74px}
+body.tablet .progress-card{gap:5px}
+body.tablet .progress-card strong{font-size:19px}
+body.tablet .progress-line{font-size:14px}
+body.tablet .meta{margin-top:8px;font-size:12px}
+body.tablet .status .choice-btn{height:auto;min-height:46px;font-size:14px}
+}
 </style>
 </head>
 <body class="<?php echo $tablet_mode ? 'tablet' : ''; ?>">
@@ -82,6 +119,7 @@ body.tablet .student-photo{width:112px;height:112px}
 const input = document.getElementById('studentCode');
 const statusBox = document.getElementById('status');
 let busy = false;
+let selectedStudentId = 0;
 
 function setStatus(message, type) {
     statusBox.className = 'status ' + (type || '');
@@ -102,6 +140,10 @@ function showAttendanceResult(json) {
     const data = json.data || {};
     const progress = data.progress || null;
     const status = data.status || '';
+    if (status === 'needs_selection') {
+        showStudentChoices(data.students || [], json.message || '학생을 선택하세요.');
+        return;
+    }
     statusBox.className = 'status ' + (json.ok ? (status === 'duplicate' ? 'warn' : 'ok') : 'err');
     if (!progress) {
         statusBox.textContent = json.message;
@@ -120,8 +162,47 @@ function showAttendanceResult(json) {
     `;
 }
 
+function gradeLabel(value) {
+    const labels = {
+        kindergarten: '유치부',
+        elementary_1: '초등 1학년',
+        elementary_2: '초등 2학년',
+        elementary_3: '초등 3학년',
+        elementary_4: '초등 4학년',
+        elementary_5: '초등 5학년',
+        elementary_6: '초등 6학년',
+        middle_1: '중등 1학년',
+        middle_2: '중등 2학년',
+        middle_3: '중등 3학년',
+        high_1: '고등 1학년',
+        high_2: '고등 2학년',
+        high_3: '고등 3학년'
+    };
+    return labels[value] || value || '';
+}
+
+function birthLabel(value) {
+    if (!value || value === '0000-00-00') return '생년월일 미입력';
+    return value.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$1년 $2월 $3일');
+}
+
+function showStudentChoices(students, message) {
+    statusBox.className = 'status warn';
+    const items = students.map((student) => `
+        <button type="button" class="choice-btn" data-student-id="${Number(student.student_id) || 0}">
+            ${student.photo_url ? `<img src="${escapeHtml(student.photo_url)}" alt="">` : '<span class="choice-thumb">사진</span>'}
+            <span>
+                <strong>${escapeHtml(student.student_name || '')}</strong>
+                <span>${escapeHtml(birthLabel(student.birth_date))} · ${escapeHtml(gradeLabel(student.grade_group))}</span>
+            </span>
+        </button>
+    `).join('');
+    statusBox.innerHTML = `<div class="choice-list"><div class="motivation">${escapeHtml(message)}</div>${items}</div>`;
+}
+
 function resetInput() {
     input.value = '';
+    selectedStudentId = 0;
     input.focus();
 }
 
@@ -137,6 +218,9 @@ async function submitAttendance() {
     const body = new URLSearchParams();
     body.set('student_code', code);
     body.set('csrf_token', '<?php echo $token; ?>');
+    if (selectedStudentId) {
+        body.set('student_id', String(selectedStudentId));
+    }
 
     try {
         const res = await fetch('<?php echo IEUM_URL; ?>/save_attendance_by_code.php', {
@@ -146,7 +230,7 @@ async function submitAttendance() {
         });
         const json = await res.json();
         showAttendanceResult(json);
-        if (json.ok) {
+        if (json.ok && (!json.data || json.data.status !== 'needs_selection')) {
             resetInput();
         }
     } catch (e) {
@@ -173,6 +257,13 @@ document.querySelector('.keys').addEventListener('click', (event) => {
     if (action === 'submit') submitAttendance();
 
     input.focus();
+});
+
+statusBox.addEventListener('click', (event) => {
+    const button = event.target.closest('.choice-btn');
+    if (!button) return;
+    selectedStudentId = Number(button.dataset.studentId) || 0;
+    submitAttendance();
 });
 
 input.addEventListener('keydown', (event) => {
