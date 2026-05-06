@@ -7,11 +7,18 @@ $academy = ieum_require_academy_page();
 $academy_id = (int) $academy['academy_id'];
 $ride_type = isset($_GET['ride_type']) ? preg_replace('/[^a-z]/', '', trim($_GET['ride_type'])) : '';
 $route_id = isset($_GET['route_id']) ? (int) $_GET['route_id'] : 0;
+$journal_date = isset($_GET['journal_date']) ? preg_replace('/[^0-9-]/', '', trim($_GET['journal_date'])) : G5_TIME_YMD;
+if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $journal_date)) {
+    $journal_date = G5_TIME_YMD;
+}
+$weekday_keys = array('sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat');
+$journal_weekday = $weekday_keys[(int) date('w', strtotime($journal_date))];
 if ($ride_type !== 'pickup' && $ride_type !== 'dropoff') {
     $ride_type = '';
 }
 
-$where = " sv.academy_id = '{$academy_id}' and sv.is_active = 1 and st.is_active = 1 and s.is_active = 1 ";
+$weekday_sql = sql_escape_string($journal_weekday);
+$where = " sv.academy_id = '{$academy_id}' and sv.is_active = 1 and st.is_active = 1 and s.is_active = 1 and (sv.ride_days = '' or find_in_set('{$weekday_sql}', sv.ride_days)) ";
 if ($ride_type !== '') {
     $where .= " and sv.ride_type = '" . sql_escape_string($ride_type) . "' ";
 }
@@ -49,7 +56,7 @@ $routes = sql_query("
 ", false);
 
 $rows = sql_query("
-    select sv.ride_type, sv.place_name, sv.contact_phone, sv.memo as vehicle_memo, s.student_name, s.grade_group, s.memo as student_memo,
+    select sv.ride_type, sv.place_name, sv.contact_phone, sv.ride_days, sv.memo as vehicle_memo, s.student_name, s.grade_group, s.memo as student_memo,
            c.class_name, c.start_time as class_start_time,
            st.stop_id, st.stop_name, st.stop_time,
            r.route_id, r.route_name, r.vehicle_label, r.driver_name, r.driver_phone
@@ -69,8 +76,9 @@ $rows = sql_query("
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1120px;margin:20px auto;padding:0 18px}.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}h1{margin:0;font-size:26px}.meta{color:#667085;margin-top:6px}.filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}.btn,select{border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:700}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.group{background:#fff;border:1px solid #d9dee7;border-radius:8px;margin-bottom:14px;overflow:hidden}.group-head{display:flex;justify-content:space-between;gap:12px;background:#15204a;color:#fff;padding:10px 12px;font-weight:900}.group-head small{font-weight:600;color:#dbeafe}.stop-head{background:#eef2f7;padding:8px 12px;font-weight:900;border-top:1px solid #d9dee7}table{width:100%;border-collapse:collapse}th,td{border-top:1px solid #e2e8f0;padding:6px 7px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}.left{text-align:left}.phone{white-space:nowrap}.memo{min-width:180px}.empty{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:32px;text-align:center;color:#667085}
-@media print{@page{size:A4;margin:8mm}body{background:#fff;font-size:11px}.filter,.print-hide{display:none}.wrap{max-width:none;margin:0;padding:0}.topline{margin-bottom:8px}h1{font-size:20px}.meta{font-size:11px}.group{break-inside:avoid;border-color:#999;margin-bottom:8px}.group-head{background:#eee!important;color:#111!important;padding:6px 8px}.group-head small{color:#333}.stop-head{background:#f4f4f4!important;padding:5px 8px}th{background:#ddd!important;color:#111!important}th,td{font-size:10.5px;padding:4px 5px}.memo{min-width:120px}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1120px;margin:20px auto;padding:0 18px}.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}h1{margin:0;font-size:26px}.meta{color:#667085;margin-top:6px}.filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}.btn,select,input[type=date]{border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:700}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.group{background:#fff;border:1px solid #d9dee7;border-radius:8px;margin-bottom:14px;overflow:hidden}.group-head{display:flex;justify-content:space-between;gap:12px;background:#15204a;color:#fff;padding:10px 12px;font-weight:900}.group-head small{font-weight:600;color:#dbeafe}.stop-head{background:#eef2f7;padding:8px 12px;font-weight:900;border-top:1px solid #d9dee7}.student-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:8px;border-top:1px solid #e2e8f0}.student-card{border:1px solid #dbe2ec;border-radius:6px;background:#fff;padding:8px;min-width:0}.student-main{display:flex;justify-content:space-between;gap:8px;font-weight:900}.student-main small{color:#667085;font-weight:800}.student-sub{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:5px;font-size:13px}.phone{white-space:nowrap;font-weight:800}.memo{margin-top:5px;color:#344054;font-size:13px;line-height:1.35}.empty{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:32px;text-align:center;color:#667085}
+@media (max-width:720px){.student-grid{grid-template-columns:1fr}.topline{align-items:flex-start;flex-direction:column}}
+@media print{@page{size:A4;margin:7mm}body{background:#fff;font-size:10.5px}.filter,.print-hide{display:none}.wrap{max-width:none;margin:0;padding:0}.topline{margin-bottom:6px}h1{font-size:18px}.meta{font-size:10px}.group{break-inside:avoid;border-color:#999;margin-bottom:6px}.group-head{background:#eee!important;color:#111!important;padding:5px 7px}.group-head small{color:#333}.stop-head{background:#f4f4f4!important;padding:4px 7px}.student-grid{grid-template-columns:repeat(2,1fr);gap:5px;padding:5px}.student-card{padding:5px;border-color:#bbb;break-inside:avoid}.student-sub,.memo{font-size:9.5px}.student-main{font-size:11px}.memo{margin-top:3px}}
 </style>
 </head>
 <body>
@@ -78,11 +86,12 @@ $rows = sql_query("
     <div class="topline">
         <div>
             <h1>차량 일지</h1>
-            <div class="meta"><?php echo get_text($academy['academy_name']); ?> · <?php echo G5_TIME_YMD; ?></div>
+            <div class="meta"><?php echo get_text($academy['academy_name']); ?> · <?php echo get_text($journal_date); ?></div>
         </div>
         <button type="button" class="btn primary print-hide" onclick="window.print()">인쇄</button>
     </div>
     <form method="get" class="filter print-hide">
+        <input type="date" name="journal_date" value="<?php echo get_text($journal_date); ?>">
         <select name="ride_type">
             <option value="">전체</option>
             <option value="pickup" <?php echo get_selected($ride_type, 'pickup'); ?>>픽업</option>
@@ -108,7 +117,7 @@ $rows = sql_query("
         $stop_key = $group_key . '|' . (int) $row['stop_id'];
         if ($current_group !== $group_key) {
             if ($current_group !== '') {
-                echo '</tbody></table></section>';
+                echo '</div></section>';
             }
             $current_group = $group_key;
             $current_stop = '';
@@ -119,24 +128,24 @@ $rows = sql_query("
         }
         if ($current_stop !== $stop_key) {
             if ($current_stop !== '') {
-                echo '</tbody></table>';
+                echo '</div>';
             }
             $current_stop = $stop_key;
             echo '<div class="stop-head">' . get_text($row['stop_time'] . ' ' . $row['stop_name']) . '</div>';
-            echo '<table><thead><tr><th>학생명</th><th>학년/부</th><th>수업부</th><th>연락처</th><th class="left memo">메모</th></tr></thead><tbody>';
+            echo '<div class="student-grid">';
         }
         $student_count++;
-        echo '<tr>';
-        echo '<td>' . get_text($row['student_name']) . '</td>';
-        echo '<td>' . get_text(ieum_journal_grade_label($row['grade_group'])) . '</td>';
-        echo '<td>' . get_text(trim(($row['class_name'] ?: '') . ' ' . ($row['class_start_time'] ?: ''))) . '</td>';
-        echo '<td class="phone">' . get_text($row['contact_phone']) . '</td>';
+        $grade_label = ieum_journal_grade_label($row['grade_group']);
+        $class_label = trim(($row['class_name'] ?: '') . ' ' . ($row['class_start_time'] ?: ''));
         $memo = trim(($row['vehicle_memo'] ?: $row['place_name']) . ($row['student_memo'] ? ' / ' . $row['student_memo'] : ''));
-        echo '<td class="left memo">' . get_text($memo) . '</td>';
-        echo '</tr>';
+        echo '<article class="student-card">';
+        echo '<div class="student-main"><span>' . get_text($row['student_name']) . '</span><small>' . get_text($grade_label) . '</small></div>';
+        echo '<div class="student-sub"><span>' . get_text($class_label) . '</span><span class="phone">' . get_text($row['contact_phone']) . '</span></div>';
+        echo '<div class="memo">' . get_text($memo) . '</div>';
+        echo '</article>';
     }
     if ($current_group !== '') {
-        echo '</tbody></table></section>';
+        echo '</div></section>';
     }
     if (!$has_rows) {
         echo '<div class="empty">차량 배정 학생이 없습니다.</div>';
