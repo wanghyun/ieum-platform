@@ -56,6 +56,68 @@ function ieum_get_today_attendance($student_id, $academy_id = null)
     return isset($row['attendance_id']) ? $row : null;
 }
 
+function ieum_attendance_count_scheduled_days($days_csv, $start_date, $end_date)
+{
+    $days = array_filter(array_map('trim', explode(',', (string) $days_csv)));
+    if (!$days) {
+        $days = array('mon', 'tue', 'wed', 'thu', 'fri');
+    }
+
+    $weekday_map = array(1 => 'mon', 2 => 'tue', 3 => 'wed', 4 => 'thu', 5 => 'fri', 6 => 'sat', 7 => 'sun');
+    $start_ts = strtotime($start_date);
+    $end_ts = strtotime($end_date);
+    $count = 0;
+
+    for ($ts = $start_ts; $ts <= $end_ts; $ts = strtotime('+1 day', $ts)) {
+        $weekday = isset($weekday_map[(int) date('N', $ts)]) ? $weekday_map[(int) date('N', $ts)] : '';
+        if ($weekday && in_array($weekday, $days, true)) {
+            $count++;
+        }
+    }
+
+    return $count;
+}
+
+function ieum_attendance_month_progress($student, $academy_id)
+{
+    $student_id = (int) $student['student_id'];
+    $today = G5_TIME_YMD;
+    $month_start = date('Y-m-01', strtotime($today));
+    $month_end = date('Y-m-t', strtotime($today));
+    $attendance_days = isset($student['attendance_days']) ? $student['attendance_days'] : 'mon,tue,wed,thu,fri';
+    $elapsed_days = ieum_attendance_count_scheduled_days($attendance_days, $month_start, $today);
+    $total_days = ieum_attendance_count_scheduled_days($attendance_days, $month_start, $month_end);
+
+    $row = sql_fetch("
+        select count(distinct attendance_date) as cnt
+          from " . IEUM_ATTENDANCE_TABLE . "
+         where academy_id = '" . (int) $academy_id . "'
+           and student_id = '{$student_id}'
+           and attendance_date between '{$month_start}' and '{$today}'
+    ", false);
+
+    $attended_days = isset($row['cnt']) ? (int) $row['cnt'] : 0;
+    $rate = $elapsed_days > 0 ? (int) round(($attended_days / $elapsed_days) * 100) : 0;
+
+    if ($elapsed_days > 0 && $attended_days >= $elapsed_days) {
+        $message = '이번 달 개근 진행 중입니다. 오늘도 멋지게 이어갔어요!';
+    } elseif ($rate >= 80) {
+        $message = '좋은 흐름입니다. 이번 달 출석 리듬을 계속 지켜봐요!';
+    } elseif ($attended_days > 0) {
+        $message = '오늘 등원으로 다시 흐름을 만들었습니다. 다음 수업도 이어가요!';
+    } else {
+        $message = '이번 달 첫 등원입니다. 오늘부터 차근차근 시작해요!';
+    }
+
+    return array(
+        'attended_days' => $attended_days,
+        'elapsed_scheduled_days' => $elapsed_days,
+        'total_scheduled_days' => $total_days,
+        'rate' => min(100, max(0, $rate)),
+        'message' => $message,
+    );
+}
+
 function ieum_save_attendance_by_code($student_code, $input_source)
 {
     global $member;
@@ -83,6 +145,7 @@ function ieum_save_attendance_by_code($student_code, $input_source)
             'status' => 'duplicate',
             'message' => $student['student_name'] . ' 학생은 이미 오늘 등원 처리되었습니다.',
             'student' => $student,
+            'progress' => ieum_attendance_month_progress($student, $academy_id),
             'attendance' => $already,
         );
     }
@@ -111,6 +174,7 @@ function ieum_save_attendance_by_code($student_code, $input_source)
             'status' => 'duplicate',
             'message' => $student['student_name'] . ' 학생은 이미 오늘 등원 처리되었습니다.',
             'student' => $student,
+            'progress' => ieum_attendance_month_progress($student, $academy_id),
             'attendance' => $already,
         );
     }
@@ -122,6 +186,7 @@ function ieum_save_attendance_by_code($student_code, $input_source)
         'status' => 'created',
         'message' => $student['student_name'] . ' 학생 등원 처리 완료',
         'student' => $student,
+        'progress' => ieum_attendance_month_progress($student, $academy_id),
         'attendance_id' => $attendance_id,
         'sms_queue_ids' => $sms_ids,
         'sms_message' => $message,

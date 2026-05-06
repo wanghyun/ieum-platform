@@ -39,6 +39,13 @@ button:active{transform:translateY(1px)}
 .status.ok{background:#e8f7ee;color:#146c2e}
 .status.warn{background:#fff4e6;color:#9a5b00}
 .status.err{background:#fdecec;color:#a4262c}
+.progress-card{display:grid;gap:8px}
+.student-photo{width:120px;height:120px;border-radius:999px;object-fit:cover;border:4px solid #fff;box-shadow:0 6px 18px rgba(15,23,42,.18);margin:0 auto 4px}
+.progress-card strong{font-size:24px;color:#111827}
+.progress-line{font-size:18px;color:#334155}
+.progress-bar{height:12px;background:#dbe4ef;border-radius:999px;overflow:hidden}
+.progress-fill{height:100%;background:#1769c2;border-radius:999px}
+.motivation{font-weight:800;color:#146c2e}
 .meta{margin-top:12px;color:#697386;font-size:14px}
 </style>
 </head>
@@ -78,6 +85,38 @@ function setStatus(message, type) {
     statusBox.textContent = message;
 }
 
+function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    }[char]));
+}
+
+function showAttendanceResult(json) {
+    const data = json.data || {};
+    const progress = data.progress || null;
+    const status = data.status || '';
+    statusBox.className = 'status ' + (json.ok ? (status === 'duplicate' ? 'warn' : 'ok') : 'err');
+    if (!progress) {
+        statusBox.textContent = json.message;
+        return;
+    }
+    const rate = Math.max(0, Math.min(100, Number(progress.rate) || 0));
+    statusBox.innerHTML = `
+        <div class="progress-card">
+            ${data.photo_url ? `<img class="student-photo" src="${escapeHtml(data.photo_url)}" alt="">` : ''}
+            <strong>${escapeHtml(data.student_name || '')} ${status === 'duplicate' ? '이미 등원' : '등원 완료'}</strong>
+            <div class="progress-line">이번 달 등원 ${rate}% · ${progress.attended_days}/${progress.total_scheduled_days}일</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${rate}%"></div></div>
+            <div class="progress-line">현재 정상 수업일 기준 ${progress.attended_days}/${progress.elapsed_scheduled_days}일 출석</div>
+            <div class="motivation">${escapeHtml(progress.message || '')}</div>
+        </div>
+    `;
+}
+
 function resetInput() {
     input.value = '';
     input.focus();
@@ -103,8 +142,7 @@ async function submitAttendance() {
             body
         });
         const json = await res.json();
-        const status = json.data && json.data.status ? json.data.status : '';
-        setStatus(json.message, json.ok ? (status === 'duplicate' ? 'warn' : 'ok') : 'err');
+        showAttendanceResult(json);
         if (json.ok) {
             resetInput();
         }

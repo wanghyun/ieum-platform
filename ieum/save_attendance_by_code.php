@@ -25,6 +25,11 @@ if ($student_code === '') {
 
 $result = ieum_save_attendance_by_code($student_code, 'kiosk');
 
+$photo_url = '';
+if (isset($result['student']['student_photo']) && $result['student']['student_photo'] !== '') {
+    $photo_url = IEUM_URL . '/' . ltrim($result['student']['student_photo'], '/');
+}
+
 if ($result['status'] === 'forbidden') {
     ieum_json_response(false, $result['message'], array('status' => 'forbidden'), 403);
 }
@@ -37,6 +42,8 @@ if ($result['status'] === 'duplicate') {
     ieum_json_response(true, $result['message'], array(
         'status' => 'duplicate',
         'student_name' => $result['student']['student_name'],
+        'photo_url' => $photo_url,
+        'progress' => isset($result['progress']) ? $result['progress'] : null,
         'checked_at' => $result['attendance']['checked_at'],
     ));
 }
@@ -44,6 +51,8 @@ if ($result['status'] === 'duplicate') {
 ieum_json_response(true, $result['message'], array(
     'status' => 'created',
     'student_name' => $result['student']['student_name'],
+    'photo_url' => $photo_url,
+    'progress' => isset($result['progress']) ? $result['progress'] : null,
     'attendance_id' => $result['attendance_id'],
     'sms_queue_ids' => $result['sms_queue_ids'],
     'sms_queue_count' => count($result['sms_queue_ids']),
