@@ -202,7 +202,10 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
     <section class="panel">
         <div class="section-title">
             <h2>노선 등록</h2>
-            <a class="btn print" href="<?php echo IEUM_URL; ?>/admin/vehicle_journal.php" target="_blank" rel="noopener">차량 일지 인쇄</a>
+            <div>
+                <a class="btn" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php">탑승 확인</a>
+                <a class="btn print" href="<?php echo IEUM_URL; ?>/admin/vehicle_journal.php" target="_blank" rel="noopener">차량 일지 인쇄</a>
+            </div>
         </div>
         <form method="post" class="grid route">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">

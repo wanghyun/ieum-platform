@@ -224,6 +224,29 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ieum_install_add_column_if_missing(IEUM_STUDENT_VEHICLE_TABLE, 'ride_days', "varchar(50) not null default '' after contact_phone");
 
     sql_query("
+        create table if not exists " . IEUM_VEHICLE_BOARDING_TABLE . " (
+            log_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            journal_date date not null,
+            student_vehicle_id int unsigned not null,
+            student_id int unsigned not null,
+            ride_type varchar(20) not null,
+            route_id int unsigned not null default 0,
+            stop_id int unsigned not null default 0,
+            status varchar(30) not null default '',
+            note varchar(255) not null default '',
+            checked_by varchar(50) not null default '',
+            checked_at datetime null,
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (log_id),
+            unique key uq_vehicle_day (academy_id, journal_date, student_vehicle_id),
+            key idx_journal_status (academy_id, journal_date, status),
+            key idx_route_day (academy_id, journal_date, route_id, ride_type)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
         create table if not exists " . IEUM_ATTENDANCE_TABLE . " (
             attendance_id int unsigned not null auto_increment,
             academy_id int unsigned not null default 1,
