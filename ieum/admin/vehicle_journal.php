@@ -13,6 +13,8 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $journal_date)) {
 }
 $weekday_keys = array('sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat');
 $journal_weekday = $weekday_keys[(int) date('w', strtotime($journal_date))];
+$weekday_labels = array('sun' => '일', 'mon' => '월', 'tue' => '화', 'wed' => '수', 'thu' => '목', 'fri' => '금', 'sat' => '토');
+$journal_weekday_label = isset($weekday_labels[$journal_weekday]) ? $weekday_labels[$journal_weekday] : '';
 if ($ride_type !== 'pickup' && $ride_type !== 'dropoff') {
     $ride_type = '';
 }
@@ -76,9 +78,9 @@ $rows = sql_query("
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1120px;margin:20px auto;padding:0 18px}.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}h1{margin:0;font-size:26px}.meta{color:#667085;margin-top:6px}.filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}.btn,select,input[type=date]{border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:700}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.group{background:#fff;border:1px solid #d9dee7;border-radius:8px;margin-bottom:14px;overflow:hidden}.group-head{display:flex;justify-content:space-between;gap:12px;background:#15204a;color:#fff;padding:10px 12px;font-weight:900}.group-head small{font-weight:600;color:#dbeafe}.stop-head{background:#eef2f7;padding:8px 12px;font-weight:900;border-top:1px solid #d9dee7}.student-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:8px;border-top:1px solid #e2e8f0}.student-card{border:1px solid #dbe2ec;border-radius:6px;background:#fff;padding:8px;min-width:0}.student-main{display:flex;justify-content:space-between;gap:8px;font-weight:900}.student-main small{color:#667085;font-weight:800}.student-sub{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:5px;font-size:13px}.phone{white-space:nowrap;font-weight:800}.memo{margin-top:5px;color:#344054;font-size:13px;line-height:1.35}.empty{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:32px;text-align:center;color:#667085}
-@media (max-width:720px){.student-grid{grid-template-columns:1fr}.topline{align-items:flex-start;flex-direction:column}}
-@media print{@page{size:A4;margin:7mm}body{background:#fff;font-size:10.5px}.filter,.print-hide{display:none}.wrap{max-width:none;margin:0;padding:0}.topline{margin-bottom:6px}h1{font-size:18px}.meta{font-size:10px}.group{break-inside:avoid;border-color:#999;margin-bottom:6px}.group-head{background:#eee!important;color:#111!important;padding:5px 7px}.group-head small{color:#333}.stop-head{background:#f4f4f4!important;padding:4px 7px}.student-grid{grid-template-columns:repeat(2,1fr);gap:5px;padding:5px}.student-card{padding:5px;border-color:#bbb;break-inside:avoid}.student-sub,.memo{font-size:9.5px}.student-main{font-size:11px}.memo{margin-top:3px}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1120px;margin:20px auto;padding:0 18px}.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}h1{margin:0;font-size:26px}.meta{color:#667085;margin-top:6px}.filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 10px}.btn,select,input[type=date]{border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:700}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.journal-guide{margin:0 0 16px;color:#667085;font-size:13px}.group{background:#fff;border:1px solid #d9dee7;border-radius:8px;margin-bottom:14px;overflow:hidden}.group-head{display:flex;justify-content:space-between;gap:12px;background:#15204a;color:#fff;padding:10px 12px;font-weight:900}.group-head small{font-weight:600;color:#dbeafe;text-align:right}.stop-head{background:#eef2f7;padding:8px 12px;font-weight:900;border-top:1px solid #d9dee7}.student-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:8px;border-top:1px solid #e2e8f0}.student-card{border:1px solid #dbe2ec;border-radius:6px;background:#fff;padding:8px;min-width:0}.student-main{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;font-weight:900}.student-main span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.student-main small{color:#667085;font-weight:800;white-space:nowrap}.student-sub{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;margin-top:5px;font-size:13px}.student-sub span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.phone{white-space:nowrap;font-weight:800}.memo{min-height:18px;margin-top:5px;color:#344054;font-size:13px;line-height:1.35;word-break:keep-all;overflow-wrap:anywhere}.empty{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:32px;text-align:center;color:#667085}
+@media (max-width:720px){.student-grid{grid-template-columns:1fr}.topline{align-items:flex-start;flex-direction:column}.student-sub{grid-template-columns:1fr}}
+@media print{@page{size:A4;margin:6mm}body{background:#fff;color:#111;font-size:10px}.filter,.print-hide{display:none}.wrap{max-width:none;margin:0;padding:0}.topline{margin-bottom:5px;align-items:flex-end}h1{font-size:17px}.meta{font-size:9.5px;margin-top:2px}.group{break-inside:avoid;border-color:#999;border-radius:4px;margin-bottom:5px}.group-head{background:#eee!important;color:#111!important;padding:4px 6px;font-size:10.5px}.group-head small{color:#333}.stop-head{background:#f4f4f4!important;padding:3px 6px;font-size:10.5px}.student-grid{grid-template-columns:repeat(2,1fr);gap:4px;padding:4px}.student-card{padding:4px 5px;border-color:#b8b8b8;border-radius:4px;break-inside:avoid;min-height:45px}.student-main{font-size:10.5px;gap:5px}.student-sub,.memo{font-size:9px}.student-sub{margin-top:2px;gap:4px}.memo{min-height:13px;margin-top:2px;line-height:1.25}.phone{font-size:9px}.empty{border-color:#999;padding:18px}}
 </style>
 </head>
 <body>
@@ -86,7 +88,7 @@ $rows = sql_query("
     <div class="topline">
         <div>
             <h1>차량 일지</h1>
-            <div class="meta"><?php echo get_text($academy['academy_name']); ?> · <?php echo get_text($journal_date); ?></div>
+            <div class="meta"><?php echo get_text($academy['academy_name']); ?> · <?php echo get_text($journal_date . ($journal_weekday_label ? ' (' . $journal_weekday_label . ')' : '')); ?></div>
         </div>
         <button type="button" class="btn primary print-hide" onclick="window.print()">인쇄</button>
     </div>
@@ -106,6 +108,7 @@ $rows = sql_query("
         <button type="submit" class="btn">조회</button>
         <a class="btn" href="<?php echo IEUM_URL; ?>/admin/vehicles.php">차량 관리</a>
     </form>
+    <p class="journal-guide print-hide">A4 세로 인쇄 기준으로 학생 카드가 한 줄에 2명씩 배치됩니다. 날짜를 바꾸면 해당 요일 차량 이용 학생만 표시됩니다.</p>
     <?php
     $current_group = '';
     $current_stop = '';
