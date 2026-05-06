@@ -13,6 +13,23 @@ function ieum_absent_alert_weekday($time = null)
     return isset($map[(int) date('N', $time)]) ? $map[(int) date('N', $time)] : '';
 }
 
+function ieum_absent_alert_is_closed_day($academy_id, $date)
+{
+    $academy_id = (int) $academy_id;
+    $date_sql = sql_escape_string($date);
+    $row = sql_fetch("
+        select calendar_id
+          from " . IEUM_ACADEMY_CALENDAR_TABLE . "
+         where academy_id = '{$academy_id}'
+           and calendar_date = '{$date_sql}'
+           and day_type = 'closed'
+           and is_active = 1
+         limit 1
+    ", false);
+
+    return isset($row['calendar_id']);
+}
+
 function ieum_absent_alert_create_for_academy($academy_id, $dry_run = false)
 {
     $academy_id = (int) $academy_id;
@@ -22,6 +39,16 @@ function ieum_absent_alert_create_for_academy($academy_id, $dry_run = false)
     $created = 0;
     $classes_checked = 0;
     $details = array();
+
+    if (ieum_absent_alert_is_closed_day($academy_id, $today)) {
+        return array(
+            'created_sms' => 0,
+            'classes_checked' => 0,
+            'details' => array(
+                array('closed_day' => true, 'date' => $today),
+            ),
+        );
+    }
 
     $classes = sql_query("
         select *

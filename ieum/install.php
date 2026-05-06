@@ -147,6 +147,23 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ");
 
     sql_query("
+        create table if not exists " . IEUM_ACADEMY_CALENDAR_TABLE . " (
+            calendar_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            calendar_date date not null,
+            day_type varchar(20) not null default 'closed',
+            title varchar(100) not null default '',
+            memo varchar(255) not null default '',
+            is_active tinyint(1) not null default 1,
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (calendar_id),
+            unique key uq_academy_date_type (academy_id, calendar_date, day_type),
+            key idx_academy_date (academy_id, calendar_date, is_active)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
         create table if not exists " . IEUM_STUDENT_GUARDIAN_TABLE . " (
             guardian_id int unsigned not null auto_increment,
             academy_id int unsigned not null,
@@ -491,6 +508,7 @@ ul{line-height:1.9}
         <li><code><?php echo IEUM_STUDENT_TABLE; ?></code></li>
         <li><code><?php echo IEUM_ATTENDANCE_TABLE; ?></code></li>
         <li><code><?php echo IEUM_SMS_QUEUE_TABLE; ?></code></li>
+        <li><code><?php echo IEUM_ACADEMY_CALENDAR_TABLE; ?></code></li>
     </ul>
 </section>
 

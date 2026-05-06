@@ -22,6 +22,7 @@ define('IEUM_VEHICLE_ROUTE_TABLE', 'ieum_vehicle_routes');
 define('IEUM_VEHICLE_STOP_TABLE', 'ieum_vehicle_stops');
 define('IEUM_STUDENT_VEHICLE_TABLE', 'ieum_student_vehicles');
 define('IEUM_VEHICLE_BOARDING_TABLE', 'ieum_vehicle_boarding_logs');
+define('IEUM_ACADEMY_CALENDAR_TABLE', 'ieum_academy_calendar');
 
 if (is_file(IEUM_PATH . '/config.php')) {
     require_once IEUM_PATH . '/config.php';

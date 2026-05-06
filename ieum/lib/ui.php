@@ -26,6 +26,7 @@ function ieum_admin_nav_items()
         'label' => '학원 설정',
         'children' => array(
             'classes' => array('label' => '수업 시간표', 'url' => IEUM_URL . '/admin/class_times.php'),
+            'calendar' => array('label' => '수업일 설정', 'url' => IEUM_URL . '/admin/school_calendar.php'),
             'tuition' => array('label' => '수련비 정책', 'url' => IEUM_URL . '/admin/tuition.php'),
             'contacts' => array('label' => '알림 담당자', 'url' => IEUM_URL . '/admin/contacts.php'),
         ),

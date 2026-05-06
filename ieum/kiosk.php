@@ -24,6 +24,7 @@ body.tablet{background:#111827}
 .wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
 .panel{width:min(560px,100%);background:#fff;border:1px solid #dde1e7;border-radius:8px;padding:28px;box-shadow:0 10px 30px rgba(15,23,42,.08)}
 body.tablet .panel{width:min(760px,100%);padding:40px}
+body.tablet .wrap{padding:16px}
 h1{margin:0 0 10px;font-size:28px;line-height:1.2}
 body.tablet h1{font-size:42px}
 .sub{margin:0 0 22px;color:#5b6472}
@@ -35,17 +36,19 @@ body.tablet button{height:88px;font-size:36px}
 button:active{transform:translateY(1px)}
 .submit{grid-column:span 2;background:#1565c0;color:#fff;border-color:#1565c0}
 .clear{background:#f1f3f5}
-.status{min-height:58px;margin-top:18px;padding:14px;border-radius:8px;background:#eef2f7;color:#1f2937;font-size:18px}
+.status{height:210px;margin-top:18px;padding:14px;border-radius:8px;background:#eef2f7;color:#1f2937;font-size:18px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+body.tablet .status{height:250px}
 .status.ok{background:#e8f7ee;color:#146c2e}
 .status.warn{background:#fff4e6;color:#9a5b00}
 .status.err{background:#fdecec;color:#a4262c}
-.progress-card{display:grid;gap:8px}
-.student-photo{width:120px;height:120px;border-radius:999px;object-fit:cover;border:4px solid #fff;box-shadow:0 6px 18px rgba(15,23,42,.18);margin:0 auto 4px}
+.progress-card{display:grid;gap:8px;width:100%;text-align:center}
+.student-photo{width:92px;height:92px;border-radius:999px;object-fit:cover;border:4px solid #fff;box-shadow:0 6px 18px rgba(15,23,42,.18);margin:0 auto 2px}
+body.tablet .student-photo{width:112px;height:112px}
 .progress-card strong{font-size:24px;color:#111827}
 .progress-line{font-size:18px;color:#334155}
 .progress-bar{height:12px;background:#dbe4ef;border-radius:999px;overflow:hidden}
 .progress-fill{height:100%;background:#1769c2;border-radius:999px}
-.motivation{font-weight:800;color:#146c2e}
+.motivation{font-weight:800;color:#146c2e;line-height:1.35}
 .meta{margin-top:12px;color:#697386;font-size:14px}
 </style>
 </head>
@@ -109,9 +112,9 @@ function showAttendanceResult(json) {
         <div class="progress-card">
             ${data.photo_url ? `<img class="student-photo" src="${escapeHtml(data.photo_url)}" alt="">` : ''}
             <strong>${escapeHtml(data.student_name || '')} ${status === 'duplicate' ? '이미 등원' : '등원 완료'}</strong>
-            <div class="progress-line">이번 달 등원 ${rate}% · ${progress.attended_days}/${progress.total_scheduled_days}일</div>
+            <div class="progress-line">이번 달 수련 흐름 ${rate}% · ${progress.attended_days}/${progress.total_scheduled_days}일</div>
             <div class="progress-bar"><div class="progress-fill" style="width:${rate}%"></div></div>
-            <div class="progress-line">현재 정상 수업일 기준 ${progress.attended_days}/${progress.elapsed_scheduled_days}일 출석</div>
+            <div class="progress-line">오늘까지 정상 수업일 기준 ${progress.attended_days}/${progress.elapsed_scheduled_days}일 출석</div>
             <div class="motivation">${escapeHtml(progress.message || '')}</div>
         </div>
     `;

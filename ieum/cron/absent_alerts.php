@@ -20,6 +20,7 @@ $today_weekday_sql = sql_escape_string($today_weekday);
 $created = 0;
 $checked = 0;
 $details = array();
+$closed_academies = array();
 
 $classes = sql_query("
     select c.*, a.academy_name
@@ -36,6 +37,24 @@ while ($class = sql_fetch_array($classes)) {
     $checked++;
     $academy_id = (int) $class['academy_id'];
     $class_time_id = (int) $class['class_time_id'];
+
+    if (!isset($closed_academies[$academy_id])) {
+        $closed = sql_fetch("
+            select calendar_id
+              from " . IEUM_ACADEMY_CALENDAR_TABLE . "
+             where academy_id = '{$academy_id}'
+               and calendar_date = '{$today}'
+               and day_type = 'closed'
+               and is_active = 1
+             limit 1
+        ", false);
+        $closed_academies[$academy_id] = isset($closed['calendar_id']);
+    }
+
+    if ($closed_academies[$academy_id]) {
+        continue;
+    }
+
     $minutes = (int) $class['absent_alert_after_minutes'];
     if ($minutes < 1) {
         $minutes = 10;
