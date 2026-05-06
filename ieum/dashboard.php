@@ -1,5 +1,6 @@
 <?php
 require_once './_common.php';
+require_once IEUM_PATH . '/lib/security.php';
 require_once IEUM_PATH . '/lib/academy.php';
 require_once IEUM_PATH . '/lib/sms_queue.php';
 require_once IEUM_PATH . '/lib/ui.php';
