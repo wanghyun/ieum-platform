@@ -477,6 +477,8 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             amount_paid int unsigned not null default 0,
             status varchar(20) not null default 'unpaid',
             memo varchar(255) not null default '',
+            notice_sent_at datetime null,
+            notice_count smallint unsigned not null default 0,
             paid_at datetime null,
             created_at datetime not null,
             updated_at datetime null,
@@ -485,6 +487,8 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             key idx_status_due (academy_id, status, due_date)
         ) engine={$engine} default charset={$charset}
     ");
+    ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'notice_sent_at', 'datetime null after memo');
+    ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'notice_count', 'smallint unsigned not null default 0 after notice_sent_at');
 
     sql_query("
         insert into " . IEUM_STUDENT_TABLE . "
