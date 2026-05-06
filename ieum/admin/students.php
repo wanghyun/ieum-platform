@@ -47,6 +47,73 @@ function ieum_attendance_week_type_options()
     return array('2' => '주 2회', '3' => '주 3회', '4' => '주 4회', '5' => '주 5회', 'custom' => '직접 선택');
 }
 
+function ieum_student_status_options()
+{
+    return array(
+        'enrolled' => '재원',
+        'trial' => '체험',
+        'paused' => '휴관',
+        'returned' => '복귀',
+        'withdrawn' => '퇴관',
+        'waiting' => '대기',
+    );
+}
+
+function ieum_student_status_label($status)
+{
+    $options = ieum_student_status_options();
+    return isset($options[$status]) ? $options[$status] : $status;
+}
+
+function ieum_enrollment_source_options()
+{
+    return array(
+        '' => '선택 안함',
+        'referral' => '지인 소개',
+        'sibling' => '형제/자매',
+        'sign_walkin' => '간판/지나가다',
+        'naver_search' => '네이버 검색',
+        'naver_place' => '네이버 플레이스',
+        'blog_cafe' => '블로그/카페',
+        'instagram' => '인스타그램',
+        'youtube' => '유튜브',
+        'school_promo' => '학교/유치원 홍보',
+        'flyer' => '전단지',
+        'event_trial' => '행사/체험수업',
+        'etc' => '기타',
+    );
+}
+
+function ieum_enrollment_source_label($source)
+{
+    $options = ieum_enrollment_source_options();
+    return isset($options[$source]) ? $options[$source] : $source;
+}
+
+function ieum_log_student_status_change($academy_id, $student_id, $before_status, $after_status, $memo = '')
+{
+    global $member;
+
+    $academy_id = (int) $academy_id;
+    $student_id = (int) $student_id;
+    if (!$academy_id || !$student_id || $before_status === $after_status) {
+        return;
+    }
+
+    sql_query("
+        insert into " . IEUM_STUDENT_STATUS_LOG_TABLE . "
+            set academy_id = '{$academy_id}',
+                student_id = '{$student_id}',
+                before_status = '" . sql_escape_string($before_status) . "',
+                after_status = '" . sql_escape_string($after_status) . "',
+                changed_date = '" . G5_TIME_YMD . "',
+                reason = '',
+                memo = '" . sql_escape_string($memo) . "',
+                created_by = '" . sql_escape_string(isset($member['mb_id']) ? $member['mb_id'] : '') . "',
+                created_at = '" . G5_TIME_YMDHIS . "'
+    ");
+}
+
 function ieum_weekday_options()
 {
     return array('mon' => '월', 'tue' => '화', 'wed' => '수', 'thu' => '목', 'fri' => '금');
@@ -343,6 +410,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $attendance_week_type = 'custom';
             }
             $attendance_days = ieum_clean_attendance_days(isset($_POST['attendance_days']) ? $_POST['attendance_days'] : array());
+            $student_status = isset($_POST['student_status']) ? preg_replace('/[^0-9a-z_]/', '', trim($_POST['student_status'])) : 'enrolled';
+            if (!isset(ieum_student_status_options()[$student_status])) {
+                $student_status = 'enrolled';
+            }
+            $enrollment_source = isset($_POST['enrollment_source']) ? preg_replace('/[^0-9a-z_]/', '', trim($_POST['enrollment_source'])) : '';
+            if (!isset(ieum_enrollment_source_options()[$enrollment_source])) {
+                $enrollment_source = '';
+            }
+            $referrer_name = isset($_POST['referrer_name']) ? trim($_POST['referrer_name']) : '';
+            $counseling_note = isset($_POST['counseling_note']) ? trim($_POST['counseling_note']) : '';
             $admission_date = isset($_POST['admission_date']) ? preg_replace('/[^0-9-]/', '', trim($_POST['admission_date'])) : '';
             if ($admission_date !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $admission_date)) {
                 $admission_date = '';
@@ -434,6 +511,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $grade_group_sql = sql_escape_string($grade_group);
                     $attendance_week_type_sql = sql_escape_string($attendance_week_type);
                     $attendance_days_sql = sql_escape_string($attendance_days);
+                    $student_status_sql = sql_escape_string($student_status);
+                    $enrollment_source_sql = sql_escape_string($enrollment_source);
+                    $referrer_name_sql = sql_escape_string($referrer_name);
+                    $counseling_note_sql = sql_escape_string($counseling_note);
                     $admission_date_sql = sql_escape_string($admission_date);
                     $tuition_week_type_sql = sql_escape_string($tuition_week_type);
                     $tuition_note_sql = sql_escape_string($tuition_note);
@@ -443,6 +524,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $admission_set = $admission_date_sql === '' ? "admission_date = null" : "admission_date = '{$admission_date_sql}'";
 
                     if ($post_student_id) {
+                        $before_student = ieum_fetch_student($post_student_id);
+                        $before_status = $before_student && isset($before_student['student_status']) ? $before_student['student_status'] : ($before_student && $before_student['is_active'] ? 'enrolled' : 'withdrawn');
                         sql_query("
                             update " . IEUM_STUDENT_TABLE . "
                                set student_code = '{$student_code_sql}',
@@ -452,6 +535,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                    class_time_id = '{$class_time_id}',
                                    attendance_week_type = '{$attendance_week_type_sql}',
                                    attendance_days = '{$attendance_days_sql}',
+                                   student_status = '{$student_status_sql}',
+                                   enrollment_source = '{$enrollment_source_sql}',
+                                   referrer_name = '{$referrer_name_sql}',
+                                   counseling_note = '{$counseling_note_sql}',
                                    {$admission_set},
                                    tuition_week_type = '{$tuition_week_type_sql}',
                                    tuition_amount = '{$tuition_amount}',
@@ -470,6 +557,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                and academy_id = '{$academy_id}'
                         ");
                         $saved_student_id = $post_student_id;
+                        ieum_log_student_status_change($academy_id, $saved_student_id, $before_status, $student_status, '학생 정보 수정');
                         $message = '학생 정보가 수정되었습니다.';
                     } else {
                         sql_query("
@@ -482,6 +570,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     class_time_id = '{$class_time_id}',
                                     attendance_week_type = '{$attendance_week_type_sql}',
                                     attendance_days = '{$attendance_days_sql}',
+                                    student_status = '{$student_status_sql}',
+                                    enrollment_source = '{$enrollment_source_sql}',
+                                    referrer_name = '{$referrer_name_sql}',
+                                    counseling_note = '{$counseling_note_sql}',
                                     {$admission_set},
                                     tuition_week_type = '{$tuition_week_type_sql}',
                                     tuition_amount = '{$tuition_amount}',
@@ -498,6 +590,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     created_at = '" . G5_TIME_YMDHIS . "'
                         ");
                         $saved_student_id = sql_insert_id();
+                        ieum_log_student_status_change($academy_id, $saved_student_id, '', $student_status, '학생 신규 등록');
                         $message = '학생이 등록되었습니다.';
                     }
                     $primary_guardian = ieum_save_guardians(
@@ -530,13 +623,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = '학생 정보를 찾을 수 없습니다.';
             } else {
                 $next_active = $target['is_active'] ? 0 : 1;
+                $next_status = $next_active ? 'enrolled' : 'withdrawn';
+                $before_status = isset($target['student_status']) && $target['student_status'] !== '' ? $target['student_status'] : ($target['is_active'] ? 'enrolled' : 'withdrawn');
                 sql_query("
                     update " . IEUM_STUDENT_TABLE . "
                        set is_active = '{$next_active}',
+                           student_status = '{$next_status}',
                            updated_at = '" . G5_TIME_YMDHIS . "'
                      where student_id = '{$post_student_id}'
                        and academy_id = '{$academy_id}'
                 ");
+                ieum_log_student_status_change($academy_id, $post_student_id, $before_status, $next_status, $next_active ? '사용 상태 변경' : '사용중지 처리');
                 $message = $next_active ? '학생을 사용 상태로 변경했습니다.' : '학생을 사용중지했습니다.';
             }
             $mode = 'list';
@@ -741,6 +838,10 @@ textarea{min-height:82px;resize:vertical}
             'attendance_week_type' => '5',
             'attendance_days' => 'mon,tue,wed,thu,fri',
             'admission_date' => '',
+            'student_status' => 'enrolled',
+            'enrollment_source' => '',
+            'referrer_name' => '',
+            'counseling_note' => '',
             'tuition_week_type' => '5',
             'tuition_amount' => 0,
             'sibling_discount_enabled' => 0,
@@ -847,6 +948,24 @@ textarea{min-height:82px;resize:vertical}
 
                 <label>출석 요일</label>
                 <div class="weekday-control">
+                    <div style="display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;margin-bottom:12px">
+                        <label for="student_status">원생 상태</label>
+                        <select name="student_status" id="student_status">
+                            <?php foreach (ieum_student_status_options() as $value => $label) { ?>
+                            <option value="<?php echo get_text($value); ?>" <?php echo get_selected(isset($form['student_status']) && $form['student_status'] !== '' ? $form['student_status'] : 'enrolled', $value); ?>><?php echo get_text($label); ?></option>
+                            <?php } ?>
+                        </select>
+                        <label for="enrollment_source">입관 경로</label>
+                        <select name="enrollment_source" id="enrollment_source">
+                            <?php foreach (ieum_enrollment_source_options() as $value => $label) { ?>
+                            <option value="<?php echo get_text($value); ?>" <?php echo get_selected(isset($form['enrollment_source']) ? $form['enrollment_source'] : '', $value); ?>><?php echo get_text($label); ?></option>
+                            <?php } ?>
+                        </select>
+                        <label for="referrer_name">소개자/경로 메모</label>
+                        <input type="text" name="referrer_name" id="referrer_name" value="<?php echo get_text(isset($form['referrer_name']) ? $form['referrer_name'] : ''); ?>" maxlength="80" placeholder="예: 김철수 보호자, 네이버 플레이스">
+                        <label for="counseling_note">입관 상담 메모</label>
+                        <input type="text" name="counseling_note" id="counseling_note" value="<?php echo get_text(isset($form['counseling_note']) ? $form['counseling_note'] : ''); ?>" maxlength="255" placeholder="예: 자신감 향상, 집중력 개선 희망">
+                    </div>
                     <input type="hidden" name="attendance_week_type" id="attendance_week_type" value="<?php echo get_text($form['attendance_week_type'] ?: '5'); ?>">
                     <div class="weekday-presets">
                         <?php foreach (ieum_attendance_week_type_options() as $value => $label) { ?>

@@ -13,6 +13,8 @@ function ieum_admin_nav_items()
     }
 
     $items['dashboard'] = array('label' => '대시보드', 'url' => IEUM_URL . '/dashboard.php');
+    $items['operations'] = array('label' => '운영 지표', 'url' => IEUM_URL . '/admin/operations.php');
+    $items['growth'] = array('label' => '성장 리포트', 'url' => IEUM_URL . '/admin/growth_report.php');
     $items['students'] = array('label' => '학생 관리', 'url' => IEUM_URL . '/admin/students.php');
     $items['groups'] = array('label' => '부별 학생', 'url' => IEUM_URL . '/admin/student_groups.php');
     $items['attendance'] = array('label' => '오늘 출석', 'url' => IEUM_URL . '/admin/attendance_today.php');

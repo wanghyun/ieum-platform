@@ -101,6 +101,10 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             attendance_week_type varchar(20) not null default '5',
             attendance_days varchar(50) not null default 'mon,tue,wed,thu,fri',
             admission_date date null,
+            student_status varchar(20) not null default 'enrolled',
+            enrollment_source varchar(50) not null default '',
+            referrer_name varchar(80) not null default '',
+            counseling_note varchar(255) not null default '',
             tuition_week_type varchar(20) not null default '5',
             tuition_amount int unsigned not null default 0,
             sibling_discount_enabled tinyint(1) not null default 0,
@@ -294,6 +298,10 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'student_phone', "varchar(30) not null default '' after student_name");
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'attendance_days', "varchar(50) not null default 'mon,tue,wed,thu,fri'");
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'admission_date', 'date null');
+    ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'student_status', "varchar(20) not null default 'enrolled' after admission_date");
+    ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'enrollment_source', "varchar(50) not null default '' after student_status");
+    ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'referrer_name', "varchar(80) not null default '' after enrollment_source");
+    ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'counseling_note', "varchar(255) not null default '' after referrer_name");
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'tuition_week_type', "varchar(20) not null default '5'");
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'tuition_amount', 'int unsigned not null default 0');
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'sibling_discount_enabled', 'tinyint(1) not null default 0');
@@ -358,6 +366,24 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             completed_at datetime null,
             primary key (task_id),
             key idx_status_priority (status, priority, task_id)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
+        create table if not exists " . IEUM_STUDENT_STATUS_LOG_TABLE . " (
+            status_log_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            student_id int unsigned not null,
+            before_status varchar(20) not null default '',
+            after_status varchar(20) not null default '',
+            changed_date date not null,
+            reason varchar(100) not null default '',
+            memo varchar(255) not null default '',
+            created_by varchar(50) not null default '',
+            created_at datetime not null,
+            primary key (status_log_id),
+            key idx_academy_date (academy_id, changed_date),
+            key idx_student_date (academy_id, student_id, changed_date)
         ) engine={$engine} default charset={$charset}
     ");
 

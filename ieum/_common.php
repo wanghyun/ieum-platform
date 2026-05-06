@@ -15,6 +15,7 @@ define('IEUM_STUDENT_GUARDIAN_TABLE', 'ieum_student_guardians');
 define('IEUM_ACADEMY_CONTACT_TABLE', 'ieum_academy_contacts');
 define('IEUM_ABSENT_ALERT_LOG_TABLE', 'ieum_absent_alert_log');
 define('IEUM_PROJECT_TASK_TABLE', 'ieum_project_tasks');
+define('IEUM_STUDENT_STATUS_LOG_TABLE', 'ieum_student_status_logs');
 define('IEUM_TUITION_PLAN_TABLE', 'ieum_tuition_plans');
 define('IEUM_TUITION_PAYMENT_TABLE', 'ieum_tuition_payments');
 define('IEUM_VEHICLE_ROUTE_TABLE', 'ieum_vehicle_routes');
