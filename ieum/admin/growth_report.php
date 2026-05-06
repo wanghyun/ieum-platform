@@ -87,7 +87,7 @@ $source_rows = sql_query("
                 <td><?php echo number_format($row['active']); ?></td>
                 <td class="good"><?php echo number_format($row['new']); ?></td>
                 <td class="good"><?php echo number_format($row['returned']); ?></td>
-                <td class="<?php echo $row['paused'] > 0 ? 'danger' : ($row['paused'] < 0 ? 'good' : ''); ?>"><?php echo ($row['paused'] > 0 ? '+' : '') . number_format($row['paused']); ?></td>
+                <td class="<?php echo $row['paused'] > 0 ? 'danger' : ($row['paused'] < 0 ? 'good' : ''); ?>"><?php echo number_format($row['paused']); ?></td>
                 <td class="danger"><?php echo number_format($row['withdrawn']); ?></td>
                 <td class="<?php echo $net >= 0 ? 'good' : 'danger'; ?>"><?php echo ($net > 0 ? '+' : '') . number_format($net); ?></td>
             </tr>
