@@ -10,20 +10,28 @@ if ($year < 2000 || $year > 2100) {
     $year = (int) date('Y');
 }
 
+function ieum_growth_source_label($source)
+{
+    $labels = array('' => '미입력', 'referral' => '지인 소개', 'sibling' => '형제/자매', 'sign_walkin' => '간판/지나가다', 'naver_search' => '네이버 검색', 'naver_place' => '네이버 플레이스', 'blog_cafe' => '블로그/카페', 'instagram' => '인스타그램', 'youtube' => '유튜브', 'school_promo' => '학교/유치원 홍보', 'flyer' => '전단지', 'event_trial' => '행사/체험수업', 'etc' => '기타');
+    return isset($labels[$source]) ? $labels[$source] : $source;
+}
+
 $months = array();
 for ($m = 1; $m <= 12; $m++) {
     $month = sprintf('%04d-%02d', $year, $m);
     $start = $month . '-01';
     $end = date('Y-m-t', strtotime($start));
     $new = sql_fetch("select count(*) as cnt from " . IEUM_STUDENT_TABLE . " where academy_id='{$academy_id}' and admission_date between '{$start}' and '{$end}'", false);
-    $paused = sql_fetch("select count(*) as cnt from " . IEUM_STUDENT_STATUS_LOG_TABLE . " where academy_id='{$academy_id}' and after_status='paused' and changed_date between '{$start}' and '{$end}'", false);
+    $paused_in = sql_fetch("select count(distinct student_id) as cnt from " . IEUM_STUDENT_STATUS_LOG_TABLE . " where academy_id='{$academy_id}' and after_status='paused' and changed_date between '{$start}' and '{$end}'", false);
+    $paused_out = sql_fetch("select count(distinct student_id) as cnt from " . IEUM_STUDENT_STATUS_LOG_TABLE . " where academy_id='{$academy_id}' and before_status='paused' and after_status <> 'paused' and changed_date between '{$start}' and '{$end}'", false);
     $withdrawn = sql_fetch("select count(*) as cnt from " . IEUM_STUDENT_STATUS_LOG_TABLE . " where academy_id='{$academy_id}' and after_status='withdrawn' and changed_date between '{$start}' and '{$end}'", false);
-    $returned = sql_fetch("select count(*) as cnt from " . IEUM_STUDENT_STATUS_LOG_TABLE . " where academy_id='{$academy_id}' and after_status in ('returned','enrolled') and before_status in ('paused','withdrawn','waiting','trial') and changed_date between '{$start}' and '{$end}'", false);
-    $active = sql_fetch("select count(*) as cnt from " . IEUM_STUDENT_TABLE . " where academy_id='{$academy_id}' and is_active=1 and (admission_date is null or admission_date <= '{$end}')", false);
+    $returned = sql_fetch("select count(distinct student_id) as cnt from " . IEUM_STUDENT_STATUS_LOG_TABLE . " where academy_id='{$academy_id}' and after_status in ('returned','enrolled') and before_status='paused' and changed_date between '{$start}' and '{$end}'", false);
+    $active = sql_fetch("select count(*) as cnt from " . IEUM_STUDENT_TABLE . " where academy_id='{$academy_id}' and is_active=1 and student_status in ('enrolled','returned') and (admission_date is null or admission_date <= '{$end}')", false);
     $months[] = array(
         'month' => $month,
         'new' => (int) $new['cnt'],
-        'paused' => (int) $paused['cnt'],
+        'paused' => (int) $paused_in['cnt'] - (int) $paused_out['cnt'],
+        'paused_in' => (int) $paused_in['cnt'],
         'returned' => (int) $returned['cnt'],
         'withdrawn' => (int) $withdrawn['cnt'],
         'active' => (int) $active['cnt'],
@@ -73,13 +81,13 @@ $source_rows = sql_query("
         <table>
             <thead><tr><th>월</th><th>재원</th><th>신규</th><th>복귀</th><th>휴관</th><th>퇴관</th><th>순증감</th></tr></thead>
             <tbody>
-            <?php foreach ($months as $row) { $net = $row['new'] + $row['returned'] - $row['paused'] - $row['withdrawn']; ?>
+            <?php foreach ($months as $row) { $net = $row['new'] + $row['returned'] - $row['paused_in'] - $row['withdrawn']; ?>
             <tr>
                 <td><?php echo get_text(substr($row['month'], 5, 2)); ?>월</td>
                 <td><?php echo number_format($row['active']); ?></td>
                 <td class="good"><?php echo number_format($row['new']); ?></td>
                 <td class="good"><?php echo number_format($row['returned']); ?></td>
-                <td><?php echo number_format($row['paused']); ?></td>
+                <td class="<?php echo $row['paused'] > 0 ? 'danger' : ($row['paused'] < 0 ? 'good' : ''); ?>"><?php echo ($row['paused'] > 0 ? '+' : '') . number_format($row['paused']); ?></td>
                 <td class="danger"><?php echo number_format($row['withdrawn']); ?></td>
                 <td class="<?php echo $net >= 0 ? 'good' : 'danger'; ?>"><?php echo ($net > 0 ? '+' : '') . number_format($net); ?></td>
             </tr>
@@ -94,7 +102,7 @@ $source_rows = sql_query("
         <?php $max = 1; $sources = array(); while ($row = sql_fetch_array($source_rows)) { $sources[] = $row; $max = max($max, (int) $row['cnt']); } ?>
         <?php foreach ($sources as $row) { $rate = round(((int) $row['cnt'] / $max) * 100); ?>
             <div class="bar-row">
-                <strong><?php echo get_text($row['enrollment_source'] ?: '미입력'); ?></strong>
+                <strong><?php echo get_text(ieum_growth_source_label($row['enrollment_source'])); ?></strong>
                 <div class="track"><div class="fill" style="width:<?php echo (int) $rate; ?>%"></div></div>
                 <span><?php echo number_format((int) $row['cnt']); ?>명</span>
             </div>

@@ -1,6 +1,7 @@
 <?php
 $sub_menu = '950180';
 require_once './_common.php';
+require_once IEUM_PATH . '/lib/tuition.php';
 
 $g5['title'] = '아이이음 도장 운영지표';
 $academy = ieum_require_academy_page();
@@ -34,12 +35,34 @@ function ieum_ops_status_label($status)
     return isset($labels[$status]) ? $labels[$status] : $status;
 }
 
-$active_count = sql_fetch("select count(*) as cnt from " . IEUM_STUDENT_TABLE . " where academy_id = '{$academy_id}' and is_active = 1", false);
+function ieum_ops_grade_label($value)
+{
+    $labels = array('' => '미지정', 'kindergarten' => '유치부', 'elementary_1' => '초등 1학년', 'elementary_2' => '초등 2학년', 'elementary_3' => '초등 3학년', 'elementary_4' => '초등 4학년', 'elementary_5' => '초등 5학년', 'elementary_6' => '초등 6학년', 'middle_1' => '중등 1학년', 'middle_2' => '중등 2학년', 'middle_3' => '중등 3학년', 'high_1' => '고등 1학년', 'high_2' => '고등 2학년', 'high_3' => '고등 3학년');
+    return isset($labels[$value]) ? $labels[$value] : $value;
+}
+
+function ieum_ops_source_label($source)
+{
+    $labels = array('' => '미입력', 'referral' => '지인 소개', 'sibling' => '형제/자매', 'sign_walkin' => '간판/지나가다', 'naver_search' => '네이버 검색', 'naver_place' => '네이버 플레이스', 'blog_cafe' => '블로그/카페', 'instagram' => '인스타그램', 'youtube' => '유튜브', 'school_promo' => '학교/유치원 홍보', 'flyer' => '전단지', 'event_trial' => '행사/체험수업', 'etc' => '기타');
+    return isset($labels[$source]) ? $labels[$source] : $source;
+}
+
+function ieum_ops_tuition_status_label($status)
+{
+    $labels = array('paid' => '완납', 'partial' => '부분납', 'unpaid' => '미납');
+    return isset($labels[$status]) ? $labels[$status] : ($status ?: '-');
+}
+
+ieum_tuition_ensure_month($academy_id, $month);
+
+$active_count = sql_fetch("select count(*) as cnt from " . IEUM_STUDENT_TABLE . " where academy_id = '{$academy_id}' and is_active = 1 and student_status in ('enrolled','returned')", false);
 $new_count = sql_fetch("select count(*) as cnt from " . IEUM_STUDENT_TABLE . " where academy_id = '{$academy_id}' and admission_date between '{$start_date}' and '{$end_date}'", false);
-$paused_count = sql_fetch("select count(*) as cnt from " . IEUM_STUDENT_STATUS_LOG_TABLE . " where academy_id = '{$academy_id}' and after_status = 'paused' and changed_date between '{$start_date}' and '{$end_date}'", false);
-$returned_count = sql_fetch("select count(*) as cnt from " . IEUM_STUDENT_STATUS_LOG_TABLE . " where academy_id = '{$academy_id}' and after_status in ('returned','enrolled') and before_status in ('paused','withdrawn','waiting','trial') and changed_date between '{$start_date}' and '{$end_date}'", false);
+$paused_in_count = sql_fetch("select count(distinct student_id) as cnt from " . IEUM_STUDENT_STATUS_LOG_TABLE . " where academy_id = '{$academy_id}' and after_status = 'paused' and changed_date between '{$start_date}' and '{$end_date}'", false);
+$paused_out_count = sql_fetch("select count(distinct student_id) as cnt from " . IEUM_STUDENT_STATUS_LOG_TABLE . " where academy_id = '{$academy_id}' and before_status = 'paused' and after_status <> 'paused' and changed_date between '{$start_date}' and '{$end_date}'", false);
+$paused_delta = (int) $paused_in_count['cnt'] - (int) $paused_out_count['cnt'];
+$returned_count = sql_fetch("select count(distinct student_id) as cnt from " . IEUM_STUDENT_STATUS_LOG_TABLE . " where academy_id = '{$academy_id}' and after_status in ('returned','enrolled') and before_status = 'paused' and changed_date between '{$start_date}' and '{$end_date}'", false);
 $withdrawn_count = sql_fetch("select count(*) as cnt from " . IEUM_STUDENT_STATUS_LOG_TABLE . " where academy_id = '{$academy_id}' and after_status = 'withdrawn' and changed_date between '{$start_date}' and '{$end_date}'", false);
-$net_change = (int) $new_count['cnt'] + (int) $returned_count['cnt'] - (int) $paused_count['cnt'] - (int) $withdrawn_count['cnt'];
+$net_change = (int) $new_count['cnt'] + (int) $returned_count['cnt'] - (int) $paused_in_count['cnt'] - (int) $withdrawn_count['cnt'];
 
 $status_rows = sql_query("
     select student_status, count(*) as cnt
@@ -72,7 +95,9 @@ $risk_rows = sql_query("
     select s.student_id, s.student_code, s.student_name, s.student_status, s.memo,
            count(a.attendance_id) as attendance_count,
            coalesce(max(tp.due_date), '') as due_date,
-           coalesce(max(tp.status), '') as tuition_status
+           coalesce(max(tp.status), '') as tuition_status,
+           coalesce(max(tp.amount_due), 0) as amount_due,
+           coalesce(max(tp.amount_paid), 0) as amount_paid
       from " . IEUM_STUDENT_TABLE . " s
  left join " . IEUM_ATTENDANCE_TABLE . " a on a.academy_id = s.academy_id and a.student_id = s.student_id and a.attendance_date between date_sub('" . G5_TIME_YMD . "', interval 14 day) and '" . G5_TIME_YMD . "'
  left join " . IEUM_TUITION_PAYMENT_TABLE . " tp on tp.academy_id = s.academy_id and tp.student_id = s.student_id and tp.billing_month = '" . sql_escape_string($month) . "' and tp.status in ('unpaid','partial')
@@ -111,9 +136,9 @@ $risk_rows = sql_query("
     </section>
 
     <section class="grid">
-        <article class="card"><div class="label">현재 사용 학생</div><div class="num"><?php echo number_format((int) $active_count['cnt']); ?></div></article>
+        <article class="card"><div class="label">현재 재원 학생</div><div class="num"><?php echo number_format((int) $active_count['cnt']); ?></div></article>
         <article class="card"><div class="label">신규 등록</div><div class="num good"><?php echo number_format((int) $new_count['cnt']); ?></div></article>
-        <article class="card"><div class="label">휴관</div><div class="num warn"><?php echo number_format((int) $paused_count['cnt']); ?></div></article>
+        <article class="card"><div class="label">휴관 변동</div><div class="num warn"><?php echo ($paused_delta > 0 ? '+' : '') . number_format($paused_delta); ?></div></article>
         <article class="card"><div class="label">퇴관</div><div class="num danger"><?php echo number_format((int) $withdrawn_count['cnt']); ?></div></article>
         <article class="card"><div class="label">순증감</div><div class="num <?php echo $net_change >= 0 ? 'good' : 'danger'; ?>"><?php echo ($net_change > 0 ? '+' : '') . number_format($net_change); ?></div></article>
     </section>
@@ -131,7 +156,7 @@ $risk_rows = sql_query("
             <h2>이번 달 입관 경로</h2>
             <table><thead><tr><th>경로</th><th>신규</th></tr></thead><tbody>
             <?php $si=0; while ($row = sql_fetch_array($source_rows)) { $si++; ?>
-            <tr><td><?php echo get_text($row['enrollment_source'] ?: '미입력'); ?></td><td><?php echo number_format((int) $row['cnt']); ?></td></tr>
+            <tr><td><?php echo get_text(ieum_ops_source_label($row['enrollment_source'])); ?></td><td><?php echo number_format((int) $row['cnt']); ?></td></tr>
             <?php } if ($si===0) { ?><tr><td colspan="2">이번 달 신규 등록 경로가 없습니다.</td></tr><?php } ?>
             </tbody></table>
         </article>
@@ -139,7 +164,7 @@ $risk_rows = sql_query("
             <h2>학년/부 분포</h2>
             <table><thead><tr><th>학년/부</th><th>인원</th></tr></thead><tbody>
             <?php while ($row = sql_fetch_array($grade_rows)) { ?>
-            <tr><td><?php echo get_text($row['grade_group'] ?: '미지정'); ?></td><td><?php echo number_format((int) $row['cnt']); ?></td></tr>
+            <tr><td><?php echo get_text(ieum_ops_grade_label($row['grade_group'])); ?></td><td><?php echo number_format((int) $row['cnt']); ?></td></tr>
             <?php } ?>
             </tbody></table>
         </article>
@@ -150,7 +175,7 @@ $risk_rows = sql_query("
             <tr>
                 <td><?php echo get_text($row['student_name'] . ' (' . $row['student_code'] . ')'); ?></td>
                 <td><?php echo number_format((int) $row['attendance_count']); ?></td>
-                <td><?php echo get_text($row['tuition_status'] ?: '-'); ?></td>
+                <td><?php echo $row['tuition_status'] ? get_text(ieum_ops_tuition_status_label($row['tuition_status']) . ' ' . number_format(max(0, (int) $row['amount_due'] - (int) $row['amount_paid'])) . '원') : '-'; ?></td>
                 <td class="left"><?php echo get_text($row['memo']); ?></td>
             </tr>
             <?php } if ($ri===0) { ?><tr><td colspan="4">현재 상담 필요 신호가 없습니다.</td></tr><?php } ?>
