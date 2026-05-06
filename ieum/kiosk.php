@@ -21,7 +21,7 @@ $tablet_layout = isset($_GET['layout']) && $_GET['layout'] === 'portrait' ? 'por
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f6f7f9;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-body.tablet{background:#111827}
+body.tablet{background:#111827;overflow:hidden}
 .wrap{min-height:100vh;display:grid;place-items:center;padding:24px}
 .panel{width:min(560px,100%);background:#fff;border:1px solid #dde1e7;border-radius:8px;padding:28px;box-shadow:0 10px 30px rgba(15,23,42,.08)}
 body.tablet .panel{width:min(760px,calc(100vw - 24px));max-height:calc(100vh - 24px);padding:24px;overflow:hidden}
@@ -116,6 +116,13 @@ body.tablet.layout-portrait .progress-card strong{font-size:19px}
 body.tablet.layout-portrait .progress-line{font-size:14px}
 body.tablet.layout-portrait .meta{margin-top:8px;font-size:12px}
 body.tablet.layout-portrait .status .choice-btn{height:auto;min-height:46px;font-size:14px}
+.tablet.layout-landscape .keys{grid-template-rows:repeat(5,minmax(42px,1fr));height:100%}
+.tablet.layout-landscape .submit,.tablet.layout-landscape .clear{min-height:44px}
+.tablet.layout-landscape .status{min-height:0}
+.tablet.layout-portrait .panel{overflow:hidden;display:grid;grid-template-rows:auto auto auto 1fr auto auto}
+.tablet.layout-portrait .keys{gap:5px}
+.tablet.layout-portrait .status{min-height:0}
+.tablet.layout-portrait .progress-card{max-height:100%;overflow:hidden}
 .layout-switch{position:fixed;right:12px;top:12px;z-index:50;display:flex;gap:6px}
 .layout-switch a{display:inline-flex;align-items:center;justify-content:center;min-height:36px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(15,23,42,.82);color:#fff;text-decoration:none;padding:8px 12px;font-size:13px;font-weight:900}
 .layout-switch a.active{background:#1769c2;border-color:#1769c2}

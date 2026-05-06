@@ -282,6 +282,9 @@ $birthday_students = sql_query("
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:20px}.meta{color:#5b6472;margin-top:6px}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:9px 13px;font-weight:800;cursor:pointer}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.btn.tablet{background:#0f766e;border-color:#0f766e;color:#fff}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.card{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.label{font-size:14px;color:#667085}.num{font-size:34px;font-weight:900;margin-top:4px}.hint{color:#667085;font-size:13px;margin-top:6px}.main{display:grid;grid-template-columns:1.35fr .95fr;gap:18px}.today-stack{display:grid;gap:18px}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:10px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}.links{display:grid;gap:10px}.link-card{display:flex;justify-content:space-between;align-items:center;padding:14px;border:1px solid #d9dee7;border-radius:8px;text-decoration:none;color:#111827;background:#fff}.link-card strong{font-size:16px}.link-card span{color:#667085;font-size:13px}.pending{color:#9a5b00;font-weight:800}.sent{color:#176b2c;font-weight:800}.failed{color:#a4262c;font-weight:800}.todo-list{display:grid;gap:10px}.todo{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #d9dee7;border-radius:8px;padding:12px;background:#fff;color:#111827;text-decoration:none}.todo strong{font-size:16px}.todo span{color:#667085;font-size:13px}.todo.warn{border-color:#f4c27a;background:#fffaf0}.todo.danger{border-color:#efb2b2;background:#fff5f5}.todo-form{margin:0}.class-bars{display:grid;gap:10px}.class-row{display:grid;grid-template-columns:120px 1fr 70px;gap:10px;align-items:center}.bar-track{height:10px;background:#eef2f7;border-radius:999px;overflow:hidden}.bar-fill{height:100%;background:#1769c2;border-radius:999px}.vehicle-notes{display:grid;gap:10px}.vehicle-note{border:1px solid #d9dee7;border-radius:8px;background:#fff;padding:12px}.vehicle-note strong{display:block}.vehicle-note span{display:block;color:#667085;font-size:13px;margin-top:3px}.vehicle-note.missed{border-color:#efb2b2;background:#fff5f5}.vehicle-note.called{border-color:#f4c27a;background:#fffaf0}.vehicle-note-form{margin:0}.vehicle-note-form .btn{width:100%;margin-top:8px;min-height:34px;padding:6px 10px;background:#0f766e;border-color:#0f766e;color:#fff}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}@media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.ieum-user{margin-left:0}}@media (max-width:520px){.grid{grid-template-columns:1fr}.actions .btn{width:100%}}
 </style>
+<style>
+.tuition-overview{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:center;margin-bottom:18px}.tuition-pill{border:1px solid #d9dee7;border-radius:8px;background:#fff;padding:14px}.tuition-pill strong{display:block;font-size:24px}.tuition-pill span{display:block;color:#667085;font-size:13px;margin-top:4px}.tuition-pill.warn{border-color:#f4c27a;background:#fffaf0}.tuition-pill.danger{border-color:#efb2b2;background:#fff5f5}.tuition-actions{display:grid;gap:8px}@media(max-width:900px){.tuition-overview{grid-template-columns:1fr 1fr}.tuition-actions{grid-column:1 / -1}}@media(max-width:520px){.tuition-overview{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <?php echo ieum_admin_header('dashboard'); ?>
@@ -312,6 +315,25 @@ $birthday_students = sql_query("
         <article class="card"><div class="label">미결제 5일 이하</div><div class="num"><?php echo number_format((int) $tuition['unpaid_soon_count']); ?></div><div class="hint">결제일 경과 0~5일</div></article>
         <article class="card"><div class="label">미납 <?php echo (int) $tuition_settings['overdue_after_days']; ?>일 초과</div><div class="num"><?php echo number_format((int) $tuition['unpaid_over_count']); ?></div><div class="hint">관리자 확인 필요</div></article>
         <article class="card"><div class="label">오늘 수련비 문자 예정</div><div class="num"><?php echo number_format($tuition_notice_pending_count); ?></div><div class="hint">납부일/미납 자동문자</div></article>
+    </section>
+
+    <section class="tuition-overview">
+        <article class="tuition-pill <?php echo (int) $tuition['due_today_count'] ? 'warn' : ''; ?>">
+            <strong><?php echo number_format((int) $tuition['due_today_count']); ?>명</strong>
+            <span>오늘 납부일 학생</span>
+        </article>
+        <article class="tuition-pill <?php echo (int) $tuition['unpaid_over_count'] ? 'danger' : ''; ?>">
+            <strong><?php echo number_format((int) $tuition['unpaid_over_count']); ?>명</strong>
+            <span>미납 <?php echo (int) $tuition_settings['overdue_after_days']; ?>일 초과</span>
+        </article>
+        <article class="tuition-pill <?php echo $tuition_notice_pending_count ? 'warn' : ''; ?>">
+            <strong><?php echo number_format($tuition_notice_pending_count); ?>건</strong>
+            <span>오늘 문자 발송 예정</span>
+        </article>
+        <div class="tuition-actions">
+            <a class="btn primary" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php">수련비 처리</a>
+            <a class="btn" href="<?php echo IEUM_URL; ?>/admin/sms_templates.php">문구/자동발송 설정</a>
+        </div>
     </section>
 
     <section class="main">

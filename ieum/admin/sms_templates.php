@@ -8,6 +8,8 @@ $academy = ieum_require_academy_page();
 $academy_id = (int) $academy['academy_id'];
 $message = '';
 $error = '';
+$preview_message = '';
+$preview_title = '';
 $defaults = ieum_tuition_default_sms_templates();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -35,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         updated_at = values(updated_at)
             ");
             $message = '수련비 문자 자동발송 설정을 저장했습니다.';
-        } elseif ($action === 'template') {
+        } elseif ($action === 'template' || $action === 'preview' || $action === 'test_queue') {
             $template_key = isset($_POST['template_key']) ? preg_replace('/[^0-9a-z_]/', '', trim($_POST['template_key'])) : '';
             $title = isset($_POST['title']) ? trim($_POST['title']) : '';
             $body = isset($_POST['message']) ? trim($_POST['message']) : '';
@@ -44,6 +46,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = '템플릿 종류를 확인할 수 없습니다.';
             } elseif ($body === '') {
                 $error = '문자 문구를 입력하세요.';
+            } elseif ($action === 'preview' || $action === 'test_queue') {
+                $sample = ieum_tuition_sample_payment($academy_id);
+                if (!$sample) {
+                    $error = '미리보기에 사용할 학생 또는 수련비 대상이 없습니다.';
+                } else {
+                    $preview_title = $title !== '' ? $title : $defaults[$template_key]['title'];
+                    $preview_message = ieum_tuition_render_notice_message_from_template(
+                        $body,
+                        $sample['academy_name'],
+                        $sample['student_name'],
+                        $sample['billing_month'],
+                        (int) $sample['amount_due'],
+                        (int) $sample['amount_paid'],
+                        $sample['due_date']
+                    );
+
+                    if ($action === 'test_queue') {
+                        $recipients = ieum_tuition_notice_recipients($academy_id, (int) $sample['student_id']);
+                        if (!$recipients) {
+                            $error = '테스트 큐를 만들 보호자 수련비 문자 수신 연락처가 없습니다.';
+                        } else {
+                            $sms_type = $template_key === 'tuition_overdue' ? 'tuition_overdue' : 'tuition_due';
+                            $created = 0;
+                            foreach ($recipients as $phone) {
+                                if (ieum_create_direct_sms_queue($academy_id, $phone, $preview_message, $sms_type, (int) $sample['student_id'], 0)) {
+                                    $created++;
+                                }
+                            }
+                            $message = '테스트 문자 큐 ' . number_format($created) . '건을 생성했습니다. 실제 발송은 안드로이드 게이트웨이가 실행할 때 진행됩니다.';
+                        }
+                    }
+                }
             } else {
                 if ($title === '') {
                     $title = $defaults[$template_key]['title'];
@@ -80,6 +114,9 @@ $settings = ieum_tuition_get_settings($academy_id);
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1120px;margin:28px auto;padding:0 20px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px}h1{margin:0 0 8px;font-size:26px}.meta{color:#667085;margin-bottom:16px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.grid{display:grid;grid-template-columns:1fr 1fr 150px;gap:10px;align-items:center}.template{display:grid;gap:10px;border-top:1px solid #e2e8f0;padding-top:18px;margin-top:18px}input,textarea{width:100%;border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}textarea{min-height:100px;resize:vertical}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.tokens{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;color:#344054;font-size:13px;line-height:1.6}.tokens code{background:#eef2f7;border-radius:4px;padding:2px 5px}.row{display:grid;grid-template-columns:180px 1fr;gap:10px;align-items:center}@media(max-width:800px){.grid,.row{grid-template-columns:1fr}}
 </style>
+<style>
+.preview{background:#f0f7ff;border:1px solid #b9d7ff;border-radius:8px;padding:14px;margin-bottom:18px;white-space:pre-wrap;font-size:15px;line-height:1.6}.soft{background:#eef2f7}.danger{background:#fff5f5;border-color:#f2b8b8;color:#a4262c}.template-actions{display:flex;gap:8px;flex-wrap:wrap}
+</style>
 </head>
 <body>
 <?php echo ieum_admin_header('sms_templates'); ?>
@@ -88,6 +125,10 @@ $settings = ieum_tuition_get_settings($academy_id);
     <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 수련비 납부/미납 문구와 자동발송 기준을 도장별로 관리합니다.</div>
     <?php if ($message) { ?><p class="notice ok"><?php echo get_text($message); ?></p><?php } ?>
     <?php if ($error) { ?><p class="notice err"><?php echo get_text($error); ?></p><?php } ?>
+    <?php if ($preview_message) { ?>
+    <section class="preview"><strong><?php echo get_text($preview_title); ?> 미리보기</strong>
+<?php echo get_text($preview_message); ?></section>
+    <?php } ?>
 
     <section class="panel">
         <h2>수련비 자동 문자 설정</h2>
@@ -109,7 +150,6 @@ $settings = ieum_tuition_get_settings($academy_id);
         <?php foreach ($defaults as $key => $default) { $template = ieum_tuition_get_sms_template($academy_id, $key); ?>
         <form method="post" class="template">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
-            <input type="hidden" name="action" value="template">
             <input type="hidden" name="template_key" value="<?php echo get_text($key); ?>">
             <div class="row">
                 <label><?php echo get_text($default['title']); ?></label>
@@ -117,7 +157,11 @@ $settings = ieum_tuition_get_settings($academy_id);
             </div>
             <textarea name="message"><?php echo get_text($template['message']); ?></textarea>
             <label><input type="checkbox" name="is_active" value="1" <?php echo !empty($template['is_active']) ? 'checked' : ''; ?>> 사용</label>
-            <button type="submit" class="btn primary">템플릿 저장</button>
+            <div class="template-actions">
+                <button type="submit" name="action" value="template" class="btn primary">템플릿 저장</button>
+                <button type="submit" name="action" value="preview" class="btn soft">미리보기</button>
+                <button type="submit" name="action" value="test_queue" class="btn danger" onclick="return confirm('테스트 문자 큐를 생성할까요? 실제 발송은 안드로이드 게이트웨이가 실행할 때 진행됩니다.');">테스트 큐 생성</button>
+            </div>
         </form>
         <?php } ?>
     </section>

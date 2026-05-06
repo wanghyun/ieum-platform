@@ -20,6 +20,7 @@ function ieum_admin_nav_items()
     $items['attendance'] = array('label' => '오늘 출석', 'url' => IEUM_URL . '/admin/attendance_today.php');
     $items['sms'] = array('label' => '문자 큐', 'url' => IEUM_URL . '/admin/sms_queue.php');
     $items['tuition_payments'] = array('label' => '수련비 납부', 'url' => IEUM_URL . '/admin/tuition_payments.php');
+    $items['character'] = array('label' => '인성 입력', 'url' => IEUM_URL . '/admin/character.php');
     $items['vehicles'] = array('label' => '차량 관리', 'url' => IEUM_URL . '/admin/vehicles.php');
     $items['boarding'] = array('label' => '탑승 확인', 'url' => IEUM_URL . '/admin/vehicle_boarding.php');
     $items['settings'] = array(

@@ -349,6 +349,26 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
         ) engine={$engine} default charset={$charset}
     ");
 
+    sql_query("
+        create table if not exists " . IEUM_REPORT_CHARACTER_TABLE . " (
+            character_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            student_id int unsigned not null,
+            week_start date not null,
+            courtesy tinyint unsigned not null default 4,
+            focus tinyint unsigned not null default 4,
+            confidence tinyint unsigned not null default 4,
+            consideration tinyint unsigned not null default 4,
+            memo varchar(255) not null default '',
+            created_by varchar(50) not null default '',
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (character_id),
+            unique key uq_character_week (academy_id, student_id, week_start),
+            key idx_academy_week (academy_id, week_start)
+        ) engine={$engine} default charset={$charset}
+    ");
+
     ieum_install_add_column_if_missing(IEUM_CLASS_TIME_TABLE, 'absent_alert_enabled', 'tinyint(1) not null default 1');
     ieum_install_add_column_if_missing(IEUM_CLASS_TIME_TABLE, 'absent_alert_after_minutes', 'smallint unsigned not null default 10');
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'attendance_week_type', "varchar(20) not null default '5'");

@@ -290,6 +290,70 @@ function ieum_tuition_build_notice_message($academy_name, $student_name, $billin
     ));
 }
 
+function ieum_tuition_render_notice_message_from_template($template_message, $academy_name, $student_name, $billing_month, $amount_due, $amount_paid, $due_date)
+{
+    $balance = max(0, (int) $amount_due - (int) $amount_paid);
+
+    return ieum_tuition_render_template($template_message, array(
+        'academy_name' => $academy_name,
+        'student_name' => $student_name,
+        'billing_month' => $billing_month,
+        'amount_due' => number_format((int) $amount_due),
+        'amount_paid' => number_format((int) $amount_paid),
+        'balance' => number_format($balance),
+        'due_date' => $due_date,
+    ));
+}
+
+function ieum_tuition_sample_payment($academy_id)
+{
+    $academy_id = (int) $academy_id;
+
+    $payment = sql_fetch("
+        select p.*, s.student_name, s.student_code, a.academy_name
+          from " . IEUM_TUITION_PAYMENT_TABLE . " p
+          join " . IEUM_STUDENT_TABLE . " s on s.student_id = p.student_id and s.academy_id = p.academy_id
+          join " . IEUM_ACADEMY_TABLE . " a on a.academy_id = p.academy_id
+         where p.academy_id = '{$academy_id}'
+           and p.status in ('unpaid', 'partial')
+      order by p.due_date asc, p.payment_id asc
+         limit 1
+    ", false);
+
+    if (isset($payment['payment_id'])) {
+        return $payment;
+    }
+
+    $student = sql_fetch("
+        select s.student_id, s.student_name, s.student_code, s.tuition_amount, s.tuition_due_day, a.academy_name
+          from " . IEUM_STUDENT_TABLE . " s
+          join " . IEUM_ACADEMY_TABLE . " a on a.academy_id = s.academy_id
+         where s.academy_id = '{$academy_id}'
+           and s.is_active = 1
+      order by s.student_name asc
+         limit 1
+    ", false);
+
+    if (!isset($student['student_id'])) {
+        return null;
+    }
+
+    $billing_month = ieum_tuition_billing_month();
+    $amount_due = ieum_tuition_student_amount($student);
+    return array(
+        'payment_id' => 0,
+        'academy_id' => $academy_id,
+        'student_id' => (int) $student['student_id'],
+        'student_name' => $student['student_name'],
+        'student_code' => $student['student_code'],
+        'academy_name' => $student['academy_name'],
+        'billing_month' => $billing_month,
+        'due_date' => ieum_tuition_due_date($billing_month, isset($student['tuition_due_day']) ? (int) $student['tuition_due_day'] : 5),
+        'amount_due' => $amount_due,
+        'amount_paid' => 0,
+    );
+}
+
 function ieum_tuition_send_payment_notice($payment_id, $notice_type = 'due', $force = false)
 {
     $payment_id = (int) $payment_id;
