@@ -139,7 +139,7 @@ $payments = sql_query("
     <section class="cards">
         <article class="card"><div class="label">청구 대상</div><div class="num"><?php echo number_format((int) $summary['total_count']); ?>명</div></article>
         <article class="card"><div class="label">결제완료</div><div class="num"><?php echo number_format((int) $summary['paid_count']); ?>명</div></article>
-        <article class="card"><div class="label">미결제/부분</div><div class="num"><?php echo number_format((int) $summary['unpaid_count']); ?>명</div></article>
+        <article class="card"><div class="label">미결제</div><div class="num"><?php echo number_format((int) $summary['unpaid_count']); ?>명</div></article>
         <article class="card"><div class="label">미납 5일 이하</div><div class="num"><?php echo number_format((int) $summary['overdue_5_count']); ?>명</div></article>
         <article class="card"><div class="label">미납 5일 초과</div><div class="num"><?php echo number_format((int) $summary['overdue_long_count']); ?>명</div></article>
         <article class="card"><div class="label">입금 / 청구</div><div class="num"><?php echo number_format((int) $summary['paid_amount']); ?> / <?php echo number_format((int) $summary['due_amount']); ?></div></article>
@@ -199,7 +199,7 @@ $payments = sql_query("
             <?php if ($i === 0) { ?><tr><td colspan="10">이번 달 수련비 대상이 없습니다.</td></tr><?php } ?>
             </tbody>
         </table>
-        <p class="help">입금액을 입력하면 상태는 자동으로 미결제/부분결제/결제완료로 계산됩니다. 문자 버튼은 실제 발송이 아니라 안드로이드 게이트웨이가 읽을 문자 큐를 생성합니다.</p>
+        <p class="help">입금액이 청구액 이상이면 결제완료, 부족하면 미결제로 자동 정리됩니다. 문자 버튼은 실제 발송이 아니라 안드로이드 게이트웨이가 읽을 문자 큐를 생성합니다.</p>
     </section>
 </main>
 </body>

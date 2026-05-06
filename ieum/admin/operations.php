@@ -49,7 +49,7 @@ function ieum_ops_source_label($source)
 
 function ieum_ops_tuition_status_label($status)
 {
-    $labels = array('paid' => '완납', 'partial' => '부분납', 'unpaid' => '미납');
+    $labels = array('paid' => '완납', 'partial' => '미납', 'unpaid' => '미납');
     return isset($labels[$status]) ? $labels[$status] : ($status ?: '-');
 }
 

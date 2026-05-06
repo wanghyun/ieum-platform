@@ -14,13 +14,16 @@ function ieum_tuition_status_options()
 {
     return array(
         'unpaid' => '미결제',
-        'partial' => '부분결제',
         'paid' => '결제완료',
     );
 }
 
 function ieum_tuition_status_label($status)
 {
+    if ($status === 'partial') {
+        return '미결제';
+    }
+
     $options = ieum_tuition_status_options();
     return isset($options[$status]) ? $options[$status] : $status;
 }
@@ -30,15 +33,11 @@ function ieum_tuition_default_sms_templates()
     return array(
         'tuition_due' => array(
             'title' => '수련비 납부 안내',
-            'message' => '[{academy_name}] {student_name} 학생 {billing_month} 수련비 납부일입니다. 납부금액 {balance}원, 납부일 {due_date}입니다.',
+            'message' => '[{academy_name}] 안녕하세요. {student_name} 학생 {billing_month} 수련비 납부일 안내드립니다. 납부 예정 금액은 {balance}원이며, 편하실 때 확인 부탁드립니다.',
         ),
         'tuition_overdue' => array(
             'title' => '수련비 미납 안내',
-            'message' => '[{academy_name}] {student_name} 학생 {billing_month} 수련비 미납 안내입니다. 미납액 {balance}원, 납부일 {due_date} 확인 부탁드립니다.',
-        ),
-        'tuition_partial' => array(
-            'title' => '수련비 부분결제 안내',
-            'message' => '[{academy_name}] {student_name} 학생 {billing_month} 수련비가 일부 결제되었습니다. 잔액 {balance}원 확인 부탁드립니다.',
+            'message' => '[{academy_name}] 안녕하세요. {student_name} 학생 {billing_month} 수련비 확인 안내드립니다. 현재 확인이 필요한 금액은 {balance}원입니다. 이미 납부하셨다면 이 메시지는 지나쳐 주세요.',
         ),
     );
 }
@@ -216,9 +215,6 @@ function ieum_tuition_payment_auto_status($amount_due, $amount_paid)
     if ($amount_due > 0 && $amount_paid >= $amount_due) {
         return 'paid';
     }
-    if ($amount_paid > 0) {
-        return 'partial';
-    }
 
     return 'unpaid';
 }
@@ -274,7 +270,7 @@ function ieum_tuition_notice_recipients($academy_id, $student_id)
 function ieum_tuition_build_notice_message($academy_name, $student_name, $billing_month, $amount_due, $amount_paid, $due_date, $notice_type = 'due')
 {
     $balance = max(0, (int) $amount_due - (int) $amount_paid);
-    $template_key = $notice_type === 'partial' ? 'tuition_partial' : ($notice_type === 'overdue' ? 'tuition_overdue' : 'tuition_due');
+    $template_key = $notice_type === 'overdue' ? 'tuition_overdue' : 'tuition_due';
     $academy_id = isset($GLOBALS['ieum_tuition_template_academy_id']) ? (int) $GLOBALS['ieum_tuition_template_academy_id'] : 0;
     $template = $academy_id ? ieum_tuition_get_sms_template($academy_id, $template_key) : null;
     $message = $template && !empty($template['is_active']) ? $template['message'] : '';
@@ -333,7 +329,7 @@ function ieum_tuition_send_payment_notice($payment_id, $notice_type = 'due', $fo
 
     $sms_ids = array();
     foreach ($recipients as $phone) {
-        $sms_type = $notice_type === 'partial' ? 'tuition_partial' : ($notice_type === 'overdue' ? 'tuition_overdue' : 'tuition_due');
+        $sms_type = $notice_type === 'overdue' ? 'tuition_overdue' : 'tuition_due';
         $sms_id = ieum_create_direct_sms_queue((int) $payment['academy_id'], $phone, $message, $sms_type, (int) $payment['student_id'], 0);
         if ($sms_id) {
             $sms_ids[] = $sms_id;

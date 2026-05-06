@@ -932,7 +932,8 @@ textarea{min-height:82px;resize:vertical}
 .summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.chip{background:#eef2f7;border:1px solid #d8dee9;border-radius:999px;padding:6px 10px;font-weight:800;color:#344054;text-decoration:none}.chip.active{background:#1769c2;color:#fff;border-color:#1769c2}
 .guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card,.ride-day-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input,.ride-day-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected,.ride-day-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px minmax(160px,1fr) 120px minmax(140px,1fr);gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.money-field{display:grid;grid-template-columns:auto 1fr auto;align-items:center;border:1px solid #cfd6df;border-radius:6px;background:#fff;overflow:hidden}.money-field span,.money-field em{height:40px;display:flex;align-items:center;padding:0 10px;background:#f8fafc;color:#667085;font-style:normal;font-weight:900;white-space:nowrap}.money-field input{border:0;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-radius:0;text-align:right;font-weight:800}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-row{display:grid;grid-template-columns:auto 90px 120px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}.vehicle-memo,.vehicle-days{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-contact{display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-memo span,.vehicle-contact span,.vehicle-days span{font-weight:900;color:#344054}.ride-day-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.ride-day-card{min-height:40px;font-size:15px}
 .photo-box{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:12px}.photo-preview{width:112px;height:112px;border-radius:12px;object-fit:cover;background:#e5e7eb;border:1px solid #d8dee9}.photo-empty{width:112px;height:112px;border-radius:12px;background:#e5e7eb;color:#667085;display:flex;align-items:center;justify-content:center;font-weight:900}.photo-controls{display:grid;gap:8px}.photo-controls input[type=file]{width:100%;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:10px}.photo-controls label{font-size:13px;color:#344054}
-@media (max-width:720px){.form-grid{grid-template-columns:1fr}.search input{min-width:0;width:100%}.search{width:100%;align-items:stretch}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.photo-box{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}}
+.guardian-row{grid-template-columns:1fr!important;gap:12px!important}.guardian-fields{display:grid;grid-template-columns:1fr .75fr 1.1fr;gap:8px}.guardian-flags{display:flex;gap:8px;flex-wrap:wrap}.guardian-flag{display:inline-flex;align-items:center;gap:6px;border:1px solid #cfd6df;border-radius:999px;background:#fff;padding:8px 10px;font-size:13px;font-weight:900;color:#344054}.guardian-flag input{width:auto}.guardian-flag:has(input:checked){background:#eaf4ff;border-color:#1769c2;color:#1769c2}.guardian-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.guardian-actions .guardian-flag{background:#f8fafc}.guardian-actions .btn{min-height:34px}.guardian-section-title{font-size:12px;font-weight:900;color:#667085;margin:0 0 6px}.guardian-groups{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}.guardian-main{display:flex;gap:8px;flex-wrap:wrap}
+@media (max-width:720px){.form-grid{grid-template-columns:1fr}.search input{min-width:0;width:100%}.search{width:100%;align-items:stretch}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.guardian-fields,.guardian-groups,.photo-box{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}}
 </style>
 </head>
 <body>
@@ -1325,15 +1326,29 @@ textarea{min-height:82px;resize:vertical}
                 <div class="guardian-list" id="guardianList">
                     <?php foreach ($guardians as $idx => $guardian) { ?>
                     <div class="guardian-row">
-                        <input type="text" name="guardian_name[]" value="<?php echo get_text($guardian['guardian_name']); ?>" maxlength="50" placeholder="보호자명">
-                        <input type="text" name="guardian_relation[]" value="<?php echo get_text(isset($guardian['guardian_relation']) ? $guardian['guardian_relation'] : ''); ?>" maxlength="30" placeholder="관계">
-                        <input type="text" name="guardian_phone[]" value="<?php echo get_text($guardian['guardian_phone']); ?>" maxlength="30" placeholder="010-0000-0000">
-                        <label><input type="checkbox" name="guardian_sms_attendance[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['sms_attendance']) ? 'checked' : ''; ?>> 등원문자</label>
-                        <label><input type="checkbox" name="guardian_sms_checkout[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['sms_checkout']) ? 'checked' : ''; ?>> 하원문자</label>
-                        <label><input type="checkbox" name="guardian_sms_tuition[<?php echo (int) $idx; ?>]" value="1" <?php echo !isset($guardian['sms_tuition']) || !empty($guardian['sms_tuition']) ? 'checked' : ''; ?>> 수련비문자</label>
-                        <label><input type="checkbox" class="use-code" name="guardian_use_code[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['use_for_student_code']) ? 'checked' : ''; ?>> 학생번호 사용</label>
-                        <label><input type="checkbox" class="primary-guardian" name="guardian_primary[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['is_primary']) ? 'checked' : ''; ?>> 대표</label>
-                        <button type="button" class="btn muted remove-guardian">삭제</button>
+                        <div class="guardian-fields">
+                            <input type="text" name="guardian_name[]" value="<?php echo get_text($guardian['guardian_name']); ?>" maxlength="50" placeholder="보호자명">
+                            <input type="text" name="guardian_relation[]" value="<?php echo get_text(isset($guardian['guardian_relation']) ? $guardian['guardian_relation'] : ''); ?>" maxlength="30" placeholder="관계">
+                            <input type="text" name="guardian_phone[]" value="<?php echo get_text($guardian['guardian_phone']); ?>" maxlength="30" placeholder="010-0000-0000">
+                        </div>
+                        <div class="guardian-groups">
+                            <div>
+                                <div class="guardian-section-title">문자 수신</div>
+                                <div class="guardian-flags">
+                                    <label class="guardian-flag"><input type="checkbox" name="guardian_sms_attendance[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['sms_attendance']) ? 'checked' : ''; ?>> 등원</label>
+                                    <label class="guardian-flag"><input type="checkbox" name="guardian_sms_checkout[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['sms_checkout']) ? 'checked' : ''; ?>> 하원</label>
+                                    <label class="guardian-flag"><input type="checkbox" name="guardian_sms_tuition[<?php echo (int) $idx; ?>]" value="1" <?php echo !isset($guardian['sms_tuition']) || !empty($guardian['sms_tuition']) ? 'checked' : ''; ?>> 수련비</label>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="guardian-section-title">관리</div>
+                                <div class="guardian-main">
+                                    <label class="guardian-flag"><input type="checkbox" class="use-code" name="guardian_use_code[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['use_for_student_code']) ? 'checked' : ''; ?>> 학생번호</label>
+                                    <label class="guardian-flag"><input type="checkbox" class="primary-guardian" name="guardian_primary[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['is_primary']) ? 'checked' : ''; ?>> 대표</label>
+                                    <button type="button" class="btn muted remove-guardian">삭제</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <?php } ?>
                 </div>
@@ -1698,15 +1713,29 @@ if (addGuardian) {
         const row = document.createElement('div');
         row.className = 'guardian-row';
         row.innerHTML = `
-            <input type="text" name="guardian_name[]" maxlength="50" placeholder="보호자명">
-            <input type="text" name="guardian_relation[]" maxlength="30" placeholder="관계">
-            <input type="text" name="guardian_phone[]" maxlength="30" placeholder="010-0000-0000">
-            <label><input type="checkbox" name="guardian_sms_attendance[${index}]" value="1" checked> 등원문자</label>
-            <label><input type="checkbox" name="guardian_sms_checkout[${index}]" value="1"> 하원문자</label>
-            <label><input type="checkbox" name="guardian_sms_tuition[${index}]" value="1" checked> 수련비문자</label>
-            <label><input type="checkbox" class="use-code" name="guardian_use_code[${index}]" value="1"> 학생번호 사용</label>
-            <label><input type="checkbox" class="primary-guardian" name="guardian_primary[${index}]" value="1"> 대표</label>
-            <button type="button" class="btn muted remove-guardian">삭제</button>
+            <div class="guardian-fields">
+                <input type="text" name="guardian_name[]" maxlength="50" placeholder="보호자명">
+                <input type="text" name="guardian_relation[]" maxlength="30" placeholder="관계">
+                <input type="text" name="guardian_phone[]" maxlength="30" placeholder="010-0000-0000">
+            </div>
+            <div class="guardian-groups">
+                <div>
+                    <div class="guardian-section-title">문자 수신</div>
+                    <div class="guardian-flags">
+                        <label class="guardian-flag"><input type="checkbox" name="guardian_sms_attendance[${index}]" value="1" checked> 등원</label>
+                        <label class="guardian-flag"><input type="checkbox" name="guardian_sms_checkout[${index}]" value="1"> 하원</label>
+                        <label class="guardian-flag"><input type="checkbox" name="guardian_sms_tuition[${index}]" value="1" checked> 수련비</label>
+                    </div>
+                </div>
+                <div>
+                    <div class="guardian-section-title">관리</div>
+                    <div class="guardian-main">
+                        <label class="guardian-flag"><input type="checkbox" class="use-code" name="guardian_use_code[${index}]" value="1"> 학생번호</label>
+                        <label class="guardian-flag"><input type="checkbox" class="primary-guardian" name="guardian_primary[${index}]" value="1"> 대표</label>
+                        <button type="button" class="btn muted remove-guardian">삭제</button>
+                    </div>
+                </div>
+            </div>
         `;
         list.appendChild(row);
         bindGuardianRow(row);
