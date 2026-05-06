@@ -175,6 +175,25 @@ $tuition = sql_fetch("
        and billing_month = '" . sql_escape_string($billing_month) . "'
 ", false);
 
+$tuition_settings = ieum_tuition_get_settings($academy_id);
+$tuition_notice_due_pending = sql_fetch("
+    select count(*) as cnt
+      from " . IEUM_TUITION_PAYMENT_TABLE . "
+     where academy_id = '{$academy_id}'
+       and status in ('unpaid', 'partial')
+       and due_date = '{$today}'
+       and (notice_sent_at is null or notice_sent_at < '{$today} 00:00:00')
+", false);
+$tuition_notice_overdue_pending = sql_fetch("
+    select count(*) as cnt
+      from " . IEUM_TUITION_PAYMENT_TABLE . "
+     where academy_id = '{$academy_id}'
+       and status in ('unpaid', 'partial')
+       and datediff('{$today}', due_date) > '" . (int) $tuition_settings['overdue_after_days'] . "'
+       and (notice_sent_at is null or notice_sent_at < '{$today} 00:00:00')
+", false);
+$tuition_notice_pending_count = (!empty($tuition_settings['due_notice_enabled']) ? (int) $tuition_notice_due_pending['cnt'] : 0) + (!empty($tuition_settings['overdue_notice_enabled']) ? (int) $tuition_notice_overdue_pending['cnt'] : 0);
+
 $vehicle_note_count = sql_fetch("
     select count(*) as cnt
       from " . IEUM_VEHICLE_BOARDING_TABLE . "
@@ -291,7 +310,8 @@ $birthday_students = sql_query("
         <article class="card"><div class="label"><?php echo get_text($billing_month); ?> 수련비 결제</div><div class="num"><?php echo number_format((int) $tuition['paid_count']); ?>명</div><div class="hint"><?php echo number_format((int) $tuition['paid_amount']); ?>원 입금 기록</div></article>
         <article class="card"><div class="label">오늘 납부 예정</div><div class="num"><?php echo number_format((int) $tuition['due_today_count']); ?></div><div class="hint">오늘 결제일인 학생</div></article>
         <article class="card"><div class="label">미결제 5일 이하</div><div class="num"><?php echo number_format((int) $tuition['unpaid_soon_count']); ?></div><div class="hint">결제일 경과 0~5일</div></article>
-        <article class="card"><div class="label">차량 확인 필요</div><div class="num"><?php echo number_format((int) $vehicle_note_count['cnt']); ?></div><div class="hint">미탑승/통화/메모 미확인</div></article>
+        <article class="card"><div class="label">미납 <?php echo (int) $tuition_settings['overdue_after_days']; ?>일 초과</div><div class="num"><?php echo number_format((int) $tuition['unpaid_over_count']); ?></div><div class="hint">관리자 확인 필요</div></article>
+        <article class="card"><div class="label">오늘 수련비 문자 예정</div><div class="num"><?php echo number_format($tuition_notice_pending_count); ?></div><div class="hint">납부일/미납 자동문자</div></article>
     </section>
 
     <section class="main">
@@ -318,8 +338,12 @@ $birthday_students = sql_query("
                         <strong><?php echo number_format((int) $sms['failed_count']); ?>건</strong>
                     </a>
                     <a class="todo <?php echo (int) $tuition['unpaid_over_count'] ? 'danger' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php">
-                        <div><strong>수련비 미결제 확인</strong><span>5일 이상 지난 미결제 학생</span></div>
+                        <div><strong>수련비 미결제 확인</strong><span><?php echo (int) $tuition_settings['overdue_after_days']; ?>일 초과 미결제 학생</span></div>
                         <strong><?php echo number_format((int) $tuition['unpaid_over_count']); ?>명</strong>
+                    </a>
+                    <a class="todo <?php echo $tuition_notice_pending_count ? 'warn' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/sms_templates.php">
+                        <div><strong>수련비 문자 예정</strong><span>오늘 자동 안내 대상. 설정은 문자 템플릿에서 조정</span></div>
+                        <strong><?php echo number_format($tuition_notice_pending_count); ?>건</strong>
                     </a>
                 </div>
             </article>

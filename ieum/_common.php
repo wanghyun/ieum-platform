@@ -18,6 +18,8 @@ define('IEUM_PROJECT_TASK_TABLE', 'ieum_project_tasks');
 define('IEUM_STUDENT_STATUS_LOG_TABLE', 'ieum_student_status_logs');
 define('IEUM_TUITION_PLAN_TABLE', 'ieum_tuition_plans');
 define('IEUM_TUITION_PAYMENT_TABLE', 'ieum_tuition_payments');
+define('IEUM_SMS_TEMPLATE_TABLE', 'ieum_sms_templates');
+define('IEUM_TUITION_SETTING_TABLE', 'ieum_tuition_settings');
 define('IEUM_VEHICLE_ROUTE_TABLE', 'ieum_vehicle_routes');
 define('IEUM_VEHICLE_STOP_TABLE', 'ieum_vehicle_stops');
 define('IEUM_STUDENT_VEHICLE_TABLE', 'ieum_student_vehicles');

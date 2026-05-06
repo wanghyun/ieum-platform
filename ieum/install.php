@@ -210,6 +210,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             guardian_phone varchar(30) not null default '',
             sms_attendance tinyint(1) not null default 1,
             sms_checkout tinyint(1) not null default 0,
+            sms_tuition tinyint(1) not null default 1,
             use_for_student_code tinyint(1) not null default 0,
             is_primary tinyint(1) not null default 0,
             sort_order int unsigned not null default 0,
@@ -375,6 +376,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'vehicle_dropoff_place', "varchar(100) not null default ''");
     ieum_install_add_column_if_missing(IEUM_STUDENT_GUARDIAN_TABLE, 'guardian_relation', "varchar(30) not null default ''");
     ieum_install_add_column_if_missing(IEUM_STUDENT_GUARDIAN_TABLE, 'sms_checkout', 'tinyint(1) not null default 0');
+    ieum_install_add_column_if_missing(IEUM_STUDENT_GUARDIAN_TABLE, 'sms_tuition', 'tinyint(1) not null default 1 after sms_checkout');
     ieum_install_add_column_if_missing(IEUM_STUDENT_GUARDIAN_TABLE, 'use_for_student_code', 'tinyint(1) not null default 0');
     ieum_install_add_column_if_missing(IEUM_STUDENT_GUARDIAN_TABLE, 'is_primary', 'tinyint(1) not null default 0');
     ieum_install_add_column_if_missing(IEUM_SMS_QUEUE_TABLE, 'message_type', "varchar(30) not null default 'checkin' after message");
@@ -489,6 +491,32 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ");
     ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'notice_sent_at', 'datetime null after memo');
     ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'notice_count', 'smallint unsigned not null default 0 after notice_sent_at');
+
+    sql_query("
+        create table if not exists " . IEUM_SMS_TEMPLATE_TABLE . " (
+            template_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            template_key varchar(50) not null,
+            title varchar(100) not null default '',
+            message text not null,
+            is_active tinyint(1) not null default 1,
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (template_id),
+            unique key uq_academy_template (academy_id, template_key)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
+        create table if not exists " . IEUM_TUITION_SETTING_TABLE . " (
+            academy_id int unsigned not null,
+            due_notice_enabled tinyint(1) not null default 1,
+            overdue_notice_enabled tinyint(1) not null default 0,
+            overdue_after_days tinyint unsigned not null default 5,
+            updated_at datetime null,
+            primary key (academy_id)
+        ) engine={$engine} default charset={$charset}
+    ");
 
     sql_query("
         insert into " . IEUM_STUDENT_TABLE . "

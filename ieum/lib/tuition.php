@@ -25,6 +25,81 @@ function ieum_tuition_status_label($status)
     return isset($options[$status]) ? $options[$status] : $status;
 }
 
+function ieum_tuition_default_sms_templates()
+{
+    return array(
+        'tuition_due' => array(
+            'title' => '수련비 납부 안내',
+            'message' => '[{academy_name}] {student_name} 학생 {billing_month} 수련비 납부일입니다. 납부금액 {balance}원, 납부일 {due_date}입니다.',
+        ),
+        'tuition_overdue' => array(
+            'title' => '수련비 미납 안내',
+            'message' => '[{academy_name}] {student_name} 학생 {billing_month} 수련비 미납 안내입니다. 미납액 {balance}원, 납부일 {due_date} 확인 부탁드립니다.',
+        ),
+        'tuition_partial' => array(
+            'title' => '수련비 부분결제 안내',
+            'message' => '[{academy_name}] {student_name} 학생 {billing_month} 수련비가 일부 결제되었습니다. 잔액 {balance}원 확인 부탁드립니다.',
+        ),
+    );
+}
+
+function ieum_tuition_get_settings($academy_id)
+{
+    $academy_id = (int) $academy_id;
+    $row = sql_fetch("
+        select *
+          from " . IEUM_TUITION_SETTING_TABLE . "
+         where academy_id = '{$academy_id}'
+         limit 1
+    ", false);
+
+    if (isset($row['academy_id'])) {
+        return $row;
+    }
+
+    return array(
+        'academy_id' => $academy_id,
+        'due_notice_enabled' => 1,
+        'overdue_notice_enabled' => 0,
+        'overdue_after_days' => 5,
+    );
+}
+
+function ieum_tuition_render_template($template, $vars)
+{
+    foreach ($vars as $key => $value) {
+        $template = str_replace('{' . $key . '}', $value, $template);
+    }
+
+    return $template;
+}
+
+function ieum_tuition_get_sms_template($academy_id, $template_key)
+{
+    $academy_id = (int) $academy_id;
+    $template_key_sql = sql_escape_string($template_key);
+    $row = sql_fetch("
+        select *
+          from " . IEUM_SMS_TEMPLATE_TABLE . "
+         where academy_id = '{$academy_id}'
+           and template_key = '{$template_key_sql}'
+         limit 1
+    ", false);
+    if (isset($row['template_id'])) {
+        return $row;
+    }
+
+    $defaults = ieum_tuition_default_sms_templates();
+    $default = isset($defaults[$template_key]) ? $defaults[$template_key] : array('title' => $template_key, 'message' => '');
+
+    return array(
+        'template_key' => $template_key,
+        'title' => $default['title'],
+        'message' => $default['message'],
+        'is_active' => 1,
+    );
+}
+
 function ieum_tuition_due_date($billing_month, $due_day)
 {
     $due_day = (int) $due_day;
@@ -161,6 +236,7 @@ function ieum_tuition_notice_recipients($academy_id, $student_id)
            and student_id = '{$student_id}'
            and is_active = 1
            and guardian_phone <> ''
+           and sms_tuition = 1
            and is_primary = 1
       order by sort_order asc, guardian_id asc
     ", false);
@@ -182,7 +258,7 @@ function ieum_tuition_notice_recipients($academy_id, $student_id)
            and student_id = '{$student_id}'
            and is_active = 1
            and guardian_phone <> ''
-           and sms_attendance = 1
+           and sms_tuition = 1
       order by sort_order asc, guardian_id asc
     ", false);
     while ($row = sql_fetch_array($guardians)) {
@@ -198,13 +274,24 @@ function ieum_tuition_notice_recipients($academy_id, $student_id)
 function ieum_tuition_build_notice_message($academy_name, $student_name, $billing_month, $amount_due, $amount_paid, $due_date, $notice_type = 'due')
 {
     $balance = max(0, (int) $amount_due - (int) $amount_paid);
-    $amount_text = number_format($balance) . '원';
-
-    if ($notice_type === 'overdue') {
-        return '[' . $academy_name . '] ' . $student_name . ' 학생 ' . $billing_month . ' 수련비 미납 안내입니다. 미납액 ' . $amount_text . ', 납부일 ' . $due_date . ' 확인 부탁드립니다.';
+    $template_key = $notice_type === 'partial' ? 'tuition_partial' : ($notice_type === 'overdue' ? 'tuition_overdue' : 'tuition_due');
+    $academy_id = isset($GLOBALS['ieum_tuition_template_academy_id']) ? (int) $GLOBALS['ieum_tuition_template_academy_id'] : 0;
+    $template = $academy_id ? ieum_tuition_get_sms_template($academy_id, $template_key) : null;
+    $message = $template && !empty($template['is_active']) ? $template['message'] : '';
+    if ($message === '') {
+        $defaults = ieum_tuition_default_sms_templates();
+        $message = isset($defaults[$template_key]) ? $defaults[$template_key]['message'] : '';
     }
 
-    return '[' . $academy_name . '] ' . $student_name . ' 학생 ' . $billing_month . ' 수련비 납부일입니다. 납부금액 ' . $amount_text . ', 납부일 ' . $due_date . '입니다.';
+    return ieum_tuition_render_template($message, array(
+        'academy_name' => $academy_name,
+        'student_name' => $student_name,
+        'billing_month' => $billing_month,
+        'amount_due' => number_format((int) $amount_due),
+        'amount_paid' => number_format((int) $amount_paid),
+        'balance' => number_format($balance),
+        'due_date' => $due_date,
+    ));
 }
 
 function ieum_tuition_send_payment_notice($payment_id, $notice_type = 'due', $force = false)
@@ -233,6 +320,7 @@ function ieum_tuition_send_payment_notice($payment_id, $notice_type = 'due', $fo
         return array('created' => 0, 'sms_ids' => array(), 'message' => 'no_recipient');
     }
 
+    $GLOBALS['ieum_tuition_template_academy_id'] = (int) $payment['academy_id'];
     $message = ieum_tuition_build_notice_message(
         $payment['academy_name'],
         $payment['student_name'],
@@ -245,7 +333,8 @@ function ieum_tuition_send_payment_notice($payment_id, $notice_type = 'due', $fo
 
     $sms_ids = array();
     foreach ($recipients as $phone) {
-        $sms_id = ieum_create_direct_sms_queue((int) $payment['academy_id'], $phone, $message, $notice_type === 'overdue' ? 'tuition_overdue' : 'tuition_due', (int) $payment['student_id'], 0);
+        $sms_type = $notice_type === 'partial' ? 'tuition_partial' : ($notice_type === 'overdue' ? 'tuition_overdue' : 'tuition_due');
+        $sms_id = ieum_create_direct_sms_queue((int) $payment['academy_id'], $phone, $message, $sms_type, (int) $payment['student_id'], 0);
         if ($sms_id) {
             $sms_ids[] = $sms_id;
         }
@@ -264,18 +353,22 @@ function ieum_tuition_send_payment_notice($payment_id, $notice_type = 'due', $fo
     return array('created' => count($sms_ids), 'sms_ids' => $sms_ids, 'message' => $message);
 }
 
-function ieum_tuition_send_due_notices($academy_id = 0, $target_date = '', $dry_run = false)
+function ieum_tuition_send_due_notices($academy_id = 0, $target_date = '', $dry_run = false, $mode = 'due')
 {
     $academy_id = (int) $academy_id;
     $target_date = $target_date !== '' ? $target_date : G5_TIME_YMD;
     $target_sql = sql_escape_string($target_date);
-    $where = "p.due_date = '{$target_sql}' and p.status in ('unpaid','partial')";
+    if ($mode === 'overdue') {
+        $where = "p.status in ('unpaid','partial')";
+    } else {
+        $where = "p.due_date = '{$target_sql}' and p.status in ('unpaid','partial')";
+    }
     if ($academy_id) {
         $where .= " and p.academy_id = '{$academy_id}'";
     }
 
     $rows = sql_query("
-        select p.payment_id
+        select p.payment_id, p.academy_id, p.due_date
           from " . IEUM_TUITION_PAYMENT_TABLE . " p
           join " . IEUM_ACADEMY_TABLE . " a on a.academy_id = p.academy_id
          where {$where}
@@ -287,12 +380,22 @@ function ieum_tuition_send_due_notices($academy_id = 0, $target_date = '', $dry_
     $checked = 0;
     $details = array();
     while ($row = sql_fetch_array($rows)) {
+        $settings = ieum_tuition_get_settings((int) $row['academy_id']);
+        if ($mode === 'due' && empty($settings['due_notice_enabled'])) {
+            continue;
+        }
+        if ($mode === 'overdue') {
+            $after_days = max(1, min(30, (int) $settings['overdue_after_days']));
+            if (empty($settings['overdue_notice_enabled']) || (int) floor((strtotime($target_date) - strtotime($row['due_date'])) / 86400) <= $after_days) {
+                continue;
+            }
+        }
         $checked++;
         if ($dry_run) {
             $details[] = array('payment_id' => (int) $row['payment_id'], 'dry_run' => true);
             continue;
         }
-        $result = ieum_tuition_send_payment_notice((int) $row['payment_id'], 'due', false);
+        $result = ieum_tuition_send_payment_notice((int) $row['payment_id'], $mode === 'overdue' ? 'overdue' : 'due', false);
         $created += (int) $result['created'];
         $details[] = array('payment_id' => (int) $row['payment_id'], 'created' => (int) $result['created']);
     }

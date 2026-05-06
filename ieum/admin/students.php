@@ -416,7 +416,7 @@ function ieum_save_vehicle_assignment($academy_id, $student_id, $ride_type, $ena
     ");
 }
 
-function ieum_save_guardians($academy_id, $student_id, $names, $relations, $phones, $checkin_flags, $checkout_flags, $code_flags, $primary_flags)
+function ieum_save_guardians($academy_id, $student_id, $names, $relations, $phones, $checkin_flags, $checkout_flags, $tuition_flags, $code_flags, $primary_flags)
 {
     $academy_id = (int) $academy_id;
     $student_id = (int) $student_id;
@@ -476,6 +476,7 @@ function ieum_save_guardians($academy_id, $student_id, $names, $relations, $phon
         $phone_sql = sql_escape_string($phone);
         $checkin = isset($checkin_flags[$i]) ? 1 : 0;
         $checkout = isset($checkout_flags[$i]) ? 1 : 0;
+        $tuition = isset($tuition_flags[$i]) ? 1 : 0;
 
         sql_query("
             insert into " . IEUM_STUDENT_GUARDIAN_TABLE . "
@@ -486,6 +487,7 @@ function ieum_save_guardians($academy_id, $student_id, $names, $relations, $phon
                     guardian_phone = '{$phone_sql}',
                     sms_attendance = '{$checkin}',
                     sms_checkout = '{$checkout}',
+                    sms_tuition = '{$tuition}',
                     use_for_student_code = '{$use_code}',
                     is_primary = '{$is_primary}',
                     sort_order = '{$sort}',
@@ -589,6 +591,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $guardian_phones = isset($_POST['guardian_phone']) && is_array($_POST['guardian_phone']) ? $_POST['guardian_phone'] : array();
             $guardian_sms_attendance = isset($_POST['guardian_sms_attendance']) && is_array($_POST['guardian_sms_attendance']) ? $_POST['guardian_sms_attendance'] : array();
             $guardian_sms_checkout = isset($_POST['guardian_sms_checkout']) && is_array($_POST['guardian_sms_checkout']) ? $_POST['guardian_sms_checkout'] : array();
+            $guardian_sms_tuition = isset($_POST['guardian_sms_tuition']) && is_array($_POST['guardian_sms_tuition']) ? $_POST['guardian_sms_tuition'] : array();
             $guardian_use_code = isset($_POST['guardian_use_code']) && is_array($_POST['guardian_use_code']) ? $_POST['guardian_use_code'] : array();
             $guardian_primary = isset($_POST['guardian_primary']) && is_array($_POST['guardian_primary']) ? $_POST['guardian_primary'] : array();
             $memo = isset($_POST['memo']) ? trim($_POST['memo']) : '';
@@ -714,6 +717,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $guardian_phones,
                         $guardian_sms_attendance,
                         $guardian_sms_checkout,
+                        $guardian_sms_tuition,
                         $guardian_use_code,
                         $guardian_primary
                     );
@@ -1009,6 +1013,7 @@ textarea{min-height:82px;resize:vertical}
                 'guardian_phone' => $form['parent_phone'],
                 'sms_attendance' => 1,
                 'sms_checkout' => 0,
+                'sms_tuition' => 1,
                 'use_for_student_code' => 0,
                 'is_primary' => 1,
             );
@@ -1325,6 +1330,7 @@ textarea{min-height:82px;resize:vertical}
                         <input type="text" name="guardian_phone[]" value="<?php echo get_text($guardian['guardian_phone']); ?>" maxlength="30" placeholder="010-0000-0000">
                         <label><input type="checkbox" name="guardian_sms_attendance[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['sms_attendance']) ? 'checked' : ''; ?>> 등원문자</label>
                         <label><input type="checkbox" name="guardian_sms_checkout[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['sms_checkout']) ? 'checked' : ''; ?>> 하원문자</label>
+                        <label><input type="checkbox" name="guardian_sms_tuition[<?php echo (int) $idx; ?>]" value="1" <?php echo !isset($guardian['sms_tuition']) || !empty($guardian['sms_tuition']) ? 'checked' : ''; ?>> 수련비문자</label>
                         <label><input type="checkbox" class="use-code" name="guardian_use_code[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['use_for_student_code']) ? 'checked' : ''; ?>> 학생번호 사용</label>
                         <label><input type="checkbox" class="primary-guardian" name="guardian_primary[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['is_primary']) ? 'checked' : ''; ?>> 대표</label>
                         <button type="button" class="btn muted remove-guardian">삭제</button>
@@ -1697,6 +1703,7 @@ if (addGuardian) {
             <input type="text" name="guardian_phone[]" maxlength="30" placeholder="010-0000-0000">
             <label><input type="checkbox" name="guardian_sms_attendance[${index}]" value="1" checked> 등원문자</label>
             <label><input type="checkbox" name="guardian_sms_checkout[${index}]" value="1"> 하원문자</label>
+            <label><input type="checkbox" name="guardian_sms_tuition[${index}]" value="1" checked> 수련비문자</label>
             <label><input type="checkbox" class="use-code" name="guardian_use_code[${index}]" value="1"> 학생번호 사용</label>
             <label><input type="checkbox" class="primary-guardian" name="guardian_primary[${index}]" value="1"> 대표</label>
             <button type="button" class="btn muted remove-guardian">삭제</button>

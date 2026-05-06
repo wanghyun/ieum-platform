@@ -12,16 +12,18 @@ if ($cron_token === '' || !hash_equals($cron_token, $token)) {
 }
 
 $dry_run = isset($_GET['dry_run']) && $_GET['dry_run'] === '1';
+$mode = isset($_GET['mode']) && $_GET['mode'] === 'overdue' ? 'overdue' : 'due';
 $target_date = isset($_GET['date']) ? preg_replace('/[^0-9\-]/', '', trim($_GET['date'])) : G5_TIME_YMD;
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $target_date)) {
     $target_date = G5_TIME_YMD;
 }
 
-$result = ieum_tuition_send_due_notices(0, $target_date, $dry_run);
+$result = ieum_tuition_send_due_notices(0, $target_date, $dry_run, $mode);
 
 echo json_encode(array(
     'success' => true,
     'dry_run' => $dry_run,
+    'mode' => $mode,
     'target_date' => $target_date,
     'checked' => $result['checked'],
     'created_sms' => $result['created_sms'],
