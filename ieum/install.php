@@ -237,6 +237,8 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             note varchar(255) not null default '',
             checked_by varchar(50) not null default '',
             checked_at datetime null,
+            resolved_by varchar(50) not null default '',
+            resolved_at datetime null,
             created_at datetime not null,
             updated_at datetime null,
             primary key (log_id),
@@ -245,6 +247,8 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             key idx_route_day (academy_id, journal_date, route_id, ride_type)
         ) engine={$engine} default charset={$charset}
     ");
+    ieum_install_add_column_if_missing(IEUM_VEHICLE_BOARDING_TABLE, 'resolved_by', "varchar(50) not null default '' after checked_at");
+    ieum_install_add_column_if_missing(IEUM_VEHICLE_BOARDING_TABLE, 'resolved_at', 'datetime null after resolved_by');
 
     sql_query("
         create table if not exists " . IEUM_ATTENDANCE_TABLE . " (

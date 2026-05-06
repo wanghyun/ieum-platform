@@ -157,7 +157,7 @@ $class_today = sql_query("
 ", false);
 
 $vehicle_notes = sql_query("
-    select bl.status, bl.note, bl.checked_at, s.student_name, r.vehicle_label, r.route_name, st.stop_name, st.stop_time
+    select bl.status, bl.note, bl.checked_at, bl.resolved_at, s.student_name, r.vehicle_label, r.route_name, st.stop_name, st.stop_time
       from " . IEUM_VEHICLE_BOARDING_TABLE . " bl
       join " . IEUM_STUDENT_TABLE . " s on s.student_id = bl.student_id and s.academy_id = bl.academy_id
  left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = bl.route_id and r.academy_id = bl.academy_id
@@ -165,6 +165,7 @@ $vehicle_notes = sql_query("
      where bl.academy_id = '{$academy_id}'
        and bl.journal_date = '{$today}'
        and (bl.note <> '' or bl.status in ('missed', 'called'))
+       and bl.resolved_at is null
   order by bl.checked_at desc, bl.log_id desc
      limit 8
 ", false);
