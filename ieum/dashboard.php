@@ -56,6 +56,58 @@ $today_weekday = isset($weekday_map[(int) date('N', $now_ts)]) ? $weekday_map[(i
 $today_weekday_sql = sql_escape_string($today_weekday);
 $today_label = isset($weekday_label_map[$today_weekday]) ? $weekday_label_map[$today_weekday] : '';
 
+function ieum_dashboard_grade_label($value)
+{
+    $labels = array(
+        '' => '미지정',
+        'kindergarten' => '유치부',
+        'elementary_1' => '초등 1학년',
+        'elementary_2' => '초등 2학년',
+        'elementary_3' => '초등 3학년',
+        'elementary_4' => '초등 4학년',
+        'elementary_5' => '초등 5학년',
+        'elementary_6' => '초등 6학년',
+        'middle_1' => '중등 1학년',
+        'middle_2' => '중등 2학년',
+        'middle_3' => '중등 3학년',
+        'high_1' => '고등 1학년',
+        'high_2' => '고등 2학년',
+        'high_3' => '고등 3학년',
+    );
+
+    return isset($labels[$value]) ? $labels[$value] : $value;
+}
+
+function ieum_dashboard_grade_from_birth_date($birth_date, $base_time = null)
+{
+    if (!$birth_date || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth_date)) {
+        return '';
+    }
+
+    $time = $base_time ? (int) $base_time : strtotime(G5_TIME_YMDHIS);
+    $school_year = (int) date('Y', $time);
+    if ((int) date('n', $time) < 3) {
+        $school_year--;
+    }
+
+    $birth_year = (int) substr($birth_date, 0, 4);
+    $grade_number = $school_year - $birth_year - 6;
+    if ($grade_number < 1) {
+        return 'kindergarten';
+    }
+    if ($grade_number <= 6) {
+        return 'elementary_' . $grade_number;
+    }
+    if ($grade_number <= 9) {
+        return 'middle_' . ($grade_number - 6);
+    }
+    if ($grade_number <= 12) {
+        return 'high_' . ($grade_number - 9);
+    }
+
+    return '';
+}
+
 function ieum_dashboard_boarding_status_label($status)
 {
     $labels = array(
@@ -188,6 +240,18 @@ $vehicle_notes = sql_query("
        and bl.resolved_at is null
   order by bl.checked_at desc, bl.log_id desc
      limit 8
+", false);
+
+$birthday_students = sql_query("
+    select student_name, student_code, birth_date, school_name, grade_group
+      from " . IEUM_STUDENT_TABLE . "
+     where academy_id = '{$academy_id}'
+       and is_active = 1
+       and birth_date is not null
+       and birth_date <> '0000-00-00'
+       and month(birth_date) = month('{$today}')
+  order by day(birth_date) asc, student_name asc
+     limit 12
 ", false);
 ?>
 <!doctype html>
@@ -330,6 +394,23 @@ $vehicle_notes = sql_query("
                 </table>
             </article>
             <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php"><strong>수련비 납부</strong><span>월별 결제/미결제 관리</span></a>
+            <article class="card">
+                <h2>이번 달 생일자</h2>
+                <table>
+                    <thead><tr><th>생일</th><th>학생</th><th>학교</th></tr></thead>
+                    <tbody>
+                    <?php $bi = 0; while ($row = sql_fetch_array($birthday_students)) { $bi++; ?>
+                    <tr>
+                        <td><?php echo get_text(date('m-d', strtotime($row['birth_date']))); ?></td>
+                        <?php $birthday_grade = ieum_dashboard_grade_from_birth_date($row['birth_date']) ?: $row['grade_group']; ?>
+                        <td><?php echo get_text($row['student_name'] . ' (' . ieum_dashboard_grade_label($birthday_grade) . ')'); ?></td>
+                        <td><?php echo get_text($row['school_name'] ?: '-'); ?></td>
+                    </tr>
+                    <?php } ?>
+                    <?php if ($bi === 0) { ?><tr><td colspan="3">이번 달 생일자가 없습니다.</td></tr><?php } ?>
+                    </tbody>
+                </table>
+            </article>
             <?php if ($is_admin === 'super') { ?>
             <a class="link-card" href="<?php echo IEUM_URL; ?>/project_status.php"><strong>프로젝트 진행</strong><span>작업 요청과 결과 확인</span></a>
             <?php } ?>

@@ -42,6 +42,63 @@ function ieum_grade_label($value)
     return isset($options[$value]) ? $options[$value] : $value;
 }
 
+function ieum_grade_from_birth_date($birth_date, $base_time = null)
+{
+    if (!$birth_date || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth_date)) {
+        return '';
+    }
+
+    $time = $base_time ? (int) $base_time : strtotime(G5_TIME_YMDHIS);
+    $school_year = (int) date('Y', $time);
+    if ((int) date('n', $time) < 3) {
+        $school_year--;
+    }
+
+    $birth_year = (int) substr($birth_date, 0, 4);
+    $grade_number = $school_year - $birth_year - 6;
+
+    if ($grade_number < 1) {
+        return 'kindergarten';
+    }
+    if ($grade_number <= 6) {
+        return 'elementary_' . $grade_number;
+    }
+    if ($grade_number <= 9) {
+        return 'middle_' . ($grade_number - 6);
+    }
+    if ($grade_number <= 12) {
+        return 'high_' . ($grade_number - 9);
+    }
+
+    return '';
+}
+
+function ieum_refresh_student_auto_grades($academy_id)
+{
+    $academy_id = (int) $academy_id;
+    $students = sql_query("
+        select student_id, birth_date, grade_group
+          from " . IEUM_STUDENT_TABLE . "
+         where academy_id = '{$academy_id}'
+           and is_active = 1
+           and birth_date is not null
+           and birth_date <> '0000-00-00'
+    ", false);
+
+    while ($student = sql_fetch_array($students)) {
+        $grade_group = ieum_grade_from_birth_date($student['birth_date']);
+        if ($grade_group !== '' && $grade_group !== $student['grade_group']) {
+            sql_query("
+                update " . IEUM_STUDENT_TABLE . "
+                   set grade_group = '" . sql_escape_string($grade_group) . "',
+                       updated_at = '" . G5_TIME_YMDHIS . "'
+                 where academy_id = '{$academy_id}'
+                   and student_id = '" . (int) $student['student_id'] . "'
+            ", false);
+        }
+    }
+}
+
 function ieum_attendance_week_type_options()
 {
     return array('2' => '주 2회', '3' => '주 3회', '4' => '주 4회', '5' => '주 5회', 'custom' => '직접 선택');
@@ -403,7 +460,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $student_code = isset($_POST['student_code']) ? preg_replace('/[^0-9A-Za-z_-]/', '', trim($_POST['student_code'])) : '';
             $student_name = isset($_POST['student_name']) ? trim($_POST['student_name']) : '';
             $student_phone = isset($_POST['student_phone']) ? ieum_student_clean_phone($_POST['student_phone']) : '';
+            $birth_date = isset($_POST['birth_date']) ? preg_replace('/[^0-9-]/', '', trim($_POST['birth_date'])) : '';
+            if ($birth_date !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth_date)) {
+                $birth_date = '';
+            } elseif ($birth_date !== '') {
+                $birth_parts = explode('-', $birth_date);
+                if (!checkdate((int) $birth_parts[1], (int) $birth_parts[2], (int) $birth_parts[0])) {
+                    $birth_date = '';
+                }
+            }
+            $school_name = isset($_POST['school_name']) ? trim($_POST['school_name']) : '';
             $grade_group = isset($_POST['grade_group']) ? preg_replace('/[^0-9A-Za-z_]/', '', trim($_POST['grade_group'])) : '';
+            $auto_grade_group = ieum_grade_from_birth_date($birth_date);
+            if ($auto_grade_group !== '') {
+                $grade_group = $auto_grade_group;
+            }
             $class_time_id = isset($_POST['class_time_id']) ? (int) $_POST['class_time_id'] : 0;
             $attendance_week_type = isset($_POST['attendance_week_type']) ? preg_replace('/[^0-9a-z_]/', '', trim($_POST['attendance_week_type'])) : '5';
             if (!isset(ieum_attendance_week_type_options()[$attendance_week_type])) {
@@ -508,6 +579,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $student_name_sql = sql_escape_string($student_name);
                     $student_phone_sql = sql_escape_string($student_phone);
+                    $birth_date_sql = sql_escape_string($birth_date);
+                    $school_name_sql = sql_escape_string($school_name);
                     $grade_group_sql = sql_escape_string($grade_group);
                     $attendance_week_type_sql = sql_escape_string($attendance_week_type);
                     $attendance_days_sql = sql_escape_string($attendance_days);
@@ -521,6 +594,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $vehicle_pickup_place_sql = sql_escape_string($vehicle_pickup_place);
                     $vehicle_dropoff_place_sql = sql_escape_string($vehicle_dropoff_place);
                     $memo_sql = sql_escape_string($memo);
+                    $birth_date_set = $birth_date_sql === '' ? "birth_date = null" : "birth_date = '{$birth_date_sql}'";
                     $admission_set = $admission_date_sql === '' ? "admission_date = null" : "admission_date = '{$admission_date_sql}'";
 
                     if ($post_student_id) {
@@ -531,6 +605,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                set student_code = '{$student_code_sql}',
                                    student_name = '{$student_name_sql}',
                                    student_phone = '{$student_phone_sql}',
+                                   {$birth_date_set},
+                                   school_name = '{$school_name_sql}',
                                    grade_group = '{$grade_group_sql}',
                                    class_time_id = '{$class_time_id}',
                                    attendance_week_type = '{$attendance_week_type_sql}',
@@ -566,6 +642,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     student_code = '{$student_code_sql}',
                                     student_name = '{$student_name_sql}',
                                     student_phone = '{$student_phone_sql}',
+                                    {$birth_date_set},
+                                    school_name = '{$school_name_sql}',
                                     grade_group = '{$grade_group_sql}',
                                     class_time_id = '{$class_time_id}',
                                     attendance_week_type = '{$attendance_week_type_sql}',
@@ -657,6 +735,7 @@ $filter_grade = isset($_GET['grade_group']) ? preg_replace('/[^0-9A-Za-z_]/', ''
 $filter_class_time_raw = isset($_GET['class_time_id']) ? trim($_GET['class_time_id']) : '';
 $filter_class_time_id = ctype_digit($filter_class_time_raw) ? (int) $filter_class_time_raw : 0;
 $q_sql = sql_escape_string($q);
+ieum_refresh_student_auto_grades($academy_id);
 $where = " where 1 ";
 $where .= " and s.academy_id = '{$academy_id}' ";
 if ($q !== '') {
@@ -833,6 +912,8 @@ textarea{min-height:82px;resize:vertical}
             'student_code' => '',
             'student_name' => '',
             'student_phone' => '',
+            'birth_date' => '',
+            'school_name' => '',
             'grade_group' => '',
             'class_time_id' => 0,
             'attendance_week_type' => '5',
@@ -928,6 +1009,12 @@ textarea{min-height:82px;resize:vertical}
 
                 <label for="student_phone">학생 연락처</label>
                 <input type="text" name="student_phone" id="student_phone" value="<?php echo get_text(isset($form['student_phone']) ? $form['student_phone'] : ''); ?>" maxlength="30" placeholder="학생 휴대폰이 있으면 입력">
+
+                <label for="birth_date">생년월일</label>
+                <input type="date" name="birth_date" id="birth_date" value="<?php echo get_text(isset($form['birth_date']) ? $form['birth_date'] : ''); ?>">
+
+                <label for="school_name">학교</label>
+                <input type="text" name="school_name" id="school_name" value="<?php echo get_text(isset($form['school_name']) ? $form['school_name'] : ''); ?>" maxlength="100" placeholder="예: 아이이음초등학교">
 
                 <label for="grade_group">학년/부</label>
                 <select name="grade_group" id="grade_group">
@@ -1261,6 +1348,8 @@ const siblingDiscountEnabled = document.getElementById('sibling_discount_enabled
 const siblingDiscountAmount = document.getElementById('sibling_discount_amount');
 const tuitionDueDay = document.getElementById('tuition_due_day');
 const tuitionTotal = document.getElementById('tuition_total');
+const birthDateInput = document.getElementById('birth_date');
+const gradeGroupInput = document.getElementById('grade_group');
 const admissionDate = document.getElementById('admission_date');
 const admissionYear = document.getElementById('admission_year');
 const admissionMonth = document.getElementById('admission_month');
@@ -1313,6 +1402,24 @@ function updateAdmissionDate() {
     const m = String(admissionMonth.value).padStart(2, '0');
     const d = String(admissionDay.value).padStart(2, '0');
     admissionDate.value = `${y}-${m}-${d}`;
+}
+function gradeFromBirthDate(value) {
+    if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
+    const now = new Date();
+    let schoolYear = now.getFullYear();
+    if (now.getMonth() + 1 < 3) schoolYear -= 1;
+    const birthYear = Number(value.slice(0, 4));
+    const gradeNumber = schoolYear - birthYear - 6;
+    if (gradeNumber < 1) return 'kindergarten';
+    if (gradeNumber <= 6) return `elementary_${gradeNumber}`;
+    if (gradeNumber <= 9) return `middle_${gradeNumber - 6}`;
+    if (gradeNumber <= 12) return `high_${gradeNumber - 9}`;
+    return '';
+}
+function applyBirthGrade() {
+    if (!birthDateInput || !gradeGroupInput) return;
+    const grade = gradeFromBirthDate(birthDateInput.value);
+    if (grade) gradeGroupInput.value = grade;
 }
 function updateTuitionTotal() {
     if (!tuitionTotal) return;
@@ -1512,6 +1619,10 @@ document.querySelectorAll('.vehicle-contact-select').forEach((select) => {
         }
     });
 });
+if (birthDateInput) {
+    birthDateInput.addEventListener('change', applyBirthGrade);
+    applyBirthGrade();
+}
 bindPhoneFormatter(document.getElementById('student_phone'));
 bindPhoneFormatter(document.getElementById('vehicle_pickup_contact_phone'));
 bindPhoneFormatter(document.getElementById('vehicle_dropoff_contact_phone'));
