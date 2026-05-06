@@ -1009,9 +1009,36 @@ textarea{min-height:82px;resize:vertical}
 
                 <label for="student_phone">학생 연락처</label>
                 <input type="text" name="student_phone" id="student_phone" value="<?php echo get_text(isset($form['student_phone']) ? $form['student_phone'] : ''); ?>" maxlength="30" placeholder="학생 휴대폰이 있으면 입력">
-
-                <label for="birth_date">생년월일</label>
-                <input type="date" name="birth_date" id="birth_date" value="<?php echo get_text(isset($form['birth_date']) ? $form['birth_date'] : ''); ?>">
+                <label for="birth_year">생년월일</label>
+                <div class="date-selects">
+                    <?php
+                    $birth_value = isset($form['birth_date']) ? $form['birth_date'] : '';
+                    $birth_valid = preg_match('/^\d{4}-\d{2}-\d{2}$/', $birth_value);
+                    $birth_year = $birth_valid ? (int) substr($birth_value, 0, 4) : 0;
+                    $birth_month = $birth_valid ? (int) substr($birth_value, 5, 2) : 0;
+                    $birth_day = $birth_valid ? (int) substr($birth_value, 8, 2) : 0;
+                    $birth_current_year = (int) date('Y');
+                    ?>
+                    <input type="hidden" name="birth_date" id="birth_date" value="<?php echo get_text($birth_value); ?>">
+                    <select id="birth_year" aria-label="생년">
+                        <option value="">년도</option>
+                        <?php for ($year = $birth_current_year - 2; $year >= $birth_current_year - 25; $year--) { ?>
+                        <option value="<?php echo $year; ?>" <?php echo get_selected($birth_year, $year); ?>><?php echo $year; ?>년</option>
+                        <?php } ?>
+                    </select>
+                    <select id="birth_month" aria-label="생월">
+                        <option value="">월</option>
+                        <?php for ($month = 1; $month <= 12; $month++) { ?>
+                        <option value="<?php echo $month; ?>" <?php echo get_selected($birth_month, $month); ?>><?php echo $month; ?>월</option>
+                        <?php } ?>
+                    </select>
+                    <select id="birth_day" aria-label="생일">
+                        <option value="">일</option>
+                        <?php for ($day = 1; $day <= 31; $day++) { ?>
+                        <option value="<?php echo $day; ?>" <?php echo get_selected($birth_day, $day); ?>><?php echo $day; ?>일</option>
+                        <?php } ?>
+                    </select>
+                </div>
 
                 <label for="school_name">학교</label>
                 <input type="text" name="school_name" id="school_name" value="<?php echo get_text(isset($form['school_name']) ? $form['school_name'] : ''); ?>" maxlength="100" placeholder="예: 아이이음초등학교">
@@ -1349,6 +1376,9 @@ const siblingDiscountAmount = document.getElementById('sibling_discount_amount')
 const tuitionDueDay = document.getElementById('tuition_due_day');
 const tuitionTotal = document.getElementById('tuition_total');
 const birthDateInput = document.getElementById('birth_date');
+const birthYearInput = document.getElementById('birth_year');
+const birthMonthInput = document.getElementById('birth_month');
+const birthDayInput = document.getElementById('birth_day');
 const gradeGroupInput = document.getElementById('grade_group');
 const admissionDate = document.getElementById('admission_date');
 const admissionYear = document.getElementById('admission_year');
@@ -1403,6 +1433,28 @@ function updateAdmissionDate() {
     const d = String(admissionDay.value).padStart(2, '0');
     admissionDate.value = `${y}-${m}-${d}`;
 }
+function updateBirthDate() {
+    if (!birthDateInput || !birthYearInput || !birthMonthInput || !birthDayInput) return;
+    if (!birthYearInput.value || !birthMonthInput.value || !birthDayInput.value) {
+        birthDateInput.value = '';
+        return;
+    }
+    const y = birthYearInput.value;
+    const m = String(birthMonthInput.value).padStart(2, '0');
+    const d = String(birthDayInput.value).padStart(2, '0');
+    birthDateInput.value = `${y}-${m}-${d}`;
+}
+function normalizeBirthDayOptions() {
+    if (!birthYearInput || !birthMonthInput || !birthDayInput || !birthYearInput.value || !birthMonthInput.value) return;
+    const maxDay = new Date(Number(birthYearInput.value), Number(birthMonthInput.value), 0).getDate();
+    Array.from(birthDayInput.options).forEach((option) => {
+        if (!option.value) return;
+        option.disabled = Number(option.value) > maxDay;
+    });
+    if (birthDayInput.value && Number(birthDayInput.value) > maxDay) {
+        birthDayInput.value = String(maxDay);
+    }
+}
 function gradeFromBirthDate(value) {
     if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return '';
     const now = new Date();
@@ -1418,6 +1470,8 @@ function gradeFromBirthDate(value) {
 }
 function applyBirthGrade() {
     if (!birthDateInput || !gradeGroupInput) return;
+    normalizeBirthDayOptions();
+    updateBirthDate();
     const grade = gradeFromBirthDate(birthDateInput.value);
     if (grade) gradeGroupInput.value = grade;
 }
@@ -1620,7 +1674,9 @@ document.querySelectorAll('.vehicle-contact-select').forEach((select) => {
     });
 });
 if (birthDateInput) {
-    birthDateInput.addEventListener('change', applyBirthGrade);
+    [birthYearInput, birthMonthInput, birthDayInput].forEach((input) => {
+        if (input) input.addEventListener('change', applyBirthGrade);
+    });
     applyBirthGrade();
 }
 bindPhoneFormatter(document.getElementById('student_phone'));
