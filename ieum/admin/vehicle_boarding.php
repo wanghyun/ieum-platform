@@ -1,6 +1,7 @@
 <?php
 $sub_menu = '950182';
 require_once './_common.php';
+require_once IEUM_PATH . '/lib/sms_queue.php';
 
 $g5['title'] = '아이이음 차량 탑승 확인';
 $academy = ieum_require_academy_page();
@@ -47,6 +48,31 @@ function ieum_boarding_grade_label($value)
     return isset($labels[$value]) ? $labels[$value] : $value;
 }
 
+function ieum_create_vehicle_alert_queue($academy_id, $vehicle, $status_label, $note)
+{
+    $academy_id = (int) $academy_id;
+    $student_id = (int) $vehicle['student_id'];
+    $route_label = trim(($vehicle['vehicle_label'] ?: '차량') . ' ' . ($vehicle['route_name'] ?: ''));
+    $message = '[아이이음 차량] ' . $vehicle['student_name'] . ' ' . $status_label . ' - ' . $route_label;
+    if (trim($note) !== '') {
+        $message .= ' / ' . trim($note);
+    }
+
+    $contacts = sql_query("
+        select contact_phone
+          from " . IEUM_ACADEMY_CONTACT_TABLE . "
+         where academy_id = '{$academy_id}'
+           and is_active = 1
+           and sms_system_alert = 1
+           and contact_phone <> ''
+      order by sort_order asc, contact_id asc
+    ", false);
+
+    while ($contact = sql_fetch_array($contacts)) {
+        ieum_create_direct_sms_queue($academy_id, $contact['contact_phone'], $message, 'vehicle_alert', $student_id, 0);
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrf_token = isset($_POST['csrf_token']) ? trim($_POST['csrf_token']) : '';
     if (!ieum_verify_csrf_token($csrf_token)) {
@@ -72,11 +98,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = '탑승 상태를 선택하세요.';
         } else {
             $vehicle = sql_fetch("
-                select *
-                  from " . IEUM_STUDENT_VEHICLE_TABLE . "
-                 where academy_id = '{$academy_id}'
-                   and student_vehicle_id = '{$student_vehicle_id}'
-                   and is_active = 1
+                select sv.*, s.student_name, r.route_name, r.vehicle_label
+                  from " . IEUM_STUDENT_VEHICLE_TABLE . " sv
+                  join " . IEUM_STUDENT_TABLE . " s on s.student_id = sv.student_id and s.academy_id = sv.academy_id
+             left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = sv.route_id and r.academy_id = sv.academy_id
+                 where sv.academy_id = '{$academy_id}'
+                   and sv.student_vehicle_id = '{$student_vehicle_id}'
+                   and sv.is_active = 1
                  limit 1
             ", false);
             if (!isset($vehicle['student_vehicle_id'])) {
@@ -86,6 +114,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $note_sql = sql_escape_string($note);
                 $checked_by_sql = sql_escape_string(isset($member['mb_id']) ? $member['mb_id'] : '');
                 $ride_type_sql = sql_escape_string($vehicle['ride_type']);
+                $before = sql_fetch("
+                    select status, note
+                      from " . IEUM_VEHICLE_BOARDING_TABLE . "
+                     where academy_id = '{$academy_id}'
+                       and journal_date = '" . sql_escape_string($journal_date) . "'
+                       and student_vehicle_id = '{$student_vehicle_id}'
+                     limit 1
+                ", false);
                 sql_query("
                     insert into " . IEUM_VEHICLE_BOARDING_TABLE . "
                         set academy_id = '{$academy_id}',
@@ -111,6 +147,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             resolved_at = null,
                             updated_at = '" . G5_TIME_YMDHIS . "'
                 ");
+                $is_new_alert = ($status === 'missed' || $status === 'called') && (!isset($before['status']) || $before['status'] !== $status || $before['note'] !== $note);
+                if ($is_new_alert) {
+                    ieum_create_vehicle_alert_queue($academy_id, $vehicle, $status_labels[$status], $note);
+                }
                 $message = '탑승 확인이 저장되었습니다.';
             }
         }

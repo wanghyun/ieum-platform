@@ -12,6 +12,30 @@ $academy = ieum_require_academy_page();
 $academy_id = (int) $academy['academy_id'];
 $today = G5_TIME_YMD;
 $now_ts = strtotime(G5_TIME_YMDHIS);
+$message = '';
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $csrf_token = isset($_POST['csrf_token']) ? trim($_POST['csrf_token']) : '';
+    $action = isset($_POST['action']) ? trim($_POST['action']) : '';
+    if (!ieum_verify_csrf_token($csrf_token)) {
+        $error = '보안 토큰이 올바르지 않습니다.';
+    } elseif ($action === 'resolve_vehicle_note') {
+        $log_id = isset($_POST['log_id']) ? (int) $_POST['log_id'] : 0;
+        $resolved_by_sql = sql_escape_string(isset($member['mb_id']) ? $member['mb_id'] : '');
+        sql_query("
+            update " . IEUM_VEHICLE_BOARDING_TABLE . "
+               set resolved_by = '{$resolved_by_sql}',
+                   resolved_at = '" . G5_TIME_YMDHIS . "',
+                   updated_at = '" . G5_TIME_YMDHIS . "'
+             where academy_id = '{$academy_id}'
+               and log_id = '{$log_id}'
+        ");
+        $message = '차량 메모를 확인 처리했습니다.';
+    }
+}
+
+$csrf_token = ieum_new_csrf_token();
 $weekday_map = array(1 => 'mon', 2 => 'tue', 3 => 'wed', 4 => 'thu', 5 => 'fri', 6 => 'sat', 7 => 'sun');
 $weekday_label_map = array('mon' => '월', 'tue' => '화', 'wed' => '수', 'thu' => '목', 'fri' => '금', 'sat' => '토', 'sun' => '일');
 $today_weekday = isset($weekday_map[(int) date('N', $now_ts)]) ? $weekday_map[(int) date('N', $now_ts)] : '';
@@ -157,7 +181,7 @@ $class_today = sql_query("
 ", false);
 
 $vehicle_notes = sql_query("
-    select bl.status, bl.note, bl.checked_at, bl.resolved_at, s.student_name, r.vehicle_label, r.route_name, st.stop_name, st.stop_time
+    select bl.log_id, bl.status, bl.note, bl.checked_at, bl.resolved_at, s.student_name, r.vehicle_label, r.route_name, st.stop_name, st.stop_time
       from " . IEUM_VEHICLE_BOARDING_TABLE . " bl
       join " . IEUM_STUDENT_TABLE . " s on s.student_id = bl.student_id and s.academy_id = bl.academy_id
  left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = bl.route_id and r.academy_id = bl.academy_id
@@ -192,7 +216,7 @@ h1{margin:0;font-size:30px}.meta{color:#5b6472;margin-top:6px}
 .main{display:grid;grid-template-columns:1.35fr .95fr;gap:18px}.today-stack{display:grid;gap:18px}
 table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:10px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}
 .links{display:grid;gap:10px}.link-card{display:flex;justify-content:space-between;align-items:center;padding:14px;border:1px solid #d9dee7;border-radius:8px;text-decoration:none;color:#111827;background:#fff}.link-card strong{font-size:16px}.link-card span{color:#667085;font-size:13px}
-.pending{color:#9a5b00;font-weight:800}.sent{color:#176b2c;font-weight:800}.failed{color:#a4262c;font-weight:800}.todo-list{display:grid;gap:10px}.todo{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #d9dee7;border-radius:8px;padding:12px;background:#fff}.todo strong{font-size:16px}.todo span{color:#667085;font-size:13px}.todo.warn{border-color:#f4c27a;background:#fffaf0}.todo.danger{border-color:#efb2b2;background:#fff5f5}.class-bars{display:grid;gap:10px}.class-row{display:grid;grid-template-columns:110px 1fr 70px;gap:10px;align-items:center}.bar-track{height:10px;background:#eef2f7;border-radius:999px;overflow:hidden}.bar-fill{height:100%;background:#1769c2;border-radius:999px}.vehicle-notes{display:grid;gap:10px}.vehicle-note{border:1px solid #d9dee7;border-radius:8px;background:#fff;padding:12px}.vehicle-note strong{display:block}.vehicle-note span{display:block;color:#667085;font-size:13px;margin-top:3px}.vehicle-note.missed{border-color:#efb2b2;background:#fff5f5}.vehicle-note.called{border-color:#f4c27a;background:#fffaf0}
+.pending{color:#9a5b00;font-weight:800}.sent{color:#176b2c;font-weight:800}.failed{color:#a4262c;font-weight:800}.todo-list{display:grid;gap:10px}.todo{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #d9dee7;border-radius:8px;padding:12px;background:#fff}.todo strong{font-size:16px}.todo span{color:#667085;font-size:13px}.todo.warn{border-color:#f4c27a;background:#fffaf0}.todo.danger{border-color:#efb2b2;background:#fff5f5}.class-bars{display:grid;gap:10px}.class-row{display:grid;grid-template-columns:110px 1fr 70px;gap:10px;align-items:center}.bar-track{height:10px;background:#eef2f7;border-radius:999px;overflow:hidden}.bar-fill{height:100%;background:#1769c2;border-radius:999px}.vehicle-notes{display:grid;gap:10px}.vehicle-note{border:1px solid #d9dee7;border-radius:8px;background:#fff;padding:12px}.vehicle-note strong{display:block}.vehicle-note span{display:block;color:#667085;font-size:13px;margin-top:3px}.vehicle-note.missed{border-color:#efb2b2;background:#fff5f5}.vehicle-note.called{border-color:#f4c27a;background:#fffaf0}.vehicle-note-form{margin:0}.vehicle-note-form .btn{width:100%;margin-top:8px;min-height:34px;padding:6px 10px;background:#0f766e;border-color:#0f766e;color:#fff}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}
 @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.top{align-items:flex-start}.ieum-user{margin-left:0}.top a{margin-left:0}}
 @media (max-width:520px){.grid{grid-template-columns:1fr}.actions .btn{width:100%}}
 </style>
@@ -210,6 +234,8 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid
             <a class="btn primary" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form">학생 등록</a>
         </div>
     </section>
+    <?php if ($message) { ?><p class="notice ok"><?php echo get_text($message); ?></p><?php } ?>
+    <?php if ($error) { ?><p class="notice err"><?php echo get_text($error); ?></p><?php } ?>
 
     <section class="grid">
         <article class="card"><div class="label">오늘 등원 예정</div><div class="num"><?php echo number_format((int) $expected_today['cnt']); ?></div><div class="hint">전체 사용 학생 <?php echo number_format((int) $student['cnt']); ?>명</div></article>
@@ -263,11 +289,17 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid
                 <h2>오늘 차량 메모</h2>
                 <div class="vehicle-notes">
                     <?php $vi = 0; while ($note = sql_fetch_array($vehicle_notes)) { $vi++; ?>
-                    <a class="vehicle-note <?php echo get_text($note['status']); ?>" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php?journal_date=<?php echo get_text($today); ?>">
+                    <div class="vehicle-note <?php echo get_text($note['status']); ?>">
                         <strong><?php echo get_text($note['student_name'] . ' · ' . ieum_dashboard_boarding_status_label($note['status'])); ?></strong>
                         <span><?php echo get_text(trim(($note['vehicle_label'] ?: '차량 미지정') . ' / ' . ($note['route_name'] ?: '노선 미지정') . ' / ' . ($note['stop_time'] ?: '') . ' ' . ($note['stop_name'] ?: ''))); ?></span>
                         <?php if ($note['note'] !== '') { ?><span><?php echo get_text($note['note']); ?></span><?php } ?>
-                    </a>
+                        <form method="post" class="vehicle-note-form">
+                            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                            <input type="hidden" name="action" value="resolve_vehicle_note">
+                            <input type="hidden" name="log_id" value="<?php echo (int) $note['log_id']; ?>">
+                            <button type="submit" class="btn">확인</button>
+                        </form>
+                    </div>
                     <?php } ?>
                     <?php if ($vi === 0) { ?><div class="hint">오늘 기록된 차량 특이사항이 없습니다.</div><?php } ?>
                 </div>
