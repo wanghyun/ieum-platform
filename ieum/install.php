@@ -370,6 +370,45 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ");
     ieum_install_add_column_if_missing(IEUM_REPORT_CHARACTER_TABLE, 'memo', "varchar(255) not null default ''");
 
+    sql_query("
+        create table if not exists " . IEUM_CHARACTER_MISSION_TABLE . " (
+            mission_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            mission_month char(7) not null,
+            mission_title varchar(100) not null default '',
+            mission_theme varchar(80) not null default '',
+            guide_url varchar(255) not null default '',
+            guide_summary text null,
+            is_active tinyint(1) not null default 1,
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (mission_id),
+            unique key uq_academy_month (academy_id, mission_month),
+            key idx_academy_active (academy_id, is_active, mission_month)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
+        create table if not exists " . IEUM_CHARACTER_MISSION_STUDENT_TABLE . " (
+            mission_student_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            mission_id int unsigned not null default 0,
+            student_id int unsigned not null,
+            mission_month char(7) not null,
+            participation_status varchar(20) not null default 'none',
+            proof_memo varchar(255) not null default '',
+            proof_url varchar(255) not null default '',
+            bonus_score tinyint unsigned not null default 0,
+            checked_by varchar(50) not null default '',
+            checked_at datetime null,
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (mission_student_id),
+            unique key uq_student_month (academy_id, student_id, mission_month),
+            key idx_mission (academy_id, mission_id, participation_status)
+        ) engine={$engine} default charset={$charset}
+    ");
+
     ieum_install_add_column_if_missing(IEUM_CLASS_TIME_TABLE, 'absent_alert_enabled', 'tinyint(1) not null default 1');
     ieum_install_add_column_if_missing(IEUM_CLASS_TIME_TABLE, 'absent_alert_after_minutes', 'smallint unsigned not null default 10');
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'attendance_week_type', "varchar(20) not null default '5'");

@@ -2,11 +2,13 @@
 $sub_menu = '950181';
 require_once './_common.php';
 require_once IEUM_PATH . '/lib/character.php';
+require_once IEUM_PATH . '/lib/character_mission.php';
 
 $g5['title'] = '아이이음 월간 인성리포트';
 $academy = ieum_require_academy_page();
 $academy_id = (int) $academy['academy_id'];
 ieum_character_ensure_table();
+ieum_character_mission_ensure_tables();
 
 function ieum_character_report_grade_label($value)
 {
@@ -101,6 +103,7 @@ if (!$student && $student_id) {
 }
 
 $score = $student ? ieum_character_month_score($academy_id, $student, $month) : null;
+$mission_report = $student ? ieum_character_mission_report($academy_id, (int) $student['student_id'], $month) : null;
 $items = $score ? ieum_character_component_values($score) : array();
 $comment = $student && $score ? ieum_character_parent_comment($student['student_name'], $score) : '';
 $radar_labels = array();
@@ -232,6 +235,9 @@ $school_label = $student && $student['school_name'] !== '' ? $student['school_na
                     <?php } ?>
                 </div>
                 <p class="score-small">총점 <?php echo number_format((int) $score['total_score']); ?>/100 · 기준 시작일 <?php echo get_text($score['base_date']); ?> · <?php echo get_text($score['message']); ?></p>
+                <?php if ($mission_report) { ?>
+                <p class="score-small">아이잘해 미션: <?php echo get_text($mission_report['status_label']); ?> · 내부 보너스 <?php echo number_format((int) $mission_report['bonus_score']); ?>/5점</p>
+                <?php } ?>
             </article>
         </section>
     </section>
