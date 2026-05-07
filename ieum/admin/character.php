@@ -1,6 +1,7 @@
 <?php
 $sub_menu = '950180';
 require_once './_common.php';
+require_once IEUM_PATH . '/lib/character.php';
 
 $g5['title'] = '아이이음 인성 입력';
 $academy = ieum_require_academy_page();
@@ -8,44 +9,13 @@ $academy_id = (int) $academy['academy_id'];
 $message = '';
 $error = '';
 
-function ieum_character_ensure_table()
-{
-    sql_query("
-        create table if not exists " . IEUM_REPORT_CHARACTER_TABLE . " (
-            character_id int unsigned not null auto_increment,
-            academy_id int unsigned not null,
-            student_id int unsigned not null,
-            week_start date not null,
-            courtesy tinyint unsigned not null default 4,
-            focus tinyint unsigned not null default 4,
-            confidence tinyint unsigned not null default 4,
-            consideration tinyint unsigned not null default 4,
-            memo varchar(255) not null default '',
-            created_by varchar(50) not null default '',
-            created_at datetime not null,
-            updated_at datetime null,
-            primary key (character_id),
-            unique key uq_character_week (academy_id, student_id, week_start),
-            key idx_academy_week (academy_id, week_start)
-        ) engine=InnoDB default charset=utf8
-    ");
-}
-
-function ieum_character_score_options($selected)
-{
-    $html = '';
-    for ($i = 1; $i <= 5; $i++) {
-        $html .= '<option value="' . $i . '"' . get_selected((int) $selected, $i) . '>' . $i . '점</option>';
-    }
-    return $html;
-}
-
 ieum_character_ensure_table();
 
 $week_start = isset($_GET['week_start']) ? preg_replace('/[^0-9\-]/', '', trim($_GET['week_start'])) : date('Y-m-d', strtotime('monday this week', strtotime(G5_TIME_YMD)));
 if (!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $week_start)) {
     $week_start = date('Y-m-d', strtotime('monday this week', strtotime(G5_TIME_YMD)));
 }
+$month = substr($week_start, 0, 7);
 $week_sql = sql_escape_string($week_start);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -57,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $week_start)) {
             $week_start = date('Y-m-d', strtotime('monday this week', strtotime(G5_TIME_YMD)));
         }
+        $month = substr($week_start, 0, 7);
         $week_sql = sql_escape_string($week_start);
         $scores = isset($_POST['scores']) && is_array($_POST['scores']) ? $_POST['scores'] : array();
         $saved = 0;
@@ -123,6 +94,15 @@ $students = sql_query("
        and s.is_active = 1
   order by c.sort_order asc, c.start_time asc, s.student_name asc
 ", false);
+
+$report_students = sql_query("
+    select s.student_id, s.student_code, s.student_name, s.admission_date, s.attendance_days, s.grade_group, c.class_name, c.start_time
+      from " . IEUM_STUDENT_TABLE . " s
+ left join " . IEUM_CLASS_TIME_TABLE . " c on c.class_time_id = s.class_time_id and c.academy_id = s.academy_id
+     where s.academy_id = '{$academy_id}'
+       and s.is_active = 1
+  order by c.sort_order asc, c.start_time asc, s.student_name asc
+", false);
 ?>
 <!doctype html>
 <html lang="ko">
@@ -131,7 +111,7 @@ $students = sql_query("
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}h1{margin:0;font-size:28px}.meta{color:#667085;margin-top:6px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:800;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}input,select{border:1px solid #cfd6df;border-radius:6px;padding:9px;font-size:14px}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.score{width:74px}.memo{min-width:180px;width:100%}.quick-note{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;color:#344054;margin-top:12px}@media(max-width:900px){table{display:block;overflow-x:auto;white-space:nowrap}.ieum-user{margin-left:0}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}h1{margin:0;font-size:28px}.meta{color:#667085;margin-top:6px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:800;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}input,select{border:1px solid #cfd6df;border-radius:6px;padding:9px;font-size:14px}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.score{width:74px}.memo{min-width:180px;width:100%}.quick-note{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;color:#344054;margin-top:12px}.badge{display:inline-flex;border-radius:999px;padding:4px 8px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900}.badge.first{background:#fff4e6;color:#9a5b00}.total{font-size:20px;font-weight:900;color:#1769c2}@media(max-width:900px){table{display:block;overflow-x:auto;white-space:nowrap}.ieum-user{margin-left:0}}
 </style>
 </head>
 <body>
@@ -149,7 +129,7 @@ $students = sql_query("
         <input type="date" name="week_start" value="<?php echo get_text($week_start); ?>">
         <button type="submit" class="btn primary">주간 조회</button>
     </form>
-    <div class="quick-note">대부분 학생은 기본 4점으로 두고, 이번 주에 특별히 눈에 띈 학생만 1~5점으로 수정하는 5분 입력 흐름입니다. 출석 점수는 월간 인성리포트에서 자동 반영됩니다.</div>
+    <div class="quick-note">대부분 학생은 기본 4점으로 두고, 이번 주에 특별히 눈에 띈 학생만 1~5점으로 수정하는 5분 입력 흐름입니다. 입관 전 주차와 미입력 주차는 월간 점수에서 제외되고, 성실 점수는 입관일 이후 정상 수업일 출석률로 자동 반영됩니다.</div>
 
     <section class="panel">
         <form method="post">
@@ -176,6 +156,31 @@ $students = sql_query("
             </table>
             <p><button type="submit" class="btn primary">이번 주 인성 점수 저장</button></p>
         </form>
+    </section>
+
+    <section class="panel">
+        <h2><?php echo get_text($month); ?> 인성 점수 자동 계산</h2>
+        <table>
+            <thead>
+                <tr><th>학생</th><th>평가 주차</th><th>예절</th><th>집중력</th><th>자신감</th><th>배려심</th><th>성실</th><th>총점</th><th>기준</th></tr>
+            </thead>
+            <tbody>
+            <?php $ri = 0; while ($row = sql_fetch_array($report_students)) { $ri++; $score = ieum_character_month_score($academy_id, $row, $month); ?>
+            <tr>
+                <td class="left"><?php echo get_text($row['student_name'] . ' (' . $row['student_code'] . ')'); ?></td>
+                <td><?php echo number_format((int) $score['evaluated_weeks']); ?>주</td>
+                <td><?php echo number_format((int) $score['components']['courtesy']['score']); ?>점<br><span class="badge">평균 <?php echo get_text($score['components']['courtesy']['average']); ?></span></td>
+                <td><?php echo number_format((int) $score['components']['focus']['score']); ?>점<br><span class="badge">평균 <?php echo get_text($score['components']['focus']['average']); ?></span></td>
+                <td><?php echo number_format((int) $score['components']['confidence']['score']); ?>점<br><span class="badge">평균 <?php echo get_text($score['components']['confidence']['average']); ?></span></td>
+                <td><?php echo number_format((int) $score['components']['consideration']['score']); ?>점<br><span class="badge">평균 <?php echo get_text($score['components']['consideration']['average']); ?></span></td>
+                <td><?php echo number_format((int) $score['attendance']['score']); ?>점<br><span class="badge"><?php echo number_format((int) $score['attendance']['rate']); ?>% <?php echo number_format((int) $score['attendance']['attended_days']); ?>/<?php echo number_format((int) $score['attendance']['scheduled_days']); ?>일</span></td>
+                <td class="total"><?php echo number_format((int) $score['total_score']); ?>점</td>
+                <td><?php if ($score['is_first_month']) { ?><span class="badge first">입관 첫 달</span><br><?php } ?><span class="badge"><?php echo get_text($score['base_date']); ?>부터</span></td>
+            </tr>
+            <?php } ?>
+            <?php if ($ri === 0) { ?><tr><td colspan="9">사용 중인 학생이 없습니다.</td></tr><?php } ?>
+            </tbody>
+        </table>
     </section>
 </main>
 </body>

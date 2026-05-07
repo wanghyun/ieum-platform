@@ -368,6 +368,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             key idx_academy_week (academy_id, week_start)
         ) engine={$engine} default charset={$charset}
     ");
+    ieum_install_add_column_if_missing(IEUM_REPORT_CHARACTER_TABLE, 'memo', "varchar(255) not null default ''");
 
     ieum_install_add_column_if_missing(IEUM_CLASS_TIME_TABLE, 'absent_alert_enabled', 'tinyint(1) not null default 1');
     ieum_install_add_column_if_missing(IEUM_CLASS_TIME_TABLE, 'absent_alert_after_minutes', 'smallint unsigned not null default 10');
