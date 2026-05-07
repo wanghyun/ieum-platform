@@ -210,8 +210,8 @@ if (canvas && radarLabels.length) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    for (let ring = 1; ring <= 4; ring++) {
-        const r = radius * ring / 4;
+    for (let ring = 1; ring <= 10; ring++) {
+        const r = radius * ring / 10;
         ctx.beginPath();
         radarLabels.forEach((label, index) => {
             const angle = -Math.PI / 2 + index * Math.PI * 2 / radarLabels.length;
