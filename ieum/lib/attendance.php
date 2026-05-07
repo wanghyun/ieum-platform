@@ -143,6 +143,23 @@ function ieum_attendance_calendar_marks($academy_id, $start_date, $end_date)
     return $marks;
 }
 
+function ieum_attendance_fixed_public_holiday_label($date)
+{
+    $mmdd = substr($date, 5, 5);
+    $labels = array(
+        '01-01' => '신정',
+        '03-01' => '삼일절',
+        '05-05' => '어린이날',
+        '06-06' => '현충일',
+        '08-15' => '광복절',
+        '10-03' => '개천절',
+        '10-09' => '한글날',
+        '12-25' => '성탄절',
+    );
+
+    return isset($labels[$mmdd]) ? $labels[$mmdd] : '';
+}
+
 function ieum_attendance_scheduled_dates($days_csv, $start_date, $end_date, $academy_id = 0)
 {
     $days = array_filter(array_map('trim', explode(',', (string) $days_csv)));
@@ -166,11 +183,14 @@ function ieum_attendance_scheduled_dates($days_csv, $start_date, $end_date, $aca
         $weekday = isset($weekday_map[(int) date('N', $ts)]) ? $weekday_map[(int) date('N', $ts)] : '';
         $is_scheduled = $weekday && in_array($weekday, $days, true);
         $mark = isset($calendar_marks[$date]) ? $calendar_marks[$date] : null;
+        $is_fixed_holiday = ieum_attendance_fixed_public_holiday_label($date) !== '';
 
         if ($mark && !empty($mark['closed'])) {
             $is_scheduled = false;
         } elseif ($mark && !empty($mark['makeup'])) {
             $is_scheduled = true;
+        } elseif ($is_fixed_holiday) {
+            $is_scheduled = false;
         }
 
         if ($is_scheduled) {
