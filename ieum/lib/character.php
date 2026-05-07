@@ -186,3 +186,83 @@ function ieum_character_month_score($academy_id, $student, $month)
         'message' => $is_first_month ? '입관 첫 달은 입관 후 기록만 반영하는 적응 기간 리포트입니다.' : '입력된 주차와 정상 수업일 기준으로 자동 계산했습니다.',
     );
 }
+
+function ieum_character_level_label($score)
+{
+    $score = (int) $score;
+    if ($score >= 18) {
+        return '매우 좋음';
+    }
+    if ($score >= 15) {
+        return '안정적';
+    }
+    if ($score >= 12) {
+        return '성장 중';
+    }
+    return '관찰 중';
+}
+
+function ieum_character_total_stage($total_score)
+{
+    $total_score = (int) $total_score;
+    if ($total_score >= 90) {
+        return '아주 안정적';
+    }
+    if ($total_score >= 80) {
+        return '안정 성장';
+    }
+    if ($total_score >= 70) {
+        return '성장 중';
+    }
+    return '적응/관찰 중';
+}
+
+function ieum_character_component_values($score)
+{
+    $items = array();
+    foreach ($score['components'] as $key => $component) {
+        $items[$key] = array(
+            'label' => $component['label'],
+            'score' => (int) $component['score'],
+            'level' => ieum_character_level_label((int) $component['score']),
+        );
+    }
+    $items['attendance'] = array(
+        'label' => '성실',
+        'score' => (int) $score['attendance']['score'],
+        'level' => ieum_character_level_label((int) $score['attendance']['score']),
+    );
+
+    return $items;
+}
+
+function ieum_character_parent_comment($student_name, $score)
+{
+    $items = ieum_character_component_values($score);
+    $best = null;
+    $watch = null;
+    foreach ($items as $item) {
+        if ($best === null || $item['score'] > $best['score']) {
+            $best = $item;
+        }
+        if ($watch === null || $item['score'] < $watch['score']) {
+            $watch = $item;
+        }
+    }
+
+    $stage = ieum_character_total_stage($score['total_score']);
+    $prefix = !empty($score['is_first_month'])
+        ? '이번 달은 입관 후 적응 기간으로, 입관일 이후의 수업 참여와 인성 기록만 반영했습니다. '
+        : '';
+
+    $comment = $prefix . '이번 달 ' . $student_name . ' 학생의 인성 성장 흐름은 "' . $stage . '" 단계로 보입니다. ';
+    if ($best) {
+        $comment .= '특히 ' . $best['label'] . ' 영역에서 좋은 모습을 보여주었습니다. ';
+    }
+    if ($watch && $best && $watch['label'] !== $best['label']) {
+        $comment .= $watch['label'] . ' 영역은 다음 달에도 수업 안에서 자연스럽게 살펴보겠습니다. ';
+    }
+    $comment .= '앞으로도 작은 성장을 꾸준히 확인하며 긍정적인 수련 습관을 만들어가겠습니다.';
+
+    return $comment;
+}
