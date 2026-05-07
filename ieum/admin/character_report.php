@@ -133,7 +133,12 @@ $school_label = $student && $student['school_name'] !== '' ? $student['school_na
             <h1>월간 인성리포트</h1>
             <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 점수보다 성장 균형을 먼저 보여주는 학부모용 화면</div>
         </div>
-        <button type="button" class="btn print-hide" onclick="window.print()">인쇄</button>
+        <div class="filters print-hide" style="margin:0">
+            <?php if ($student) { ?>
+            <a class="btn primary" target="_blank" rel="noopener" href="<?php echo IEUM_URL; ?>/admin/character_parent_report.php?month=<?php echo get_text($month); ?>&amp;student_id=<?php echo (int) $student_id; ?>">학부모용 한장 보기</a>
+            <?php } ?>
+            <button type="button" class="btn" onclick="window.print()">인쇄</button>
+        </div>
     </section>
 
     <form method="get" class="filters">
