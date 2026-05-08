@@ -13,19 +13,44 @@ function ieum_admin_nav_items()
     }
 
     $items['dashboard'] = array('label' => '대시보드', 'url' => IEUM_URL . '/dashboard.php');
-    $items['operations'] = array('label' => '운영 지표', 'url' => IEUM_URL . '/admin/operations.php');
-    $items['growth'] = array('label' => '성장 리포트', 'url' => IEUM_URL . '/admin/growth_report.php');
-    $items['students'] = array('label' => '학생 관리', 'url' => IEUM_URL . '/admin/students.php');
-    $items['groups'] = array('label' => '부별 학생', 'url' => IEUM_URL . '/admin/student_groups.php');
-    $items['attendance'] = array('label' => '오늘 출석', 'url' => IEUM_URL . '/admin/attendance_today.php');
-    $items['sms'] = array('label' => '문자 큐', 'url' => IEUM_URL . '/admin/sms_queue.php');
-    $items['tuition_payments'] = array('label' => '수련비 납부', 'url' => IEUM_URL . '/admin/tuition_payments.php');
-    $items['character'] = array('label' => '인성 입력', 'url' => IEUM_URL . '/admin/character.php');
-    $items['character_report'] = array('label' => '인성 리포트', 'url' => IEUM_URL . '/admin/character_report.php');
-    $items['character_growth'] = array('label' => '인성 성장', 'url' => IEUM_URL . '/admin/character_growth_report.php');
-    $items['character_mission'] = array('label' => '아이잘해 미션', 'url' => IEUM_URL . '/admin/character_mission.php');
-    $items['vehicles'] = array('label' => '차량 관리', 'url' => IEUM_URL . '/admin/vehicles.php');
-    $items['boarding'] = array('label' => '탑승 확인', 'url' => IEUM_URL . '/admin/vehicle_boarding.php');
+    $items['operations_group'] = array(
+        'label' => '학원 운영',
+        'children' => array(
+            'operations' => array('label' => '운영 지표', 'url' => IEUM_URL . '/admin/operations.php'),
+            'growth' => array('label' => '원생 리포트', 'url' => IEUM_URL . '/admin/growth_report.php'),
+        ),
+    );
+    $items['student_group'] = array(
+        'label' => '학생/출석',
+        'children' => array(
+            'students' => array('label' => '학생 관리', 'url' => IEUM_URL . '/admin/students.php'),
+            'groups' => array('label' => '부별 학생', 'url' => IEUM_URL . '/admin/student_groups.php'),
+            'attendance' => array('label' => '오늘 출석', 'url' => IEUM_URL . '/admin/attendance_today.php'),
+        ),
+    );
+    $items['billing_group'] = array(
+        'label' => '수련비/문자',
+        'children' => array(
+            'tuition_payments' => array('label' => '수련비 납부', 'url' => IEUM_URL . '/admin/tuition_payments.php'),
+            'sms' => array('label' => '문자 큐', 'url' => IEUM_URL . '/admin/sms_queue.php'),
+        ),
+    );
+    $items['character_group'] = array(
+        'label' => '인성 리포트',
+        'children' => array(
+            'character' => array('label' => '인성 입력', 'url' => IEUM_URL . '/admin/character.php'),
+            'character_mission' => array('label' => '아이잘해 미션', 'url' => IEUM_URL . '/admin/character_mission.php'),
+            'character_report' => array('label' => '월간 인성', 'url' => IEUM_URL . '/admin/character_report.php'),
+            'character_growth' => array('label' => '인성 성장', 'url' => IEUM_URL . '/admin/character_growth_report.php'),
+        ),
+    );
+    $items['vehicle_group'] = array(
+        'label' => '차량',
+        'children' => array(
+            'vehicles' => array('label' => '차량 관리', 'url' => IEUM_URL . '/admin/vehicles.php'),
+            'boarding' => array('label' => '탑승 확인', 'url' => IEUM_URL . '/admin/vehicle_boarding.php'),
+        ),
+    );
     $items['settings'] = array(
         'label' => '학원 설정',
         'children' => array(
