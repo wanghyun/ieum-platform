@@ -178,7 +178,7 @@ body.tablet.layout-landscape .keys{
 body.tablet.layout-landscape button{font-size:clamp(20px,4.5vh,34px)}
 body.tablet.layout-landscape .status{grid-column:2;grid-row:1 / 6}
 body.tablet.layout-landscape .progress-card{gap:14px}
-body.tablet.layout-landscape .student-photo{width:clamp(88px,16vh,124px);height:clamp(88px,16vh,124px)}
+body.tablet.layout-landscape .student-photo{width:clamp(116px,22vh,156px);height:clamp(116px,22vh,156px)}
 body.tablet.layout-landscape .level-card{width:min(100%,420px);padding:12px 14px}
 body.tablet.layout-landscape .level-badge{min-width:112px;padding:10px 12px;font-size:18px}
 body.tablet.layout-landscape .progress-card strong{font-size:clamp(24px,3vw,34px)}
@@ -202,13 +202,17 @@ body.tablet.layout-portrait .keys{
 }
 body.tablet.layout-portrait button{font-size:clamp(22px,3.2vh,30px)}
 body.tablet.layout-portrait .status{height:100%;padding:10px}
-body.tablet.layout-portrait .progress-card{gap:6px;align-content:center}
-body.tablet.layout-portrait .student-photo{width:72px;height:72px}
-body.tablet.layout-portrait .level-card{width:min(100%,440px);padding:7px 9px}
+body.tablet.layout-portrait .progress-card{display:grid;grid-template-columns:112px minmax(0,1fr);grid-template-rows:auto 8px auto auto auto auto;column-gap:14px;row-gap:6px;align-content:center;align-items:center;justify-items:stretch;text-align:left}
+body.tablet.layout-portrait .student-photo{grid-column:1;grid-row:1 / 6;justify-self:center;width:104px;height:104px}
+body.tablet.layout-portrait .level-card{grid-column:2;grid-row:1;width:100%;padding:7px 9px}
+body.tablet.layout-portrait .level-progress{grid-column:2;grid-row:2}
 body.tablet.layout-portrait .level-badge{min-width:96px}
-body.tablet.layout-portrait .progress-card strong{font-size:22px}
+body.tablet.layout-portrait .progress-card strong{grid-column:2;grid-row:3;font-size:22px;text-align:left}
 body.tablet.layout-portrait .progress-line{font-size:14px}
-body.tablet.layout-portrait .motivation{font-size:14px}
+body.tablet.layout-portrait .month-flow{grid-column:2;grid-row:4}
+body.tablet.layout-portrait .month-progress{display:none}
+body.tablet.layout-portrait .elapsed-flow{grid-column:2;grid-row:5}
+body.tablet.layout-portrait .motivation{grid-column:1 / 3;grid-row:6;font-size:14px;text-align:center;margin-top:4px}
 
 @media (max-width:900px) and (orientation:landscape){
     body.tablet.layout-landscape .panel{grid-template-columns:minmax(310px,54fr) minmax(250px,46fr);gap:6px 8px;padding:10px}
@@ -304,9 +308,9 @@ function showAttendanceResult(json) {
             </div>
             <div class="progress-bar level-progress"><div class="progress-fill" style="width:${levelRate}%;background:${escapeHtml(levelColor)}"></div></div>` : ''}
             <strong>${escapeHtml(data.student_name || '')} ${status === 'duplicate' ? '이미 등원' : '등원 완료'}</strong>
-            <div class="progress-line">이번 달 수련 흐름 ${rate}% · ${progress.attended_days}/${progress.total_scheduled_days}일</div>
-            <div class="progress-bar"><div class="progress-fill" style="width:${rate}%"></div></div>
-            <div class="progress-line">오늘까지 정상 수업일 기준 ${progress.attended_days}/${progress.elapsed_scheduled_days}일 출석</div>
+            <div class="progress-line month-flow">이번 달 수련 흐름 ${rate}% · ${progress.attended_days}/${progress.total_scheduled_days}일</div>
+            <div class="progress-bar month-progress"><div class="progress-fill" style="width:${rate}%"></div></div>
+            <div class="progress-line elapsed-flow">오늘까지 정상 수업일 기준 ${progress.attended_days}/${progress.elapsed_scheduled_days}일 출석</div>
             <div class="motivation">${escapeHtml(progress.message || '')}</div>
         </div>
     `;
