@@ -191,7 +191,7 @@ body.tablet.layout-portrait .panel{
     width:min(760px,calc(100vw - 16px));
     height:calc(100dvh - 16px);
     display:grid;
-    grid-template-rows:auto auto auto minmax(330px,44vh) minmax(230px,1fr) auto;
+    grid-template-rows:auto auto auto minmax(330px,1fr) minmax(190px,24vh) auto;
     gap:8px;
 }
 body.tablet.layout-portrait h1{padding-right:112px;font-size:clamp(28px,5vw,38px)}
@@ -202,17 +202,20 @@ body.tablet.layout-portrait .keys{
 }
 body.tablet.layout-portrait button{font-size:clamp(22px,3.2vh,30px)}
 body.tablet.layout-portrait .status{height:100%;padding:10px}
-body.tablet.layout-portrait .progress-card{display:grid;grid-template-columns:112px minmax(0,1fr);grid-template-rows:auto 8px auto auto auto auto;column-gap:14px;row-gap:6px;align-content:center;align-items:center;justify-items:stretch;text-align:left}
-body.tablet.layout-portrait .student-photo{grid-column:1;grid-row:1 / 6;justify-self:center;width:104px;height:104px}
-body.tablet.layout-portrait .level-card{grid-column:2;grid-row:1;width:100%;padding:7px 9px}
-body.tablet.layout-portrait .level-progress{grid-column:2;grid-row:2}
-body.tablet.layout-portrait .level-badge{min-width:96px}
-body.tablet.layout-portrait .progress-card strong{grid-column:2;grid-row:3;font-size:22px;text-align:left}
-body.tablet.layout-portrait .progress-line{font-size:14px}
-body.tablet.layout-portrait .month-flow{grid-column:2;grid-row:4}
+body.tablet.layout-portrait .progress-card{display:grid;grid-template-columns:180px minmax(0,1fr);grid-template-rows:auto auto auto auto;column-gap:14px;row-gap:5px;align-content:center;align-items:center;justify-items:stretch;text-align:left}
+body.tablet.layout-portrait .student-photo{grid-column:1;grid-row:1 / 4;justify-self:center;width:136px;height:136px}
+body.tablet.layout-portrait .level-card{grid-column:1;grid-row:4;width:100%;padding:6px 8px;border-radius:10px}
+body.tablet.layout-portrait .level-card .level-copy{gap:0}
+body.tablet.layout-portrait .level-card .level-copy b{font-size:9px}
+body.tablet.layout-portrait .level-card .level-copy span{font-size:9px}
+body.tablet.layout-portrait .level-progress{grid-column:1;grid-row:5;height:7px}
+body.tablet.layout-portrait .level-badge{min-width:88px;padding:6px 7px;font-size:10px;white-space:nowrap}
+body.tablet.layout-portrait .progress-card strong{grid-column:2;grid-row:1;font-size:36px;text-align:left;line-height:1.1;align-self:end}
+body.tablet.layout-portrait .progress-line{font-size:16px;font-weight:800}
+body.tablet.layout-portrait .month-flow{grid-column:2;grid-row:2}
 body.tablet.layout-portrait .month-progress{display:none}
-body.tablet.layout-portrait .elapsed-flow{grid-column:2;grid-row:5}
-body.tablet.layout-portrait .motivation{grid-column:1 / 3;grid-row:6;font-size:14px;text-align:center;margin-top:4px}
+body.tablet.layout-portrait .elapsed-flow{grid-column:2;grid-row:3}
+body.tablet.layout-portrait .motivation{grid-column:2;grid-row:4;font-size:18px;text-align:center;line-height:1.3;margin-top:0}
 
 @media (max-width:900px) and (orientation:landscape){
     body.tablet.layout-landscape .panel{grid-template-columns:minmax(310px,54fr) minmax(250px,46fr);gap:6px 8px;padding:10px}
