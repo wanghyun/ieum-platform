@@ -151,6 +151,7 @@ body.tablet .layout-switch{right:8px;top:8px;gap:4px}
 body.tablet .layout-switch a{min-height:32px;padding:7px 10px;font-size:12px;background:rgba(16,24,40,.78)}
 body.tablet .progress-card{height:100%;display:grid;align-content:center;justify-items:center;gap:8px}
 body.tablet .student-photo{width:clamp(66px,10vh,106px);height:clamp(66px,10vh,106px)}
+body.tablet .photo-placeholder{display:flex;align-items:center;justify-content:center;background:#dfe8f2;color:#344054;font-size:clamp(22px,4vh,34px);font-weight:900}
 body.tablet .progress-card strong{font-size:clamp(18px,2.2vw,28px);line-height:1.25}
 body.tablet .progress-line{font-size:clamp(13px,1.45vw,17px);line-height:1.35}
 body.tablet .motivation{font-size:clamp(13px,1.45vw,17px);line-height:1.35}
@@ -176,6 +177,13 @@ body.tablet.layout-landscape .keys{
 }
 body.tablet.layout-landscape button{font-size:clamp(20px,4.5vh,34px)}
 body.tablet.layout-landscape .status{grid-column:2;grid-row:1 / 6}
+body.tablet.layout-landscape .progress-card{gap:14px}
+body.tablet.layout-landscape .student-photo{width:clamp(88px,16vh,124px);height:clamp(88px,16vh,124px)}
+body.tablet.layout-landscape .level-card{width:min(100%,420px);padding:12px 14px}
+body.tablet.layout-landscape .level-badge{min-width:112px;padding:10px 12px;font-size:18px}
+body.tablet.layout-landscape .progress-card strong{font-size:clamp(24px,3vw,34px)}
+body.tablet.layout-landscape .progress-line{font-size:clamp(15px,1.75vw,20px)}
+body.tablet.layout-landscape .motivation{font-size:clamp(15px,1.75vw,20px)}
 body.tablet.layout-landscape .meta{grid-column:1;grid-row:5}
 
 body.tablet.layout-portrait .wrap{display:grid;place-items:center}
@@ -183,7 +191,7 @@ body.tablet.layout-portrait .panel{
     width:min(760px,calc(100vw - 16px));
     height:calc(100dvh - 16px);
     display:grid;
-    grid-template-rows:auto auto auto minmax(0,1fr) minmax(128px,22vh) auto;
+    grid-template-rows:auto auto auto minmax(330px,44vh) minmax(230px,1fr) auto;
     gap:8px;
 }
 body.tablet.layout-portrait h1{padding-right:112px;font-size:clamp(28px,5vw,38px)}
@@ -193,7 +201,14 @@ body.tablet.layout-portrait .keys{
     gap:6px;
 }
 body.tablet.layout-portrait button{font-size:clamp(22px,3.2vh,30px)}
-body.tablet.layout-portrait .status{padding:10px}
+body.tablet.layout-portrait .status{height:100%;padding:10px}
+body.tablet.layout-portrait .progress-card{gap:6px;align-content:center}
+body.tablet.layout-portrait .student-photo{width:72px;height:72px}
+body.tablet.layout-portrait .level-card{width:min(100%,440px);padding:7px 9px}
+body.tablet.layout-portrait .level-badge{min-width:96px}
+body.tablet.layout-portrait .progress-card strong{font-size:22px}
+body.tablet.layout-portrait .progress-line{font-size:14px}
+body.tablet.layout-portrait .motivation{font-size:14px}
 
 @media (max-width:900px) and (orientation:landscape){
     body.tablet.layout-landscape .panel{grid-template-columns:minmax(310px,54fr) minmax(250px,46fr);gap:6px 8px;padding:10px}
@@ -278,7 +293,7 @@ function showAttendanceResult(json) {
     const nextText = level ? (Number(level.points_to_next) > 0 ? `다음 레벨까지 ${Number(level.points_to_next).toLocaleString()}점` : '최고 단계 달성') : '';
     statusBox.innerHTML = `
         <div class="progress-card">
-            ${data.photo_url ? `<img class="student-photo" src="${escapeHtml(data.photo_url)}" alt="">` : ''}
+            ${data.photo_url ? `<img class="student-photo" src="${escapeHtml(data.photo_url)}" alt="">` : `<div class="student-photo photo-placeholder">${escapeHtml((data.student_name || '?').slice(0, 1))}</div>`}
             ${level ? `
             <div class="level-card">
                 <div class="level-badge" style="background:${escapeHtml(levelColor)}">${escapeHtml(levelLabel)}</div>
