@@ -130,6 +130,78 @@ body.tablet.layout-portrait .status .choice-btn{height:auto;min-height:46px;font
 .layout-switch a{display:inline-flex;align-items:center;justify-content:center;min-height:36px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(15,23,42,.82);color:#fff;text-decoration:none;padding:8px 12px;font-size:13px;font-weight:900}
 .layout-switch a.active{background:#1769c2;border-color:#1769c2}
 body:not(.tablet) .layout-switch{display:none}
+
+/* 1차 마감: tablet kiosk should behave like a fixed app screen. */
+:root{--ieum-blue:#1947ba;--ieum-charcoal:#2c2a25;--ieum-ink:#101828;--ieum-line:#d7dee8}
+body.tablet{background:#101828;overflow:hidden;overscroll-behavior:none}
+body.tablet .wrap{width:100vw;height:100dvh;min-height:100dvh;padding:8px;display:block}
+body.tablet .panel{width:100%;height:100%;max-height:none;border-radius:10px;padding:14px;box-shadow:none;overflow:hidden}
+body.tablet h1{margin:0;color:#071124;font-weight:900;letter-spacing:0;font-size:clamp(26px,4vw,40px);line-height:1.05}
+body.tablet .sub{margin:0;color:#475467;font-size:clamp(13px,1.6vw,17px)}
+body.tablet .display{width:100%;border-color:#111827;border-radius:8px;letter-spacing:1px;margin:0;font-weight:500}
+body.tablet .keys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));min-height:0}
+body.tablet .keys button{width:100%;height:100%}
+body.tablet button{height:auto;min-height:0;border-radius:8px;border-color:#ccd6e2;background:#fff;color:#020617;font-weight:900;letter-spacing:0;line-height:1}
+body.tablet .submit{background:var(--ieum-blue);border-color:var(--ieum-blue);color:#fff}
+body.tablet .clear{background:#f3f6f9}
+body.tablet .status{height:auto;min-height:0;margin:0;border:1px solid #dbe6f1;border-radius:10px;background:#eef6f2;padding:14px;color:#14213d}
+body.tablet .status:not(.ok):not(.warn):not(.err){background:linear-gradient(180deg,#effaf4,#e8f4ef);color:#5b6472;font-weight:800}
+body.tablet .meta{margin:0;color:#667085;font-size:12px;align-self:end}
+body.tablet .layout-switch{right:8px;top:8px;gap:4px}
+body.tablet .layout-switch a{min-height:32px;padding:7px 10px;font-size:12px;background:rgba(16,24,40,.78)}
+body.tablet .progress-card{height:100%;display:grid;align-content:center;justify-items:center;gap:8px}
+body.tablet .student-photo{width:clamp(66px,10vh,106px);height:clamp(66px,10vh,106px)}
+body.tablet .progress-card strong{font-size:clamp(18px,2.2vw,28px);line-height:1.25}
+body.tablet .progress-line{font-size:clamp(13px,1.45vw,17px);line-height:1.35}
+body.tablet .motivation{font-size:clamp(13px,1.45vw,17px);line-height:1.35}
+body.tablet .level-card{width:min(100%,440px);padding:8px 10px;border-radius:12px}
+body.tablet .level-badge{min-width:82px;padding:7px 9px}
+body.tablet .choice-list{height:100%;align-content:center;gap:8px}
+body.tablet .status .choice-btn{min-height:54px;padding:8px 10px;border-radius:8px}
+
+body.tablet.layout-landscape .panel{
+    display:grid;
+    grid-template-columns:minmax(360px,52fr) minmax(300px,48fr);
+    grid-template-rows:auto auto auto minmax(0,1fr) auto;
+    gap:8px 12px;
+}
+body.tablet.layout-landscape h1{grid-column:1;grid-row:1;padding-right:112px}
+body.tablet.layout-landscape .sub{grid-column:1;grid-row:2}
+body.tablet.layout-landscape .display{grid-column:1;grid-row:3;height:clamp(48px,9vh,70px);font-size:clamp(30px,6vh,50px)}
+body.tablet.layout-landscape .keys{
+    grid-column:1;
+    grid-row:4;
+    grid-template-rows:repeat(5,minmax(42px,1fr));
+    gap:6px;
+}
+body.tablet.layout-landscape button{font-size:clamp(20px,4.5vh,34px)}
+body.tablet.layout-landscape .status{grid-column:2;grid-row:1 / 6}
+body.tablet.layout-landscape .meta{grid-column:1;grid-row:5}
+
+body.tablet.layout-portrait .wrap{display:grid;place-items:center}
+body.tablet.layout-portrait .panel{
+    width:min(760px,calc(100vw - 16px));
+    height:calc(100dvh - 16px);
+    display:grid;
+    grid-template-rows:auto auto auto minmax(0,1fr) minmax(128px,22vh) auto;
+    gap:8px;
+}
+body.tablet.layout-portrait h1{padding-right:112px;font-size:clamp(28px,5vw,38px)}
+body.tablet.layout-portrait .display{height:clamp(54px,8vh,74px);font-size:clamp(34px,5.5vh,50px)}
+body.tablet.layout-portrait .keys{
+    grid-template-rows:repeat(5,minmax(44px,1fr));
+    gap:6px;
+}
+body.tablet.layout-portrait button{font-size:clamp(22px,3.2vh,30px)}
+body.tablet.layout-portrait .status{padding:10px}
+
+@media (max-width:900px) and (orientation:landscape){
+    body.tablet.layout-landscape .panel{grid-template-columns:minmax(310px,54fr) minmax(250px,46fr);gap:6px 8px;padding:10px}
+    body.tablet.layout-landscape .display{height:48px;font-size:30px}
+    body.tablet.layout-landscape .keys{gap:5px;grid-template-rows:repeat(5,minmax(36px,1fr))}
+    body.tablet.layout-landscape button{font-size:22px}
+    body.tablet.layout-landscape h1{font-size:26px}
+}
 </style>
 </head>
 <body class="<?php echo $tablet_mode ? 'tablet layout-' . $tablet_layout : ''; ?>">

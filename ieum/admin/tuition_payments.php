@@ -140,7 +140,7 @@ $payments = sql_query("
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1320px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}.meta{color:#667085;margin-top:6px}.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:18px 0}.card{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:16px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.label{font-size:13px;color:#667085}.num{font-size:26px;font-weight:900;margin-top:4px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 18px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.danger{background:#fff5f5;border-color:#f2b8b8;color:#a4262c}.soft{background:#eef2f7}input,select{border:1px solid #cfd6df;border-radius:6px;padding:9px;font-size:14px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.right{text-align:right}.status-paid{color:#176b2c;font-weight:900}.status-partial{color:#9a5b00;font-weight:900}.status-unpaid{color:#a4262c;font-weight:900}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.actions{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}.help{color:#667085;font-size:13px;margin:8px 0 0}.balance{font-weight:900;color:#a4262c}.sent{color:#176b2c;font-size:12px;font-weight:800}@media(max-width:1100px){.cards{grid-template-columns:repeat(3,1fr)}}@media(max-width:900px){table{display:block;overflow-x:auto;white-space:nowrap}.ieum-user{margin-left:0}}@media(max-width:520px){.cards{grid-template-columns:1fr}}
 </style>
 <style>
-.status-partial{color:#a4262c}.bulk-bar{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}.bulk-bar label{font-weight:800;color:#344054}
+.status-partial{color:#a4262c}.bulk-bar{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}.bulk-bar label{font-weight:800;color:#344054}.table-scroll{overflow-x:auto;border:1px solid #d8dee9;border-radius:8px}.payment-table{min-width:1180px;border:0}.payment-table th,.payment-table td{line-height:1.35;padding:8px 7px}.payment-table th:first-child,.payment-table td:first-child{width:48px}.payment-table th:nth-child(2),.payment-table td:nth-child(2){width:94px}.payment-table th:nth-child(3),.payment-table td:nth-child(3){width:140px;white-space:nowrap}.payment-table th:nth-child(4),.payment-table td:nth-child(4){width:92px}.payment-table th:nth-child(5),.payment-table td:nth-child(5),.payment-table th:nth-child(6),.payment-table td:nth-child(6){width:128px}.payment-table th:nth-child(7),.payment-table td:nth-child(7){width:92px;white-space:nowrap}.payment-table th:nth-child(8),.payment-table td:nth-child(8){width:82px;white-space:nowrap}.payment-table th:nth-child(9),.payment-table td:nth-child(9){width:84px}.payment-table th:nth-child(10),.payment-table td:nth-child(10){width:220px}.payment-table th:nth-child(11),.payment-table td:nth-child(11){width:132px}.payment-table input[type=number]{width:100%;text-align:right}.payment-table input[name=memo]{width:100%}.payment-table .actions{min-width:112px}.payment-table .btn{min-height:34px;padding:6px 10px}.payment-table .sent{white-space:normal;line-height:1.25}
 </style>
 </head>
 <body>
@@ -182,7 +182,8 @@ $payments = sql_query("
             </div>
             <button type="submit" class="btn primary">선택 완납 처리</button>
         </form>
-        <table>
+        <div class="table-scroll">
+        <table class="payment-table">
             <thead>
                 <tr><th>선택</th><th>납부일</th><th>학생</th><th>수업부</th><th>청구액</th><th>입금액</th><th>잔액</th><th>상태</th><th>문자</th><th>메모</th><th>관리</th></tr>
             </thead>
@@ -236,6 +237,7 @@ $payments = sql_query("
             <?php if ($i === 0) { ?><tr><td colspan="11">이번 달 수련비 대상이 없습니다.</td></tr><?php } ?>
             </tbody>
         </table>
+        </div>
         <p class="help">입금액이 청구액 이상이면 결제완료, 부족하면 미결제로 자동 정리됩니다. 문자 버튼은 실제 발송이 아니라 안드로이드 게이트웨이가 읽을 문자 큐를 생성합니다.</p>
     </section>
 </main>
