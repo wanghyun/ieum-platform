@@ -49,6 +49,9 @@ body.tablet .student-photo{width:112px;height:112px}
 .progress-line{font-size:18px;color:#334155}
 .progress-bar{height:12px;background:#dbe4ef;border-radius:999px;overflow:hidden}
 .progress-fill{height:100%;background:#1769c2;border-radius:999px}
+.level-card{display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;border:1px solid #d8dee9;border-radius:14px;padding:9px 11px;text-align:left}
+.level-badge{min-width:96px;border-radius:999px;color:#fff;padding:8px 10px;font-weight:900;text-align:center;box-shadow:inset 0 0 0 3px rgba(255,255,255,.18)}
+.level-copy{display:grid;gap:2px}.level-copy b{font-size:15px;color:#172033}.level-copy span{font-size:13px;color:#667085}.level-progress{height:9px}
 .motivation{font-weight:800;color:#146c2e;line-height:1.35}
 .choice-list{display:grid;gap:8px;width:100%}
 .status .choice-btn{height:auto;min-height:56px;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;text-align:left;padding:8px 10px;font-size:16px;background:#fff}
@@ -185,6 +188,7 @@ function escapeHtml(value) {
 function showAttendanceResult(json) {
     const data = json.data || {};
     const progress = data.progress || null;
+    const level = data.character_level || null;
     const status = data.status || '';
     if (status === 'needs_selection') {
         showStudentChoices(data.students || [], json.message || '학생을 선택하세요.');
@@ -196,9 +200,22 @@ function showAttendanceResult(json) {
         return;
     }
     const rate = Math.max(0, Math.min(100, Number(progress.rate) || 0));
+    const levelRate = level ? Math.max(0, Math.min(100, Number(level.progress_rate) || 0)) : 0;
+    const levelColor = level && level.current ? (level.current.color || '#1947ba') : '#1947ba';
+    const levelLabel = level && level.current ? (level.current.label || '') : '';
+    const nextText = level ? (Number(level.points_to_next) > 0 ? `다음 레벨까지 ${Number(level.points_to_next).toLocaleString()}점` : '최고 단계 달성') : '';
     statusBox.innerHTML = `
         <div class="progress-card">
             ${data.photo_url ? `<img class="student-photo" src="${escapeHtml(data.photo_url)}" alt="">` : ''}
+            ${level ? `
+            <div class="level-card">
+                <div class="level-badge" style="background:${escapeHtml(levelColor)}">${escapeHtml(levelLabel)}</div>
+                <div class="level-copy">
+                    <b>${escapeHtml(nextText)}</b>
+                    <span>누적 성장 포인트 ${Number(level.points || 0).toLocaleString()}점</span>
+                </div>
+            </div>
+            <div class="progress-bar level-progress"><div class="progress-fill" style="width:${levelRate}%;background:${escapeHtml(levelColor)}"></div></div>` : ''}
             <strong>${escapeHtml(data.student_name || '')} ${status === 'duplicate' ? '이미 등원' : '등원 완료'}</strong>
             <div class="progress-line">이번 달 수련 흐름 ${rate}% · ${progress.attended_days}/${progress.total_scheduled_days}일</div>
             <div class="progress-bar"><div class="progress-fill" style="width:${rate}%"></div></div>

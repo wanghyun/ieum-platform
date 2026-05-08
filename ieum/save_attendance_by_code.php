@@ -4,6 +4,7 @@ require_once IEUM_PATH . '/lib/response.php';
 require_once IEUM_PATH . '/lib/security.php';
 require_once IEUM_PATH . '/lib/sms_queue.php';
 require_once IEUM_PATH . '/lib/attendance.php';
+require_once IEUM_PATH . '/lib/character_level.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     ieum_json_response(false, '허용되지 않은 요청입니다.', array(), 405);
@@ -25,6 +26,14 @@ if ($student_code === '') {
 }
 
 $result = ieum_save_attendance_by_code($student_code, 'kiosk', $selected_student_id);
+$character_level = null;
+if (isset($result['student']['student_id'])) {
+    $academy = ieum_current_academy();
+    if ($academy) {
+        $character_summary = ieum_character_level_sync_snapshot((int) $academy['academy_id'], $result['student'], date('Y-m', strtotime(G5_TIME_YMD)));
+        $character_level = isset($character_summary['current']['level']) ? $character_summary['current']['level'] : null;
+    }
+}
 
 $photo_url = '';
 if (isset($result['student']['student_photo']) && $result['student']['student_photo'] !== '') {
@@ -52,6 +61,7 @@ if ($result['status'] === 'duplicate') {
         'student_name' => $result['student']['student_name'],
         'photo_url' => $photo_url,
         'progress' => isset($result['progress']) ? $result['progress'] : null,
+        'character_level' => $character_level,
         'checked_at' => $result['attendance']['checked_at'],
     ));
 }
@@ -61,6 +71,7 @@ ieum_json_response(true, $result['message'], array(
     'student_name' => $result['student']['student_name'],
     'photo_url' => $photo_url,
     'progress' => isset($result['progress']) ? $result['progress'] : null,
+    'character_level' => $character_level,
     'attendance_id' => $result['attendance_id'],
     'sms_queue_ids' => $result['sms_queue_ids'],
     'sms_queue_count' => count($result['sms_queue_ids']),

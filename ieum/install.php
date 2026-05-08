@@ -409,6 +409,27 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
         ) engine={$engine} default charset={$charset}
     ");
 
+    sql_query("
+        create table if not exists " . IEUM_CHARACTER_LEVEL_TABLE . " (
+            snapshot_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            student_id int unsigned not null,
+            snapshot_month char(7) not null,
+            monthly_score smallint unsigned not null default 0,
+            mission_bonus tinyint unsigned not null default 0,
+            growth_points smallint unsigned not null default 0,
+            cumulative_points int unsigned not null default 0,
+            level_key varchar(30) not null default '',
+            level_label varchar(50) not null default '',
+            next_level_label varchar(50) not null default '',
+            points_to_next int unsigned not null default 0,
+            updated_at datetime not null,
+            primary key (snapshot_id),
+            unique key uq_character_level_month (academy_id, student_id, snapshot_month),
+            key idx_academy_level (academy_id, snapshot_month, level_key)
+        ) engine={$engine} default charset={$charset}
+    ");
+
     ieum_install_add_column_if_missing(IEUM_CLASS_TIME_TABLE, 'absent_alert_enabled', 'tinyint(1) not null default 1');
     ieum_install_add_column_if_missing(IEUM_CLASS_TIME_TABLE, 'absent_alert_after_minutes', 'smallint unsigned not null default 10');
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'attendance_week_type', "varchar(20) not null default '5'");
