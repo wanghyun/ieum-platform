@@ -53,10 +53,11 @@ function ieum_character_mission_valid_month($month)
 function ieum_character_mission_status_options()
 {
     return array(
-        'none' => array('label' => '미참여', 'bonus' => 0, 'parent' => '이번 달 가정미션은 아직 인증 전입니다.'),
-        'comment' => array('label' => '댓글 인증', 'bonus' => 3, 'parent' => '밴드 댓글로 가정미션 참여를 인증했습니다.'),
-        'photo' => array('label' => '사진 인증', 'bonus' => 5, 'parent' => '가정에서 실천한 모습을 사진으로 인증했습니다.'),
-        'excellent' => array('label' => '우수 실천', 'bonus' => 5, 'parent' => '이번 달 가정미션을 매우 성실하게 실천했습니다.'),
+        'none' => array('label' => '미참여', 'bonus' => 0, 'parent' => '이번 달 아이잘해 가정미션은 아직 참여 전입니다. 다음 달에는 가정에서도 함께 실천해 볼 수 있도록 도장에서 다시 안내하겠습니다.'),
+        'done' => array('label' => '미션 성공', 'bonus' => 5, 'parent' => '가정에서도 아이잘해 미션을 실천했습니다. 도장 수업에서 배운 인성 주제를 집에서도 이어간 좋은 성장 경험입니다.'),
+        'comment' => array('label' => '미션 성공', 'bonus' => 5, 'parent' => '가정에서도 아이잘해 미션을 실천했습니다. 도장 수업에서 배운 인성 주제를 집에서도 이어간 좋은 성장 경험입니다.'),
+        'photo' => array('label' => '미션 성공', 'bonus' => 5, 'parent' => '가정에서도 아이잘해 미션을 실천했습니다. 도장 수업에서 배운 인성 주제를 집에서도 이어간 좋은 성장 경험입니다.'),
+        'excellent' => array('label' => '미션 성공', 'bonus' => 5, 'parent' => '가정에서도 아이잘해 미션을 실천했습니다. 도장 수업에서 배운 인성 주제를 집에서도 이어간 좋은 성장 경험입니다.'),
     );
 }
 
@@ -122,6 +123,6 @@ function ieum_character_mission_report($academy_id, $student_id, $month)
         'status_label' => $status_info['label'],
         'parent_text' => $status_info['parent'],
         'bonus_score' => ieum_character_mission_bonus_score($status),
-        'is_participated' => in_array($status, array('comment', 'photo', 'excellent'), true),
+        'is_participated' => in_array($status, array('done', 'comment', 'photo', 'excellent'), true),
     );
 }
