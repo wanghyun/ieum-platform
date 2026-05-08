@@ -202,7 +202,7 @@ body.tablet.layout-portrait .keys{
 }
 body.tablet.layout-portrait button{font-size:clamp(22px,3.2vh,30px)}
 body.tablet.layout-portrait .status{height:100%;padding:10px}
-body.tablet.layout-portrait .progress-card{display:grid;grid-template-columns:180px minmax(0,1fr);grid-template-rows:auto auto auto auto;column-gap:14px;row-gap:5px;align-content:center;align-items:center;justify-items:stretch;text-align:left}
+body.tablet.layout-portrait .progress-card{display:grid;grid-template-columns:minmax(210px,40%) minmax(0,1fr);grid-template-rows:auto auto auto auto;column-gap:12px;row-gap:5px;align-content:center;align-items:center;justify-items:stretch;text-align:center}
 body.tablet.layout-portrait .student-photo{grid-column:1;grid-row:1 / 4;justify-self:center;width:136px;height:136px}
 body.tablet.layout-portrait .level-card{grid-column:1;grid-row:4;width:100%;padding:6px 8px;border-radius:10px}
 body.tablet.layout-portrait .level-card .level-copy{gap:0}
@@ -210,7 +210,7 @@ body.tablet.layout-portrait .level-card .level-copy b{font-size:9px}
 body.tablet.layout-portrait .level-card .level-copy span{font-size:9px}
 body.tablet.layout-portrait .level-progress{grid-column:1;grid-row:5;height:7px}
 body.tablet.layout-portrait .level-badge{min-width:88px;padding:6px 7px;font-size:10px;white-space:nowrap}
-body.tablet.layout-portrait .progress-card strong{grid-column:2;grid-row:1;font-size:36px;text-align:left;line-height:1.1;align-self:end}
+body.tablet.layout-portrait .progress-card strong{grid-column:2;grid-row:1;font-size:36px;text-align:center;line-height:1.1;align-self:end}
 body.tablet.layout-portrait .progress-line{font-size:16px;font-weight:800}
 body.tablet.layout-portrait .month-flow{grid-column:2;grid-row:2}
 body.tablet.layout-portrait .month-progress{display:none}
