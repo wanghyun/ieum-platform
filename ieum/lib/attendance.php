@@ -275,11 +275,11 @@ function ieum_attendance_student_choice($student)
     );
 }
 
-function ieum_save_attendance_by_code($student_code, $input_source, $selected_student_id = 0)
+function ieum_save_attendance_by_code($student_code, $input_source, $selected_student_id = 0, $academy_override = null, $created_by = '')
 {
     global $member;
 
-    $academy = ieum_current_academy();
+    $academy = $academy_override ? $academy_override : ieum_current_academy();
     if (!$academy) {
         return array(
             'status' => 'forbidden',
@@ -333,11 +333,13 @@ function ieum_save_attendance_by_code($student_code, $input_source, $selected_st
     }
 
     $student_id = (int) $student['student_id'];
-    $mb_id = isset($member['mb_id']) ? sql_escape_string($member['mb_id']) : '';
     $source = sql_escape_string($input_source);
     $today = G5_TIME_YMD;
     $now = G5_TIME_YMDHIS;
-
+    if ($created_by === '') {
+        $created_by = isset($member['mb_id']) ? $member['mb_id'] : '';
+    }
+    $mb_id = sql_escape_string($created_by);
     sql_query("
         insert ignore into " . IEUM_ATTENDANCE_TABLE . "
             set academy_id = '{$academy_id}',

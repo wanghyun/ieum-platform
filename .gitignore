@@ -13,6 +13,10 @@ mysql-8.4/
 
 node_modules/
 vendor/
+build/
+**/build/
+.gradle/
+**/.gradle/
 
 .idea/
 .vscode/

@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "IeumSmsGateway"
 include ":app"
+include ":tablet-attendance"
