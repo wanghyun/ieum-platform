@@ -1,13 +1,41 @@
 <?php
 $sub_menu = '950181';
-require_once './_common.php';
+$ieum_parent_public = defined('IEUM_PARENT_REPORT_PUBLIC') && IEUM_PARENT_REPORT_PUBLIC;
+if ($ieum_parent_public) {
+    require_once dirname(dirname(__DIR__)) . '/common.php';
+    require_once dirname(__DIR__) . '/_common.php';
+    require_once IEUM_PATH . '/lib/security.php';
+    require_once IEUM_PATH . '/lib/academy.php';
+} else {
+    require_once './_common.php';
+}
 require_once IEUM_PATH . '/lib/character.php';
 require_once IEUM_PATH . '/lib/character_mission.php';
 require_once IEUM_PATH . '/lib/character_level.php';
+require_once IEUM_PATH . '/lib/character_report_link.php';
 
 $g5['title'] = '아이이음 학부모 인성리포트';
-$academy = ieum_require_academy_page();
-$academy_id = (int) $academy['academy_id'];
+$public_payload = null;
+if ($ieum_parent_public) {
+    $public_payload = ieum_character_report_payload(isset($_GET['t']) ? $_GET['t'] : '');
+    if (!$public_payload) {
+        alert('리포트 링크가 만료되었거나 올바르지 않습니다.');
+    }
+    $academy_id = (int) $public_payload['a'];
+    $academy = sql_fetch("
+        select *
+          from " . IEUM_ACADEMY_TABLE . "
+         where academy_id = '{$academy_id}'
+           and is_active = 1
+         limit 1
+    ", false);
+    if (empty($academy['academy_id'])) {
+        alert('리포트를 확인할 수 없습니다.');
+    }
+} else {
+    $academy = ieum_require_academy_page();
+    $academy_id = (int) $academy['academy_id'];
+}
 ieum_character_ensure_table();
 ieum_character_mission_ensure_tables();
 
@@ -52,11 +80,11 @@ function ieum_parent_character_month_label($month)
     return date('Y년 n월', $time);
 }
 
-$month = isset($_GET['month']) ? preg_replace('/[^0-9\-]/', '', trim($_GET['month'])) : date('Y-m');
+$month = $ieum_parent_public ? $public_payload['m'] : (isset($_GET['month']) ? preg_replace('/[^0-9\-]/', '', trim($_GET['month'])) : date('Y-m'));
 if (!preg_match('/^\d{4}\-\d{2}$/', $month)) {
     $month = date('Y-m');
 }
-$student_id = isset($_GET['student_id']) ? (int) $_GET['student_id'] : 0;
+$student_id = $ieum_parent_public ? (int) $public_payload['s'] : (isset($_GET['student_id']) ? (int) $_GET['student_id'] : 0);
 
 $student = null;
 if ($student_id > 0) {
@@ -122,10 +150,12 @@ $mission_summary = $mission && $mission['guide_summary'] !== '' ? $mission['guid
 </style>
 </head>
 <body>
+<?php if (!$ieum_parent_public) { ?>
 <div class="actions">
     <a href="<?php echo IEUM_URL; ?>/admin/character_report.php?month=<?php echo get_text($month); ?>&amp;student_id=<?php echo (int) $student_id; ?>">관리자</a>
     <button type="button" onclick="window.print()">인쇄</button>
 </div>
+<?php } ?>
 <main class="page">
 <?php if (!$student || !$score) { ?>
     <section class="empty">리포트를 볼 학생이 없습니다.</section>

@@ -30,6 +30,7 @@ function ieum_sms_type_label($type)
         'checkout' => '하원 문자',
         'absent_alert' => '미등원 알림',
         'vehicle_alert' => '차량 알림',
+        'character_report' => '인성리포트',
     );
 
     return isset($labels[$type]) ? $labels[$type] : $type;
