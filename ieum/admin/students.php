@@ -795,6 +795,19 @@ if ($mode === 'form' && $student_id) {
 }
 
 $q = isset($_GET['q']) ? trim($_GET['q']) : '';
+$program_options = ieum_program_options($academy_id, true);
+$default_program_code = '';
+foreach ($program_options as $program_option) {
+    if ((int) $program_option['is_default'] === 1) {
+        $default_program_code = $program_option['program_code'];
+        break;
+    }
+}
+if ($default_program_code === '' && isset($program_options[0])) {
+    $default_program_code = $program_options[0]['program_code'];
+}
+
+$filter_program = isset($_GET['program_code']) ? ieum_program_code($_GET['program_code']) : '';
 $filter_grade = isset($_GET['grade_group']) ? preg_replace('/[^0-9A-Za-z_]/', '', trim($_GET['grade_group'])) : '';
 $filter_class_time_raw = isset($_GET['class_time_id']) ? trim($_GET['class_time_id']) : '';
 $filter_class_time_id = ctype_digit($filter_class_time_raw) ? (int) $filter_class_time_raw : 0;
@@ -804,6 +817,10 @@ $where = " where 1 ";
 $where .= " and s.academy_id = '{$academy_id}' ";
 if ($q !== '') {
     $where .= " and (s.student_code like '%{$q_sql}%' or s.student_name like '%{$q_sql}%' or s.student_phone like '%{$q_sql}%' or exists (select 1 from " . IEUM_STUDENT_GUARDIAN_TABLE . " g where g.student_id = s.student_id and g.is_active = 1 and (g.guardian_name like '%{$q_sql}%' or g.guardian_phone like '%{$q_sql}%'))) ";
+}
+if ($filter_program !== '') {
+    $filter_program_sql = sql_escape_string($filter_program);
+    $where .= " and s.program_code = '{$filter_program_sql}' ";
 }
 if ($filter_grade !== '') {
     $filter_grade_sql = sql_escape_string($filter_grade);
@@ -848,18 +865,6 @@ while ($class = sql_fetch_array($class_times)) {
     $class_options[] = $class;
 }
 
-$program_options = ieum_program_options($academy_id, true);
-$default_program_code = '';
-foreach ($program_options as $program_option) {
-    if ((int) $program_option['is_default'] === 1) {
-        $default_program_code = $program_option['program_code'];
-        break;
-    }
-}
-if ($default_program_code === '' && isset($program_options[0])) {
-    $default_program_code = $program_options[0]['program_code'];
-}
-
 $tuition_plans = sql_query("
     select *
       from " . IEUM_TUITION_PLAN_TABLE . "
@@ -902,6 +907,18 @@ $unassigned_count = sql_fetch("
        and is_active = 1
        and class_time_id = 0
 ", false);
+
+$program_counts = array();
+$program_counts_result = sql_query("
+    select program_code, count(*) as cnt
+      from " . IEUM_STUDENT_TABLE . "
+     where academy_id = '{$academy_id}'
+       and is_active = 1
+  group by program_code
+", false);
+while ($program_count = sql_fetch_array($program_counts_result)) {
+    $program_counts[$program_count['program_code']] = (int) $program_count['cnt'];
+}
 
 $class_counts_result = sql_query("
     select c.class_time_id, c.class_name, c.start_time, count(s.student_id) as cnt
@@ -948,7 +965,7 @@ input[type=text],select,textarea{width:100%;border:1px solid #cfd6df;border-radi
 textarea{min-height:82px;resize:vertical}
 .actions{margin-top:18px;display:flex;gap:8px}
 .count{color:#5b6472}
-.summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.chip{background:#eef2f7;border:1px solid #d8dee9;border-radius:999px;padding:6px 10px;font-weight:800;color:#344054;text-decoration:none}.chip.active{background:#1769c2;color:#fff;border-color:#1769c2}
+.summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.summary-label{flex:0 0 100%;font-size:12px;font-weight:900;color:#667085;margin-top:4px}.chip{background:#eef2f7;border:1px solid #d8dee9;border-radius:999px;padding:6px 10px;font-weight:800;color:#344054;text-decoration:none}.chip.active{background:#1769c2;color:#fff;border-color:#1769c2}
 .guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card,.ride-day-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input,.ride-day-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected,.ride-day-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px minmax(160px,1fr) 120px minmax(140px,1fr);gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.money-field{display:grid;grid-template-columns:auto 1fr auto;align-items:center;border:1px solid #cfd6df;border-radius:6px;background:#fff;overflow:hidden}.money-field span,.money-field em{height:40px;display:flex;align-items:center;padding:0 10px;background:#f8fafc;color:#667085;font-style:normal;font-weight:900;white-space:nowrap}.money-field input{border:0;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-radius:0;text-align:right;font-weight:800}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-row{display:grid;grid-template-columns:auto 90px 120px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}.vehicle-memo,.vehicle-days{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-contact{display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-memo span,.vehicle-contact span,.vehicle-days span{font-weight:900;color:#344054}.ride-day-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.ride-day-card{min-height:40px;font-size:15px}
 .photo-box{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:12px}.photo-preview{width:112px;height:112px;border-radius:12px;object-fit:cover;background:#e5e7eb;border:1px solid #d8dee9}.photo-empty{width:112px;height:112px;border-radius:12px;background:#e5e7eb;color:#667085;display:flex;align-items:center;justify-content:center;font-weight:900}.photo-controls{display:grid;gap:8px}.photo-controls input[type=file]{width:100%;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:10px}.photo-controls label{font-size:13px;color:#344054}
 .guardian-row{grid-template-columns:1fr!important;gap:12px!important}.guardian-fields{display:grid;grid-template-columns:1fr .75fr 1.1fr;gap:8px}.guardian-flags{display:flex;gap:8px;flex-wrap:wrap}.guardian-flag{display:inline-flex;align-items:center;gap:6px;border:1px solid #cfd6df;border-radius:999px;background:#fff;padding:8px 10px;font-size:13px;font-weight:900;color:#344054}.guardian-flag input{width:auto}.guardian-flag:has(input:checked){background:#eaf4ff;border-color:#1769c2;color:#1769c2}.guardian-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.guardian-actions .guardian-flag{background:#f8fafc}.guardian-actions .btn{min-height:34px}.guardian-section-title{font-size:12px;font-weight:900;color:#667085;margin:0 0 6px}.guardian-groups{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}.guardian-main{display:flex;gap:8px;flex-wrap:wrap}
@@ -964,7 +981,17 @@ textarea{min-height:82px;resize:vertical}
             <h1>학생 관리</h1>
             <div class="count"><?php echo get_text($current_academy['academy_name']); ?></div>
             <div class="summary">
-                <a class="chip <?php echo ($filter_class_time_raw === '' && $filter_grade === '' && $q === '') ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php">전체 학생 <?php echo number_format((int) $total_all['cnt']); ?>명</a>
+                <span class="summary-label">전체/프로그램</span>
+                <a class="chip <?php echo ($filter_program === '' && $filter_class_time_raw === '' && $filter_grade === '' && $q === '') ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php">전체 학생 <?php echo number_format((int) $total_all['cnt']); ?>명</a>
+                <?php foreach ($program_options as $program_option) {
+                    $program_code = $program_option['program_code'];
+                    $program_count = isset($program_counts[$program_code]) ? (int) $program_counts[$program_code] : 0;
+                ?>
+                <a class="chip <?php echo $filter_program === $program_code ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php?program_code=<?php echo urlencode($program_code); ?>">
+                    <?php echo get_text($program_option['program_name']); ?> <?php echo number_format($program_count); ?>명
+                </a>
+                <?php } ?>
+                <span class="summary-label">수업 부</span>
                 <a class="chip <?php echo $filter_class_time_raw === 'unassigned' ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php?class_time_id=unassigned">미지정 <?php echo number_format((int) $unassigned_count['cnt']); ?>명</a>
                 <?php while ($class_count = sql_fetch_array($class_counts_result)) { ?>
                 <a class="chip <?php echo $filter_class_time_id === (int) $class_count['class_time_id'] ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php?class_time_id=<?php echo (int) $class_count['class_time_id']; ?>">
@@ -1401,6 +1428,12 @@ textarea{min-height:82px;resize:vertical}
         <div class="bar">
             <form method="get" class="search">
                 <input type="text" name="q" value="<?php echo get_text($q); ?>" placeholder="학생번호, 학생명, 보호자, 연락처 검색">
+                <select name="program_code">
+                    <option value="">전체 프로그램</option>
+                    <?php foreach ($program_options as $program_option) { ?>
+                    <option value="<?php echo get_text($program_option['program_code']); ?>" <?php echo get_selected($filter_program, $program_option['program_code']); ?>><?php echo get_text($program_option['program_name']); ?></option>
+                    <?php } ?>
+                </select>
                 <select name="grade_group">
                     <?php foreach (ieum_grade_options() as $value => $label) { ?>
                     <option value="<?php echo get_text($value); ?>" <?php echo get_selected($filter_grade, $value); ?>><?php echo get_text($label); ?></option>
@@ -1416,7 +1449,7 @@ textarea{min-height:82px;resize:vertical}
                     <?php } ?>
                 </select>
                 <button type="submit" class="btn">검색</button>
-                <?php if ($q !== '' || $filter_grade !== '' || $filter_class_time_raw !== '') { ?><a class="btn muted" href="<?php echo IEUM_URL; ?>/admin/students.php">전체</a><?php } ?>
+                <?php if ($q !== '' || $filter_program !== '' || $filter_grade !== '' || $filter_class_time_raw !== '') { ?><a class="btn muted" href="<?php echo IEUM_URL; ?>/admin/students.php">전체</a><?php } ?>
             </form>
         </div>
         <table>
