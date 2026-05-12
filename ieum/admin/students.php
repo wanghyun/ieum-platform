@@ -1001,6 +1001,7 @@ h1{margin:0;font-size:26px}
 .notice{margin:0 0 14px;padding:12px 14px;border-radius:8px}
 .ok{background:#eef9f1;color:#176b2c;border:1px solid #9bd3ad}
 .err{background:#fdecec;color:#a4262c;border:1px solid #efb2b2}
+.wrap.ajax-loading{opacity:.55;pointer-events:none;transition:opacity .15s ease}.ajax-status{display:none;margin:0 0 12px;padding:10px 12px;border-radius:8px;background:#eef2f7;color:#344054;font-weight:800}.ajax-status.show{display:block}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}
 .btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}
 .btn.danger{background:#fff5f5;border-color:#f2b8b8;color:#a4262c}
@@ -1030,6 +1031,7 @@ textarea{min-height:82px;resize:vertical}
 <?php echo ieum_admin_header('students'); ?>
 <?php echo ieum_admin_subnav('students'); ?>
 <main class="wrap">
+    <div id="studentAjaxStatus" class="ajax-status">목록을 불러오는 중입니다.</div>
     <div class="bar">
         <div>
             <h1>학생 관리</h1>
@@ -1907,6 +1909,88 @@ if (birthDateInput) {
 bindPhoneFormatter(document.getElementById('student_phone'));
 bindPhoneFormatter(document.getElementById('vehicle_pickup_contact_phone'));
 bindPhoneFormatter(document.getElementById('vehicle_dropoff_contact_phone'));
+function initStudentAjaxList() {
+    const main = document.querySelector('main.wrap');
+    if (!main || main.dataset.studentAjaxBound === '1') return;
+    main.dataset.studentAjaxBound = '1';
+
+    const sameStudentListUrl = (url) => {
+        const target = new URL(url, window.location.href);
+        const current = new URL(window.location.href);
+        return target.origin === current.origin
+            && target.pathname === current.pathname
+            && target.searchParams.get('mode') !== 'form';
+    };
+    const setLoading = (loading) => {
+        const currentMain = document.querySelector('main.wrap');
+        const status = document.getElementById('studentAjaxStatus');
+        if (currentMain) currentMain.classList.toggle('ajax-loading', loading);
+        if (status) status.classList.toggle('show', loading);
+    };
+    const bindDynamicControls = () => {
+        const searchForm = document.querySelector('form.search');
+        if (searchForm && searchForm.dataset.ajaxBound !== '1') {
+            searchForm.dataset.ajaxBound = '1';
+            searchForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                const url = new URL(searchForm.action || window.location.href, window.location.href);
+                const formData = new FormData(searchForm);
+                Array.from(url.searchParams.keys()).forEach((key) => url.searchParams.delete(key));
+                formData.forEach((value, key) => {
+                    if (String(value) !== '') url.searchParams.set(key, value);
+                });
+                loadStudentList(url.toString(), true);
+            });
+            searchForm.querySelectorAll('select').forEach((select) => {
+                select.addEventListener('change', () => searchForm.requestSubmit());
+            });
+        }
+    };
+    const loadStudentList = async (url, pushState) => {
+        if (!sameStudentListUrl(url)) {
+            window.location.href = url;
+            return;
+        }
+        try {
+            setLoading(true);
+            const response = await fetch(url, {
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+                credentials: 'same-origin'
+            });
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const nextMain = doc.querySelector('main.wrap');
+            const currentMain = document.querySelector('main.wrap');
+            if (!nextMain || !currentMain) throw new Error('목록 영역을 찾을 수 없습니다.');
+            currentMain.innerHTML = nextMain.innerHTML;
+            document.title = doc.title || document.title;
+            if (pushState) {
+                window.history.pushState({studentAjax: true}, '', url);
+            }
+            bindDynamicControls();
+        } catch (error) {
+            console.error(error);
+            window.location.href = url;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    main.addEventListener('click', (event) => {
+        const link = event.target.closest('a');
+        if (!link) return;
+        if (!link.classList.contains('chip') && !link.classList.contains('muted')) return;
+        if (!sameStudentListUrl(link.href)) return;
+        event.preventDefault();
+        loadStudentList(link.href, true);
+    });
+    window.addEventListener('popstate', () => {
+        loadStudentList(window.location.href, false);
+    });
+    bindDynamicControls();
+}
+initStudentAjaxList();
 </script>
 </body>
 </html>
