@@ -133,6 +133,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
 </head>
 <body>
 <?php echo ieum_admin_header('calendar'); ?>
+<?php echo ieum_admin_subnav('calendar'); ?>
 <main class="wrap">
     <h1>수업일 설정</h1>
     <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 재량 휴관은 정상 수업일에서 제외하고, 보충 수업은 정상 수업일에 포함합니다.</div>

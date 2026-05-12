@@ -22,3 +22,12 @@ build/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Local QA screenshots and temporary verification artifacts
+tmp_qa/
+ieum/tmp_qa/
+
+# Android local outputs
+*.apk
+*.aab
+*.ap_

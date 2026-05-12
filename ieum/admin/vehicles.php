@@ -193,6 +193,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
 </head>
 <body>
 <?php echo ieum_admin_header('vehicles'); ?>
+<?php echo ieum_admin_subnav('vehicles'); ?>
 <main class="wrap">
     <h1>차량 관리</h1>
     <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 노선은 차량/기사 묶음, 운행 지점은 장소+시간입니다. 학생은 픽업 지점과 하차 지점을 각각 선택합니다.</div>

@@ -73,6 +73,8 @@ function ieum_dashboard_grade_label($value)
         'high_1' => '고등 1학년',
         'high_2' => '고등 2학년',
         'high_3' => '고등 3학년',
+        'adult' => '성인부',
+        'jump_rope' => '줄넘기부',
     );
 
     return isset($labels[$value]) ? $labels[$value] : $value;
@@ -280,7 +282,7 @@ $birthday_students = sql_query("
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>아이이음 대시보드</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:20px}.meta{color:#5b6472;margin-top:6px}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:9px 13px;font-weight:800;cursor:pointer}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.btn.tablet{background:#0f766e;border-color:#0f766e;color:#fff}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.card{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.label{font-size:14px;color:#667085}.num{font-size:34px;font-weight:900;margin-top:4px}.hint{color:#667085;font-size:13px;margin-top:6px}.main{display:grid;grid-template-columns:1.35fr .95fr;gap:18px}.today-stack{display:grid;gap:18px}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:10px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}.links{display:grid;gap:10px}.link-card{display:flex;justify-content:space-between;align-items:center;padding:14px;border:1px solid #d9dee7;border-radius:8px;text-decoration:none;color:#111827;background:#fff}.link-card strong{font-size:16px}.link-card span{color:#667085;font-size:13px}.pending{color:#9a5b00;font-weight:800}.sent{color:#176b2c;font-weight:800}.failed{color:#a4262c;font-weight:800}.todo-list{display:grid;gap:10px}.todo{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #d9dee7;border-radius:8px;padding:12px;background:#fff;color:#111827;text-decoration:none}.todo strong{font-size:16px}.todo span{color:#667085;font-size:13px}.todo.warn{border-color:#f4c27a;background:#fffaf0}.todo.danger{border-color:#efb2b2;background:#fff5f5}.todo-form{margin:0}.class-bars{display:grid;gap:10px}.class-row{display:grid;grid-template-columns:120px 1fr 70px;gap:10px;align-items:center}.bar-track{height:10px;background:#eef2f7;border-radius:999px;overflow:hidden}.bar-fill{height:100%;background:#1769c2;border-radius:999px}.vehicle-notes{display:grid;gap:10px}.vehicle-note{border:1px solid #d9dee7;border-radius:8px;background:#fff;padding:12px}.vehicle-note strong{display:block}.vehicle-note span{display:block;color:#667085;font-size:13px;margin-top:3px}.vehicle-note.missed{border-color:#efb2b2;background:#fff5f5}.vehicle-note.called{border-color:#f4c27a;background:#fffaf0}.vehicle-note-form{margin:0}.vehicle-note-form .btn{width:100%;margin-top:8px;min-height:34px;padding:6px 10px;background:#0f766e;border-color:#0f766e;color:#fff}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}@media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.ieum-user{margin-left:0}}@media (max-width:520px){.grid{grid-template-columns:1fr}.actions .btn{width:100%}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:20px}.meta{color:#5b6472;margin-top:6px}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:9px 13px;font-weight:800;cursor:pointer}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.btn.tablet{background:#0f766e;border-color:#0f766e;color:#fff}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.card{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.label{font-size:14px;color:#667085}.num{font-size:34px;font-weight:900;margin-top:4px}.hint{color:#667085;font-size:13px;margin-top:6px}.main{display:grid;grid-template-columns:1.35fr .95fr;gap:18px}.today-stack{display:grid;gap:18px}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:10px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}.links{display:grid;gap:12px}.link-section{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:14px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.link-section h2{font-size:17px;margin-bottom:10px}.link-list{display:grid;gap:8px}.link-card{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px;border:1px solid #d9dee7;border-radius:8px;text-decoration:none;color:#111827;background:#fff}.link-card:hover{background:#f8fbff;border-color:#b9c9e4}.link-card strong{font-size:16px}.link-card span{color:#667085;font-size:13px;text-align:right}.pending{color:#9a5b00;font-weight:800}.sent{color:#176b2c;font-weight:800}.failed{color:#a4262c;font-weight:800}.todo-list{display:grid;gap:10px}.todo{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #d9dee7;border-radius:8px;padding:12px;background:#fff;color:#111827;text-decoration:none}.todo strong{font-size:16px}.todo span{color:#667085;font-size:13px}.todo.warn{border-color:#f4c27a;background:#fffaf0}.todo.danger{border-color:#efb2b2;background:#fff5f5}.todo-form{margin:0}.class-bars{display:grid;gap:10px}.class-row{display:grid;grid-template-columns:120px 1fr 70px;gap:10px;align-items:center}.bar-track{height:10px;background:#eef2f7;border-radius:999px;overflow:hidden}.bar-fill{height:100%;background:#1769c2;border-radius:999px}.vehicle-notes{display:grid;gap:10px}.vehicle-note{border:1px solid #d9dee7;border-radius:8px;background:#fff;padding:12px}.vehicle-note strong{display:block}.vehicle-note span{display:block;color:#667085;font-size:13px;margin-top:3px}.vehicle-note.missed{border-color:#efb2b2;background:#fff5f5}.vehicle-note.called{border-color:#f4c27a;background:#fffaf0}.vehicle-note-form{margin:0}.vehicle-note-form .btn{width:100%;margin-top:8px;min-height:34px;padding:6px 10px;background:#0f766e;border-color:#0f766e;color:#fff}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}@media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.ieum-user{margin-left:0}}@media (max-width:520px){.grid{grid-template-columns:1fr}.actions .btn{width:100%}.link-card{align-items:flex-start;flex-direction:column}.link-card span{text-align:left}}
 </style>
 <style>
 .tuition-overview{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:center;margin-bottom:18px}.tuition-pill{border:1px solid #d9dee7;border-radius:8px;background:#fff;padding:14px}.tuition-pill strong{display:block;font-size:24px}.tuition-pill span{display:block;color:#667085;font-size:13px;margin-top:4px}.tuition-pill.warn{border-color:#f4c27a;background:#fffaf0}.tuition-pill.danger{border-color:#efb2b2;background:#fff5f5}.tuition-actions{display:grid;gap:8px}@media(max-width:900px){.tuition-overview{grid-template-columns:1fr 1fr}.tuition-actions{grid-column:1 / -1}}@media(max-width:520px){.tuition-overview{grid-template-columns:1fr}}
@@ -439,7 +441,6 @@ $birthday_students = sql_query("
                     </tbody>
                 </table>
             </article>
-            <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php"><strong>수련비 납부</strong><span>월별 결제/미결제 관리</span></a>
             <article class="card">
                 <h2>이번 달 생일자</h2>
                 <table>
@@ -457,14 +458,63 @@ $birthday_students = sql_query("
                     </tbody>
                 </table>
             </article>
+            <section class="link-section">
+                <h2>학원 운영</h2>
+                <div class="link-list">
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/operations.php"><strong>운영 지표</strong><span>신규/휴관/상담 신호</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/growth_report.php"><strong>원생 리포트</strong><span>월별 원생 흐름</span></a>
+                </div>
+            </section>
+            <section class="link-section">
+                <h2>학생/출석</h2>
+                <div class="link-list">
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/students.php"><strong>학생 관리</strong><span>등록/수정/중지</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/student_groups.php"><strong>부별 학생</strong><span>수업 부별 확인</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/attendance_today.php"><strong>오늘 출석</strong><span>등원 현황 확인</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/tablet_devices.php"><strong>출석기 관리</strong><span>앱 연결/해제</span></a>
+                </div>
+            </section>
+            <section class="link-section">
+                <h2>수련비/문자</h2>
+                <div class="link-list">
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php"><strong>수련비 납부</strong><span>월별 결제/미결제</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/sms_queue.php"><strong>문자 큐</strong><span>발송 상태 확인</span></a>
+                </div>
+            </section>
+            <section class="link-section">
+                <h2>인성 리포트</h2>
+                <div class="link-list">
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/character.php"><strong>인성 입력</strong><span>부별 주간 입력</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/character_mission.php"><strong>아이잘해 미션</strong><span>가정 실천 체크</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/character_report.php"><strong>월간 인성</strong><span>학부모 리포트</span></a>
+                </div>
+            </section>
+            <section class="link-section">
+                <h2>차량</h2>
+                <div class="link-list">
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/vehicles.php"><strong>차량 관리</strong><span>호차/노선/정류장</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php"><strong>탑승 확인</strong><span>기사님 모바일 기록</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/vehicle_journal.php"><strong>차량 일지</strong><span>인쇄용 운행표</span></a>
+                </div>
+            </section>
+            <section class="link-section">
+                <h2>학원 설정</h2>
+                <div class="link-list">
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/programs.php"><strong>프로그램 설정</strong><span>태권도/합기도/줄넘기</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/class_times.php"><strong>수업 시간표</strong><span>부별 수업 시간</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/school_calendar.php"><strong>수업일 설정</strong><span>휴관/보충수업</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/tuition.php"><strong>수련비 정책</strong><span>주 횟수별 금액</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/sms_templates.php"><strong>문자 템플릿</strong><span>안내 문구 설정</span></a>
+                </div>
+            </section>
             <?php if ($is_admin === 'super') { ?>
-            <a class="link-card" href="<?php echo IEUM_URL; ?>/project_status.php"><strong>프로젝트 진행</strong><span>작업 요청과 결과 확인</span></a>
+            <section class="link-section">
+                <h2>본사 관리</h2>
+                <div class="link-list">
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/project_status.php"><strong>프로젝트 진행</strong><span>작업 요청과 결과 확인</span></a>
+                </div>
+            </section>
             <?php } ?>
-            <a class="link-card" href="<?php echo IEUM_URL; ?>/kiosk.php?tablet=1"><strong>태블릿 출석</strong><span>번호 입력 화면</span></a>
-            <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/students.php"><strong>학생 관리</strong><span>등록/수정/중지</span></a>
-            <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php"><strong>차량 탑승확인</strong><span>기사님 모바일 기록</span></a>
-            <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/vehicle_journal.php"><strong>차량 일지</strong><span>인쇄용 운행표</span></a>
-            <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/sms_queue.php"><strong>문자 큐</strong><span>발송 상태 확인</span></a>
         </aside>
     </section>
 </main>

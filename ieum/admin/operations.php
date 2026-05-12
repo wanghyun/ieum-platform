@@ -2,6 +2,7 @@
 $sub_menu = '950180';
 require_once './_common.php';
 require_once IEUM_PATH . '/lib/tuition.php';
+require_once IEUM_PATH . '/lib/program.php';
 
 $g5['title'] = '아이이음 도장 운영지표';
 $academy = ieum_require_academy_page();
@@ -37,7 +38,7 @@ function ieum_ops_status_label($status)
 
 function ieum_ops_grade_label($value)
 {
-    $labels = array('' => '미지정', 'kindergarten' => '유치부', 'elementary_1' => '초등 1학년', 'elementary_2' => '초등 2학년', 'elementary_3' => '초등 3학년', 'elementary_4' => '초등 4학년', 'elementary_5' => '초등 5학년', 'elementary_6' => '초등 6학년', 'middle_1' => '중등 1학년', 'middle_2' => '중등 2학년', 'middle_3' => '중등 3학년', 'high_1' => '고등 1학년', 'high_2' => '고등 2학년', 'high_3' => '고등 3학년');
+    $labels = array('' => '미지정', 'kindergarten' => '유치부', 'elementary_1' => '초등 1학년', 'elementary_2' => '초등 2학년', 'elementary_3' => '초등 3학년', 'elementary_4' => '초등 4학년', 'elementary_5' => '초등 5학년', 'elementary_6' => '초등 6학년', 'middle_1' => '중등 1학년', 'middle_2' => '중등 2학년', 'middle_3' => '중등 3학년', 'high_1' => '고등 1학년', 'high_2' => '고등 2학년', 'high_3' => '고등 3학년', 'adult' => '성인부', 'jump_rope' => '줄넘기부');
     return isset($labels[$value]) ? $labels[$value] : $value;
 }
 
@@ -73,12 +74,17 @@ $status_rows = sql_query("
 ", false);
 
 $grade_rows = sql_query("
-    select grade_group, count(*) as cnt
+    select case when program_code = 'jump_rope' then 'jump_rope' else grade_group end as grade_group,
+           count(*) as cnt
       from " . IEUM_STUDENT_TABLE . "
      where academy_id = '{$academy_id}'
        and is_active = 1
-  group by grade_group
-  order by grade_group asc
+  group by case when program_code = 'jump_rope' then 'jump_rope' else grade_group end
+  order by case
+             when field(grade_group, 'kindergarten', 'elementary_1', 'elementary_2', 'elementary_3', 'elementary_4', 'elementary_5', 'elementary_6', 'middle_1', 'middle_2', 'middle_3', 'high_1', 'high_2', 'high_3', 'adult', 'jump_rope', '') = 0 then 999
+             else field(grade_group, 'kindergarten', 'elementary_1', 'elementary_2', 'elementary_3', 'elementary_4', 'elementary_5', 'elementary_6', 'middle_1', 'middle_2', 'middle_3', 'high_1', 'high_2', 'high_3', 'adult', 'jump_rope', '')
+           end asc,
+           grade_group asc
 ", false);
 
 $source_rows = sql_query("
@@ -121,6 +127,7 @@ $risk_rows = sql_query("
 </head>
 <body>
 <?php echo ieum_admin_header('operations'); ?>
+<?php echo ieum_admin_subnav('operations'); ?>
 <main class="wrap">
     <section class="hero">
         <div>

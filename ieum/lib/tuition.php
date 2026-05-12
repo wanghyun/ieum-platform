@@ -61,6 +61,10 @@ function ieum_tuition_get_settings($academy_id)
         'due_notice_enabled' => 1,
         'overdue_notice_enabled' => 0,
         'overdue_after_days' => 5,
+        'bill_auto_send_enabled' => 0,
+        'bill_auto_send_day' => 5,
+        'bill_auto_send_scope' => 'all',
+        'bill_auto_include_arrears' => 1,
     );
 }
 
@@ -199,6 +203,7 @@ function ieum_tuition_ensure_month($academy_id, $billing_month)
                     due_date = '{$due_date_sql}',
                     amount_due = '{$amount_due}',
                     status = 'unpaid',
+                    bill_auto_send_enabled = 1,
                     created_at = '" . G5_TIME_YMDHIS . "'
         ");
         $created++;

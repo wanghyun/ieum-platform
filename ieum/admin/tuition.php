@@ -102,6 +102,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
 </head>
 <body>
 <?php echo ieum_admin_header('tuition'); ?>
+<?php echo ieum_admin_subnav('tuition'); ?>
 <main class="wrap">
     <h1>수련비 설정</h1>
     <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 주 횟수별 기본 금액과 형제 할인 기준입니다.</div>

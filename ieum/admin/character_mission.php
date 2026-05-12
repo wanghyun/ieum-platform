@@ -147,6 +147,7 @@ $students = sql_query("
 </head>
 <body>
 <?php echo ieum_admin_header('character_mission'); ?>
+<?php echo ieum_admin_subnav('character_mission'); ?>
 <main class="wrap">
     <section class="hero">
         <div>

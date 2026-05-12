@@ -93,6 +93,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
 </head>
 <body>
 <?php echo ieum_admin_header('contacts'); ?>
+<?php echo ieum_admin_subnav('contacts'); ?>
 <main class="wrap">
     <h1>알림 담당자</h1>
     <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 미등원/시스템 알림을 받을 사범님 연락처입니다.</div>

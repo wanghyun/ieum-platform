@@ -7,6 +7,7 @@ require_once './_common.php';
 require_once G5_ADMIN_PATH . '/admin.lib.php';
 require_once IEUM_PATH . '/lib/security.php';
 require_once IEUM_PATH . '/lib/academy.php';
+require_once IEUM_PATH . '/lib/program.php';
 
 ieum_require_admin_page();
 
@@ -88,6 +89,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             mb_id varchar(50) not null default '',
             academy_code varchar(30) not null,
             academy_name varchar(100) not null,
+            tablet_pin varchar(20) not null default '110022',
             gateway_token varchar(100) not null,
             service_status varchar(20) not null default 'active',
             sms_start_time char(5) not null default '10:00',
@@ -111,6 +113,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
                 mb_id = 'admin',
                 academy_code = 'LOCAL001',
                 academy_name = '아이이음 테스트 도장',
+                tablet_pin = '110022',
                 gateway_token = 'ieum-local-gateway-token-2026',
                 service_status = 'active',
                 sms_start_time = '10:00',
@@ -121,6 +124,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
                 created_at = '" . G5_TIME_YMDHIS . "'
         on duplicate key update
                 academy_name = values(academy_name),
+                tablet_pin = values(tablet_pin),
                 gateway_token = values(gateway_token),
                 updated_at = '" . G5_TIME_YMDHIS . "'
     ");
@@ -134,6 +138,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             student_phone varchar(30) not null default '',
             student_photo varchar(255) not null default '',
             birth_date date null,
+            program_code varchar(50) not null default '',
             school_name varchar(100) not null default '',
             grade_group varchar(20) not null default '',
             class_time_id int unsigned not null default 0,
@@ -165,6 +170,24 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             key idx_active_name (academy_id, is_active, student_name)
         ) engine={$engine} default charset={$charset}
     ");
+
+    sql_query("
+        create table if not exists " . IEUM_ACADEMY_PROGRAM_TABLE . " (
+            program_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            program_code varchar(50) not null,
+            program_name varchar(80) not null,
+            is_default tinyint(1) not null default 0,
+            is_active tinyint(1) not null default 1,
+            sort_order int unsigned not null default 0,
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (program_id),
+            unique key uq_academy_program (academy_id, program_code),
+            key idx_academy_sort (academy_id, is_active, sort_order)
+        ) engine={$engine} default charset={$charset}
+    ");
+    ieum_seed_default_programs(1);
 
     sql_query("
         create table if not exists " . IEUM_CLASS_TIME_TABLE . " (
@@ -199,6 +222,89 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             key idx_academy_date (academy_id, calendar_date, is_active)
         ) engine={$engine} default charset={$charset}
     ");
+
+    sql_query("
+        create table if not exists " . IEUM_TABLET_DEVICE_TABLE . " (
+            device_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            device_name varchar(80) not null default '',
+            pairing_code char(6) not null default '',
+            device_uid varchar(100) not null default '',
+            device_token varchar(100) not null default '',
+            status varchar(20) not null default 'pending',
+            expires_at datetime null,
+            paired_at datetime null,
+            last_seen_at datetime null,
+            created_by varchar(50) not null default '',
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (device_id),
+            key idx_pairing_code (pairing_code, status, expires_at),
+            key idx_device_token (device_token),
+            key idx_academy_status (academy_id, status, created_at),
+            key idx_device_uid (device_uid)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
+        create table if not exists " . IEUM_HQ_BILLING_WALLET_TABLE . " (
+            wallet_id tinyint unsigned not null,
+            balance_amount int not null default 0,
+            total_charged int not null default 0,
+            total_used int not null default 0,
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (wallet_id)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
+        create table if not exists " . IEUM_HQ_BILLING_WALLET_LOG_TABLE . " (
+            log_id int unsigned not null auto_increment,
+            wallet_id tinyint unsigned not null default 1,
+            academy_id int unsigned not null default 0,
+            payment_id int unsigned not null default 0,
+            log_type varchar(30) not null default '',
+            amount int not null default 0,
+            balance_after int not null default 0,
+            description varchar(255) not null default '',
+            created_by varchar(50) not null default '',
+            created_at datetime not null,
+            primary key (log_id),
+            key idx_wallet_created (wallet_id, created_at),
+            key idx_academy_created (academy_id, created_at),
+            key idx_payment (payment_id)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
+        create table if not exists " . IEUM_BILLING_SEND_LOG_TABLE . " (
+            send_log_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            payment_id int unsigned not null default 0,
+            student_id int unsigned not null default 0,
+            provider varchar(50) not null default '',
+            external_bill_id varchar(100) not null default '',
+            recipient_phone varchar(30) not null default '',
+            send_type varchar(30) not null default 'tuition_bill',
+            bill_amount int unsigned not null default 0,
+            current_amount int unsigned not null default 0,
+            arrears_amount int unsigned not null default 0,
+            arrears_months varchar(120) not null default '',
+            send_fee int unsigned not null default 0,
+            status varchar(30) not null default '',
+            error_message varchar(255) not null default '',
+            created_at datetime not null,
+            primary key (send_log_id),
+            key idx_academy_created (academy_id, created_at),
+            key idx_payment (payment_id),
+            key idx_provider_bill (provider, external_bill_id)
+        ) engine={$engine} default charset={$charset}
+    ");
+    ieum_install_add_column_if_missing(IEUM_BILLING_SEND_LOG_TABLE, 'bill_amount', 'int unsigned not null default 0 after send_type');
+    ieum_install_add_column_if_missing(IEUM_BILLING_SEND_LOG_TABLE, 'current_amount', 'int unsigned not null default 0 after bill_amount');
+    ieum_install_add_column_if_missing(IEUM_BILLING_SEND_LOG_TABLE, 'arrears_amount', 'int unsigned not null default 0 after current_amount');
+    ieum_install_add_column_if_missing(IEUM_BILLING_SEND_LOG_TABLE, 'arrears_months', "varchar(120) not null default '' after arrears_amount");
 
     sql_query("
         create table if not exists " . IEUM_STUDENT_GUARDIAN_TABLE . " (
@@ -438,6 +544,7 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ieum_install_drop_index_if_exists(IEUM_STUDENT_TABLE, 'uq_academy_student_code');
     ieum_install_add_index_if_missing(IEUM_STUDENT_TABLE, 'idx_academy_student_code', '(academy_id, student_code)');
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'birth_date', 'date null after student_phone');
+    ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'program_code', "varchar(50) not null default '' after birth_date");
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'school_name', "varchar(100) not null default '' after birth_date");
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'attendance_days', "varchar(50) not null default 'mon,tue,wed,thu,fri'");
     ieum_install_add_column_if_missing(IEUM_STUDENT_TABLE, 'admission_date', 'date null');
@@ -461,7 +568,6 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ieum_install_add_column_if_missing(IEUM_STUDENT_GUARDIAN_TABLE, 'use_for_student_code', 'tinyint(1) not null default 0');
     ieum_install_add_column_if_missing(IEUM_STUDENT_GUARDIAN_TABLE, 'is_primary', 'tinyint(1) not null default 0');
     ieum_install_add_column_if_missing(IEUM_SMS_QUEUE_TABLE, 'message_type', "varchar(30) not null default 'checkin' after message");
-
     sql_query("
         create table if not exists " . IEUM_ACADEMY_CONTACT_TABLE . " (
             contact_id int unsigned not null auto_increment,
@@ -562,6 +668,14 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             memo varchar(255) not null default '',
             notice_sent_at datetime null,
             notice_count smallint unsigned not null default 0,
+            payment_provider varchar(50) not null default '',
+            external_bill_id varchar(100) not null default '',
+            payment_link varchar(255) not null default '',
+            provider_status varchar(30) not null default '',
+            bill_sent_at datetime null,
+            bill_send_count int unsigned not null default 0,
+            bill_send_fee_total int unsigned not null default 0,
+            bill_auto_send_enabled tinyint(1) not null default 1,
             paid_at datetime null,
             created_at datetime not null,
             updated_at datetime null,
@@ -572,6 +686,15 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ");
     ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'notice_sent_at', 'datetime null after memo');
     ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'notice_count', 'smallint unsigned not null default 0 after notice_sent_at');
+    ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'payment_provider', "varchar(50) not null default '' after notice_count");
+    ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'external_bill_id', "varchar(100) not null default '' after payment_provider");
+    ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'payment_link', "varchar(255) not null default '' after external_bill_id");
+    ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'provider_status', "varchar(30) not null default '' after payment_link");
+    ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'bill_sent_at', 'datetime null after provider_status');
+    ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'bill_send_count', 'int unsigned not null default 0 after bill_sent_at');
+    ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'bill_send_fee_total', 'int unsigned not null default 0 after bill_send_count');
+    ieum_install_add_column_if_missing(IEUM_TUITION_PAYMENT_TABLE, 'bill_auto_send_enabled', 'tinyint(1) not null default 1 after bill_send_fee_total');
+    ieum_install_add_column_if_missing(IEUM_ACADEMY_TABLE, 'tablet_pin', "varchar(20) not null default '110022' after academy_name");
 
     sql_query("
         create table if not exists " . IEUM_SMS_TEMPLATE_TABLE . " (
@@ -594,10 +717,18 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
             due_notice_enabled tinyint(1) not null default 1,
             overdue_notice_enabled tinyint(1) not null default 0,
             overdue_after_days tinyint unsigned not null default 5,
+            bill_auto_send_enabled tinyint(1) not null default 0,
+            bill_auto_send_day tinyint unsigned not null default 5,
+            bill_auto_send_scope varchar(20) not null default 'all',
+            bill_auto_include_arrears tinyint(1) not null default 1,
             updated_at datetime null,
             primary key (academy_id)
         ) engine={$engine} default charset={$charset}
     ");
+    ieum_install_add_column_if_missing(IEUM_TUITION_SETTING_TABLE, 'bill_auto_send_enabled', 'tinyint(1) not null default 0 after overdue_after_days');
+    ieum_install_add_column_if_missing(IEUM_TUITION_SETTING_TABLE, 'bill_auto_send_day', 'tinyint unsigned not null default 5 after bill_auto_send_enabled');
+    ieum_install_add_column_if_missing(IEUM_TUITION_SETTING_TABLE, 'bill_auto_send_scope', "varchar(20) not null default 'all' after bill_auto_send_day");
+    ieum_install_add_column_if_missing(IEUM_TUITION_SETTING_TABLE, 'bill_auto_include_arrears', 'tinyint(1) not null default 1 after bill_auto_send_scope');
 
     sql_query("
         insert into " . IEUM_STUDENT_TABLE . "

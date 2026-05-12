@@ -35,6 +35,11 @@ function ieum_require_gateway_token()
     $academy = ieum_get_academy_by_gateway_token($token);
 
     if (!$academy) {
+        require_once IEUM_PATH . '/lib/tablet_device.php';
+        $academy = ieum_tablet_device_find_academy_by_token($token);
+    }
+
+    if (!$academy) {
         ieum_json_response(false, '문자 게이트웨이 인증에 실패했습니다.', array(), 401);
     }
 

@@ -4,6 +4,7 @@ if (!defined('_GNUBOARD_')) {
 }
 
 require_once IEUM_PATH . '/lib/academy.php';
+require_once IEUM_PATH . '/lib/sms_queue.php';
 
 function ieum_normalize_student_code($code)
 {

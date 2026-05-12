@@ -115,11 +115,12 @@ $settings = ieum_tuition_get_settings($academy_id);
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1120px;margin:28px auto;padding:0 20px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px}h1{margin:0 0 8px;font-size:26px}.meta{color:#667085;margin-bottom:16px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.grid{display:grid;grid-template-columns:1fr 1fr 150px;gap:10px;align-items:center}.template{display:grid;gap:10px;border-top:1px solid #e2e8f0;padding-top:18px;margin-top:18px}input,textarea{width:100%;border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}textarea{min-height:100px;resize:vertical}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.tokens{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;color:#344054;font-size:13px;line-height:1.6}.tokens code{background:#eef2f7;border-radius:4px;padding:2px 5px}.row{display:grid;grid-template-columns:180px 1fr;gap:10px;align-items:center}@media(max-width:800px){.grid,.row{grid-template-columns:1fr}}
 </style>
 <style>
-.preview{background:#f0f7ff;border:1px solid #b9d7ff;border-radius:8px;padding:14px;margin-bottom:18px;white-space:pre-wrap;font-size:15px;line-height:1.6}.soft{background:#eef2f7}.danger{background:#fff5f5;border-color:#f2b8b8;color:#a4262c}.template-actions{display:flex;gap:8px;flex-wrap:wrap}
+.preview{background:#f0f7ff;border:1px solid #b9d7ff;border-radius:8px;padding:14px;margin-bottom:18px;white-space:pre-wrap;font-size:15px;line-height:1.6}.soft{background:#eef2f7}.danger{background:#fff5f5;border-color:#f2b8b8;color:#a4262c}.template-actions{display:flex;gap:8px;flex-wrap:wrap}input[type=checkbox]{width:auto}.setting-card{border:1px solid #e2e8f0;border-radius:8px;padding:14px;background:#fbfcff}.setting-card strong{display:block;margin-bottom:8px}.setting-card select{width:100%;border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.setting-help{margin:8px 0 0;color:#667085;font-size:13px;line-height:1.55}
 </style>
 </head>
 <body>
 <?php echo ieum_admin_header('sms_templates'); ?>
+<?php echo ieum_admin_subnav('sms_templates'); ?>
 <main class="wrap">
     <h1>문자 템플릿</h1>
     <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 수련비 납부/미납 문구와 자동발송 기준을 도장별로 관리합니다.</div>
@@ -135,9 +136,17 @@ $settings = ieum_tuition_get_settings($academy_id);
         <form method="post" class="grid">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <input type="hidden" name="action" value="settings">
-            <label><input type="checkbox" name="due_notice_enabled" value="1" <?php echo !empty($settings['due_notice_enabled']) ? 'checked' : ''; ?>> 납부일 당일 자동 안내</label>
-            <label><input type="checkbox" name="overdue_notice_enabled" value="1" <?php echo !empty($settings['overdue_notice_enabled']) ? 'checked' : ''; ?>> 미납 자동 안내</label>
-            <label>납부일 <input type="number" name="overdue_after_days" value="<?php echo (int) $settings['overdue_after_days']; ?>" min="1" max="30" style="width:70px">일 초과</label>
+            <div class="setting-card">
+                <strong>문자 안내</strong>
+                <label><input type="checkbox" name="due_notice_enabled" value="1" <?php echo !empty($settings['due_notice_enabled']) ? 'checked' : ''; ?>> 납부일 당일 문자 안내</label><br>
+                <label><input type="checkbox" name="overdue_notice_enabled" value="1" <?php echo !empty($settings['overdue_notice_enabled']) ? 'checked' : ''; ?>> 미납 문자 안내</label>
+                <p class="setting-help">문자 안내는 안드로이드 문자 게이트웨이 큐로 생성됩니다.</p>
+            </div>
+            <div class="setting-card">
+                <strong>미납 기준</strong>
+                <label>납부일 <input type="number" name="overdue_after_days" value="<?php echo (int) $settings['overdue_after_days']; ?>" min="1" max="30" style="width:78px">일 초과</label>
+                <p class="setting-help">도장 상황에 맞게 1~30일 사이로 조정할 수 있습니다.</p>
+            </div>
             <button type="submit" class="btn primary">설정 저장</button>
         </form>
     </section>

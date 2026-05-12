@@ -139,6 +139,7 @@ $report_students = sql_query("
 </head>
 <body>
 <?php echo ieum_admin_header('character'); ?>
+<?php echo ieum_admin_subnav('character'); ?>
 <main class="wrap">
     <section class="hero">
         <div>

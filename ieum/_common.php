@@ -7,6 +7,7 @@ define('IEUM_PATH', __DIR__);
 define('IEUM_URL', G5_URL . '/ieum');
 
 define('IEUM_ACADEMY_TABLE', 'ieum_academies');
+define('IEUM_ACADEMY_PROGRAM_TABLE', 'ieum_academy_programs');
 define('IEUM_STUDENT_TABLE', 'ieum_students');
 define('IEUM_ATTENDANCE_TABLE', 'ieum_attendance');
 define('IEUM_SMS_QUEUE_TABLE', 'ieum_sms_queue');
@@ -29,6 +30,10 @@ define('IEUM_VEHICLE_STOP_TABLE', 'ieum_vehicle_stops');
 define('IEUM_STUDENT_VEHICLE_TABLE', 'ieum_student_vehicles');
 define('IEUM_VEHICLE_BOARDING_TABLE', 'ieum_vehicle_boarding_logs');
 define('IEUM_ACADEMY_CALENDAR_TABLE', 'ieum_academy_calendar');
+define('IEUM_TABLET_DEVICE_TABLE', 'ieum_tablet_devices');
+define('IEUM_HQ_BILLING_WALLET_TABLE', 'ieum_hq_billing_wallet');
+define('IEUM_HQ_BILLING_WALLET_LOG_TABLE', 'ieum_hq_billing_wallet_logs');
+define('IEUM_BILLING_SEND_LOG_TABLE', 'ieum_billing_send_logs');
 
 if (is_file(IEUM_PATH . '/config.php')) {
     require_once IEUM_PATH . '/config.php';

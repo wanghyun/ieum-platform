@@ -216,6 +216,7 @@ $rows = sql_query("
 </head>
 <body>
 <?php echo ieum_admin_header('boarding'); ?>
+<?php echo ieum_admin_subnav('boarding'); ?>
 <main class="wrap">
     <h1>차량 탑승 확인</h1>
     <div class="meta"><?php echo get_text($academy['academy_name']); ?> · <?php echo get_text($journal_date); ?></div>

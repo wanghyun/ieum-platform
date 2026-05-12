@@ -191,6 +191,7 @@ $period_label = $months ? $months[0] . ' ~ ' . $months[count($months) - 1] : $mo
 </head>
 <body>
 <?php echo ieum_admin_header('character_growth'); ?>
+<?php echo ieum_admin_subnav('character_growth'); ?>
 <main class="wrap">
     <section class="hero">
         <div>

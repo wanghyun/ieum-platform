@@ -95,6 +95,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
 </head>
 <body>
 <?php echo ieum_admin_header('classes'); ?>
+<?php echo ieum_admin_subnav('classes'); ?>
 <main class="wrap">
     <h1>수업 시간표</h1>
     <div class="meta"><?php echo get_text($academy['academy_name']); ?></div>

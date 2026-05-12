@@ -92,6 +92,7 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid
 </head>
 <body>
 <?php echo ieum_admin_header('attendance'); ?>
+<?php echo ieum_admin_subnav('attendance'); ?>
 <main class="wrap">
     <div class="bar">
         <div>

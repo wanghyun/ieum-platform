@@ -133,6 +133,7 @@ $school_label = $student && $student['school_name'] !== '' ? $student['school_na
 </head>
 <body>
 <?php echo ieum_admin_header('character_report'); ?>
+<?php echo ieum_admin_subnav('character_report'); ?>
 <main class="wrap">
     <section class="hero">
         <div>

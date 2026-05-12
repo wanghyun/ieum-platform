@@ -1,6 +1,7 @@
 <?php
 $sub_menu = '950120';
 require_once './_common.php';
+require_once IEUM_PATH . '/lib/program.php';
 
 $g5['title'] = '아이이음 학생 관리';
 $current_academy = ieum_require_academy_page();
@@ -82,6 +83,8 @@ function ieum_grade_options()
         'high_1' => '고등 1학년',
         'high_2' => '고등 2학년',
         'high_3' => '고등 3학년',
+        'adult' => '성인부',
+        'jump_rope' => '줄넘기부',
     );
 }
 
@@ -521,6 +524,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             $school_name = isset($_POST['school_name']) ? trim($_POST['school_name']) : '';
+            $program_code = isset($_POST['program_code']) ? ieum_program_code($_POST['program_code']) : '';
             $grade_group = isset($_POST['grade_group']) ? preg_replace('/[^0-9A-Za-z_]/', '', trim($_POST['grade_group'])) : '';
             $auto_grade_group = ieum_grade_from_birth_date($birth_date);
             if ($auto_grade_group !== '') {
@@ -618,6 +622,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $student_name_sql = sql_escape_string($student_name);
                     $student_phone_sql = sql_escape_string($student_phone);
                     $birth_date_sql = sql_escape_string($birth_date);
+                    $program_code_sql = sql_escape_string($program_code);
                     $school_name_sql = sql_escape_string($school_name);
                     $grade_group_sql = sql_escape_string($grade_group);
                     $attendance_week_type_sql = sql_escape_string($attendance_week_type);
@@ -644,6 +649,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                    student_name = '{$student_name_sql}',
                                    student_phone = '{$student_phone_sql}',
                                    {$birth_date_set},
+                                   program_code = '{$program_code_sql}',
                                    school_name = '{$school_name_sql}',
                                    grade_group = '{$grade_group_sql}',
                                    class_time_id = '{$class_time_id}',
@@ -681,6 +687,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     student_name = '{$student_name_sql}',
                                     student_phone = '{$student_phone_sql}',
                                     {$birth_date_set},
+                                    program_code = '{$program_code_sql}',
                                     school_name = '{$school_name_sql}',
                                     grade_group = '{$grade_group_sql}',
                                     class_time_id = '{$class_time_id}',
@@ -841,6 +848,18 @@ while ($class = sql_fetch_array($class_times)) {
     $class_options[] = $class;
 }
 
+$program_options = ieum_program_options($academy_id, true);
+$default_program_code = '';
+foreach ($program_options as $program_option) {
+    if ((int) $program_option['is_default'] === 1) {
+        $default_program_code = $program_option['program_code'];
+        break;
+    }
+}
+if ($default_program_code === '' && isset($program_options[0])) {
+    $default_program_code = $program_options[0]['program_code'];
+}
+
 $tuition_plans = sql_query("
     select *
       from " . IEUM_TUITION_PLAN_TABLE . "
@@ -938,6 +957,7 @@ textarea{min-height:82px;resize:vertical}
 </head>
 <body>
 <?php echo ieum_admin_header('students'); ?>
+<?php echo ieum_admin_subnav('students'); ?>
 <main class="wrap">
     <div class="bar">
         <div>
@@ -973,6 +993,7 @@ textarea{min-height:82px;resize:vertical}
             'student_phone' => '',
             'student_photo' => '',
             'birth_date' => '',
+            'program_code' => $default_program_code,
             'school_name' => '',
             'grade_group' => '',
             'class_time_id' => 0,
@@ -1117,6 +1138,13 @@ textarea{min-height:82px;resize:vertical}
                         <?php } ?>
                     </select>
                 </div>
+
+                <label for="program_code">프로그램</label>
+                <select name="program_code" id="program_code">
+                    <?php foreach ($program_options as $program) { ?>
+                    <option value="<?php echo get_text($program['program_code']); ?>" <?php echo get_selected(isset($form['program_code']) && $form['program_code'] !== '' ? $form['program_code'] : $default_program_code, $program['program_code']); ?>><?php echo get_text($program['program_name']); ?></option>
+                    <?php } ?>
+                </select>
 
                 <label for="school_name">학교</label>
                 <input type="text" name="school_name" id="school_name" value="<?php echo get_text(isset($form['school_name']) ? $form['school_name'] : ''); ?>" maxlength="100" placeholder="예: 아이이음초등학교">
@@ -1397,6 +1425,7 @@ textarea{min-height:82px;resize:vertical}
                 <th scope="col">상태</th>
                 <th scope="col">학생번호</th>
                 <th scope="col">학생명</th>
+                <th scope="col">프로그램</th>
                 <th scope="col">학년/부</th>
                 <th scope="col">수업 부</th>
                 <th scope="col">출석 요일</th>
@@ -1417,6 +1446,7 @@ textarea{min-height:82px;resize:vertical}
                 <td><?php echo $row['is_active'] ? '사용' : '중지'; ?></td>
                 <td><?php echo get_text($row['student_code']); ?></td>
                 <td><?php echo get_text($row['student_name']); ?></td>
+                <td><?php echo get_text(ieum_program_label($academy_id, isset($row['program_code']) ? $row['program_code'] : '')); ?></td>
                 <td><?php echo get_text(ieum_grade_label($row['grade_group'])); ?></td>
                 <td><?php echo get_text($row['class_name'] ? $row['class_name'] . ' ' . $row['start_time'] : ''); ?></td>
                 <td><?php echo get_text(ieum_attendance_days_label(isset($row['attendance_days']) ? $row['attendance_days'] : '')); ?></td>
@@ -1436,7 +1466,7 @@ textarea{min-height:82px;resize:vertical}
             <?php } ?>
             <?php if ($i === 0) { ?>
             <tr>
-                <td colspan="9">등록된 학생이 없습니다.</td>
+                <td colspan="10">등록된 학생이 없습니다.</td>
             </tr>
             <?php } ?>
             </tbody>
