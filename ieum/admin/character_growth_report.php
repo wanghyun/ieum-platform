@@ -4,6 +4,7 @@ require_once './_common.php';
 require_once IEUM_PATH . '/lib/character.php';
 require_once IEUM_PATH . '/lib/character_mission.php';
 require_once IEUM_PATH . '/lib/character_level.php';
+require_once IEUM_PATH . '/lib/program.php';
 
 $g5['title'] = '아이이음 장기 인성 성장 리포트';
 $academy = ieum_require_academy_page();
@@ -28,6 +29,8 @@ function ieum_growth_report_grade_label($value)
         'high_1' => '고등/1학년',
         'high_2' => '고등/2학년',
         'high_3' => '고등/3학년',
+        'adult' => '성인부',
+        'jump_rope' => '줄넘기부',
     );
 
     return isset($labels[$value]) ? $labels[$value] : ($value ?: '-');
@@ -75,7 +78,14 @@ if (!in_array($period, array(3, 6, 12), true)) {
     $period = 3;
 }
 $class_time_id = isset($_GET['class_time_id']) ? (int) $_GET['class_time_id'] : 0;
+$program_options = ieum_program_options($academy_id, true);
+$program_code = isset($_GET['program_code']) ? ieum_program_code($_GET['program_code']) : '';
 $student_id = isset($_GET['student_id']) ? (int) $_GET['student_id'] : 0;
+$program_filter_sql = '';
+if ($program_code !== '') {
+    $program_sql = sql_escape_string($program_code);
+    $program_filter_sql = " and s.program_code = '{$program_sql}' ";
+}
 $class_filter_sql = $class_time_id ? " and s.class_time_id = '{$class_time_id}' " : "";
 
 $class_options = array();
@@ -93,12 +103,13 @@ while ($class = sql_fetch_array($classes)) {
 $student_options = array();
 $student_rows = sql_query("
     select s.student_id, s.student_code, s.student_name, s.student_photo,
-           s.birth_date, s.admission_date, s.attendance_days, s.grade_group, s.school_name,
+           s.birth_date, s.admission_date, s.attendance_days, s.program_code, s.grade_group, s.school_name,
            c.class_name, c.start_time
       from " . IEUM_STUDENT_TABLE . " s
  left join " . IEUM_CLASS_TIME_TABLE . " c on c.class_time_id = s.class_time_id and c.academy_id = s.academy_id
      where s.academy_id = '{$academy_id}'
        and s.is_active = 1
+       {$program_filter_sql}
        {$class_filter_sql}
   order by c.sort_order asc, c.start_time asc, s.student_name asc
 ", false);
@@ -119,6 +130,37 @@ foreach ($student_options as $option) {
 }
 
 $months = ieum_growth_report_months($month, $period);
+$student_summaries = array();
+foreach ($student_options as $option) {
+    $option_scores = array();
+    $option_attendance = array();
+    $option_missions = 0;
+    $option_first = null;
+    $option_last = null;
+    foreach ($months as $target_month) {
+        $option_score = ieum_character_month_score($academy_id, $option, $target_month);
+        if (empty($option_score['is_before_admission'])) {
+            $score_value = (int) $option_score['total_score'];
+            $option_scores[] = $score_value;
+            if ($option_first === null) {
+                $option_first = $score_value;
+            }
+            $option_last = $score_value;
+            $option_attendance[] = (int) $option_score['attendance']['rate'];
+        }
+        $option_mission = ieum_character_mission_report($academy_id, (int) $option['student_id'], $target_month);
+        if ($option_mission && $option_mission['is_participated']) {
+            $option_missions++;
+        }
+    }
+    $student_summaries[] = array(
+        'student' => $option,
+        'avg_score' => ieum_growth_report_average($option_scores),
+        'avg_attendance' => ieum_growth_report_average($option_attendance),
+        'delta' => ($option_first !== null && $option_last !== null) ? $option_last - $option_first : 0,
+        'mission_success' => $option_missions,
+    );
+}
 $rows = array();
 $score_values = array();
 $attendance_values = array();
@@ -186,7 +228,7 @@ $period_label = $months ? $months[0] . ' ~ ' . $months[count($months) - 1] : $mo
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:20px}.meta{color:#667085;margin-top:6px;line-height:1.45}.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:900;cursor:pointer}.primary{background:#1947ba;border-color:#1947ba;color:#fff}input,select{border:1px solid #cfd6df;border-radius:6px;padding:9px;font-size:14px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:20px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.cover{background:linear-gradient(135deg,#1947ba,#2c2a25);border:0;color:#fff;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}.profile{display:flex;gap:14px;align-items:center}.avatar{width:82px;height:82px;border-radius:22px;object-fit:cover;background:#e8eef7;border:3px solid rgba(255,255,255,.75)}.avatar-empty{display:flex;align-items:center;justify-content:center;color:#667085;font-weight:900}.cover .meta{color:#dbe6ff}.cover h1{font-size:32px}.level-emblem{min-width:150px;border-radius:24px;background:rgba(255,255,255,.14);padding:20px;text-align:center;box-shadow:inset 0 0 0 4px rgba(255,255,255,.14)}.level-emblem strong{display:block;font-size:24px}.level-emblem span{display:block;margin-top:6px;font-weight:900;color:#dbe6ff}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.kpi{border:1px solid #d9dee7;border-radius:10px;padding:16px;background:#fbfcff}.kpi span{display:block;color:#667085;font-weight:900;font-size:13px}.kpi strong{display:block;margin-top:6px;font-size:28px}.up{color:#087f5b}.down{color:#c92a2a}.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.timeline{display:grid;gap:10px}.month-row{display:grid;grid-template-columns:78px 1fr 95px;gap:10px;align-items:center}.bar{height:13px;background:#eef2f7;border-radius:999px;overflow:hidden}.fill{height:100%;border-radius:999px;background:#1947ba}.month-row strong{font-size:14px}.month-row span{text-align:right;font-weight:900}.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}.badge{display:inline-flex;border-radius:999px;background:#eef2f7;color:#344054;padding:4px 8px;font-size:12px;font-weight:900}.badge.ok{background:#e8f7ee;color:#087f5b}.badge.wait{background:#fff4e6;color:#9a5b00}.story{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;line-height:1.75}.story strong{color:#1947ba}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}.left{text-align:left}.print-note{color:#667085;font-size:12px;line-height:1.5}@media(max-width:900px){.cover,.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.ieum-user{margin-left:0}.month-row{grid-template-columns:66px 1fr 70px}}@media print{.top,.filters,.print-hide{display:none}.wrap{max-width:none;margin:0;padding:0}.panel{box-shadow:none;border-color:#aaa;break-inside:avoid}.cover{color:#fff}.grid{grid-template-columns:1.2fr .8fr}body{background:#fff}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:20px}.meta{color:#667085;margin-top:6px;line-height:1.45}.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:900;cursor:pointer}.primary{background:#1947ba;border-color:#1947ba;color:#fff}input,select{border:1px solid #cfd6df;border-radius:6px;padding:9px;font-size:14px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:20px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.cover{background:linear-gradient(135deg,#1947ba,#2c2a25);border:0;color:#fff;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}.profile{display:flex;gap:14px;align-items:center}.avatar{width:82px;height:82px;border-radius:22px;object-fit:cover;background:#e8eef7;border:3px solid rgba(255,255,255,.75)}.avatar-empty{display:flex;align-items:center;justify-content:center;color:#667085;font-weight:900}.cover .meta{color:#dbe6ff}.cover h1{font-size:32px}.level-emblem{min-width:150px;border-radius:24px;background:rgba(255,255,255,.14);padding:20px;text-align:center;box-shadow:inset 0 0 0 4px rgba(255,255,255,.14)}.level-emblem strong{display:block;font-size:24px}.level-emblem span{display:block;margin-top:6px;font-weight:900;color:#dbe6ff}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.kpi{border:1px solid #d9dee7;border-radius:10px;padding:16px;background:#fbfcff}.kpi span{display:block;color:#667085;font-weight:900;font-size:13px}.kpi strong{display:block;margin-top:6px;font-size:28px}.up{color:#087f5b}.down{color:#c92a2a}.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.timeline{display:grid;gap:10px}.month-row{display:grid;grid-template-columns:78px 1fr 95px;gap:10px;align-items:center}.bar{height:13px;background:#eef2f7;border-radius:999px;overflow:hidden}.fill{height:100%;border-radius:999px;background:#1947ba}.month-row strong{font-size:14px}.month-row span{text-align:right;font-weight:900}.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}.badge{display:inline-flex;border-radius:999px;background:#eef2f7;color:#344054;padding:4px 8px;font-size:12px;font-weight:900}.badge.ok{background:#e8f7ee;color:#087f5b}.badge.wait{background:#fff4e6;color:#9a5b00}.story{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;line-height:1.75}.story strong{color:#1947ba}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}.left{text-align:left}.print-note{color:#667085;font-size:12px;line-height:1.5}.student-summary table{min-width:820px}.student-summary tr.active{background:#eef6ff}.mini{display:block;color:#667085;font-size:12px;margin-top:3px}.pill{display:inline-flex;border-radius:999px;padding:4px 8px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900}.pill.up{background:#e8f7ee;color:#087f5b}.pill.down{background:#fdecec;color:#c92a2a}@media(max-width:900px){.cover,.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.ieum-user{margin-left:0}.month-row{grid-template-columns:66px 1fr 70px}}@media print{.top,.filters,.print-hide,.student-summary{display:none}.wrap{max-width:none;margin:0;padding:0}.panel{box-shadow:none;border-color:#aaa;break-inside:avoid}.cover{color:#fff}.grid{grid-template-columns:1.2fr .8fr}body{background:#fff}}
 </style>
 </head>
 <body>
@@ -208,6 +250,12 @@ $period_label = $months ? $months[0] . ' ~ ' . $months[count($months) - 1] : $mo
             <option value="6" <?php echo get_selected($period, 6); ?>>최근 6개월</option>
             <option value="12" <?php echo get_selected($period, 12); ?>>최근 12개월</option>
         </select>
+        <select name="program_code" onchange="this.form.student_id.value='0'">
+            <option value="">전체 프로그램</option>
+            <?php foreach ($program_options as $program) { ?>
+            <option value="<?php echo get_text($program['program_code']); ?>" <?php echo get_selected($program_code, $program['program_code']); ?>><?php echo get_text($program['program_name']); ?></option>
+            <?php } ?>
+        </select>
         <select name="class_time_id" onchange="this.form.student_id.value='0'">
             <option value="0">전체 부</option>
             <?php foreach ($class_options as $class) { ?>
@@ -221,9 +269,44 @@ $period_label = $months ? $months[0] . ' ~ ' . $months[count($months) - 1] : $mo
         </select>
         <button type="submit" class="btn primary">조회</button>
         <?php if ($student) { ?>
-        <a class="btn" href="<?php echo IEUM_URL; ?>/admin/character_report.php?month=<?php echo get_text($month); ?>&amp;student_id=<?php echo (int) $student_id; ?>">월간 보기</a>
+        <a class="btn" href="<?php echo IEUM_URL; ?>/admin/character_report.php?month=<?php echo get_text($month); ?>&amp;program_code=<?php echo get_text($program_code); ?>&amp;class_time_id=<?php echo (int) $class_time_id; ?>&amp;student_id=<?php echo (int) $student_id; ?>">월간 보기</a>
         <?php } ?>
     </form>
+
+    <section class="panel student-summary print-hide">
+        <div class="hero">
+            <div>
+                <h2>학생별 장기 흐름</h2>
+                <div class="meta">선택한 기간의 평균, 변화량, 아이잘해 참여를 먼저 보고 상담 대상 학생을 고릅니다.</div>
+            </div>
+            <span class="badge"><?php echo number_format(count($student_summaries)); ?>명</span>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>학생</th><th>프로그램</th><th>부</th><th>평균 상태</th><th>변화</th><th>출석 흐름</th><th>아이잘해</th><th>관리</th></tr>
+                </thead>
+                <tbody>
+                <?php foreach ($student_summaries as $summary) {
+                    $option = $summary['student'];
+                    $delta = (int) $summary['delta'];
+                ?>
+                <tr class="<?php echo (int) $option['student_id'] === $student_id ? 'active' : ''; ?>">
+                    <td class="left"><strong><?php echo get_text($option['student_name']); ?></strong><span class="mini"><?php echo get_text($option['student_code'] . ' · ' . ieum_growth_report_grade_label($option['grade_group'])); ?></span></td>
+                    <td><?php echo get_text(ieum_program_label($academy_id, isset($option['program_code']) ? $option['program_code'] : '')); ?></td>
+                    <td><?php echo get_text(trim(($option['class_name'] ?: '미지정') . ' ' . ($option['start_time'] ?: ''))); ?></td>
+                    <td><strong><?php echo number_format($summary['avg_score'], 1); ?></strong></td>
+                    <td><span class="pill <?php echo $delta >= 0 ? 'up' : 'down'; ?>"><?php echo $delta >= 0 ? '+' : ''; ?><?php echo number_format($delta); ?></span></td>
+                    <td><?php echo number_format($summary['avg_attendance'], 1); ?>%</td>
+                    <td><?php echo number_format((int) $summary['mission_success']); ?>/<?php echo number_format(count($months)); ?></td>
+                    <td><a class="btn" href="<?php echo IEUM_URL; ?>/admin/character_growth_report.php?month=<?php echo get_text($month); ?>&amp;period=<?php echo (int) $period; ?>&amp;program_code=<?php echo get_text($program_code); ?>&amp;class_time_id=<?php echo (int) $class_time_id; ?>&amp;student_id=<?php echo (int) $option['student_id']; ?>">보기</a></td>
+                </tr>
+                <?php } ?>
+                <?php if (!$student_summaries) { ?><tr><td colspan="8">조건에 맞는 학생이 없습니다.</td></tr><?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
     <?php if (!$student) { ?>
     <section class="panel">리포트를 볼 학생이 없습니다.</section>
