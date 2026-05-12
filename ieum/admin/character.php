@@ -145,7 +145,7 @@ $report_students = sql_query("
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}h1{margin:0;font-size:28px}.meta{color:#667085;margin-top:6px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:800;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.print{background:#111827;border-color:#111827;color:#fff}input,select{border:1px solid #cfd6df;border-radius:6px;padding:9px;font-size:14px}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.score{width:74px}.memo{min-width:180px;width:100%}.quick-note{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;color:#344054;margin-top:12px}.badge{display:inline-flex;border-radius:999px;padding:4px 8px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900}.badge.first{background:#fff4e6;color:#9a5b00}.total{font-size:20px;font-weight:900;color:#1769c2}.class-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.class-tab{display:inline-flex;border:1px solid #d8dee9;border-radius:999px;background:#fff;color:#344054;text-decoration:none;padding:7px 12px;font-weight:900}.class-tab.active{background:#1769c2;border-color:#1769c2;color:#fff}.section-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}@media(max-width:900px){table{display:block;overflow-x:auto;white-space:nowrap}.ieum-user{margin-left:0}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.wrap.is-loading{opacity:.55;pointer-events:none}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}h1{margin:0;font-size:28px}.meta{color:#667085;margin-top:6px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:800;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.print{background:#111827;border-color:#111827;color:#fff}input,select{border:1px solid #cfd6df;border-radius:6px;padding:9px;font-size:14px}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.score{width:74px}.memo{min-width:180px;width:100%}.quick-note{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;color:#344054;margin-top:12px}.badge{display:inline-flex;border-radius:999px;padding:4px 8px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900}.badge.first{background:#fff4e6;color:#9a5b00}.total{font-size:20px;font-weight:900;color:#1769c2}.class-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.class-tab{display:inline-flex;border:1px solid #d8dee9;border-radius:999px;background:#fff;color:#344054;text-decoration:none;padding:7px 12px;font-weight:900}.class-tab.active{background:#1769c2;border-color:#1769c2;color:#fff}.section-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}@media(max-width:900px){table{display:block;overflow-x:auto;white-space:nowrap}.ieum-user{margin-left:0}}
 </style>
 </head>
 <body>
@@ -247,5 +247,60 @@ $report_students = sql_query("
         </table>
     </section>
 </main>
+<script>
+(function () {
+    const main = document.querySelector('main.wrap');
+    if (!main) return;
+
+    const loadView = async (url, push) => {
+        main.classList.add('is-loading');
+        try {
+            const response = await fetch(url, {
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+                credentials: 'same-origin'
+            });
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const next = doc.querySelector('main.wrap');
+            if (!next) {
+                window.location.href = url;
+                return;
+            }
+            main.innerHTML = next.innerHTML;
+            if (push) history.pushState({ieumAjax: true}, '', url);
+        } catch (error) {
+            window.location.href = url;
+        } finally {
+            main.classList.remove('is-loading');
+        }
+    };
+
+    main.addEventListener('submit', (event) => {
+        const form = event.target.closest('form.filters');
+        if (!form || String(form.method || 'get').toLowerCase() !== 'get') return;
+        event.preventDefault();
+        const url = form.action || window.location.pathname;
+        loadView(url + '?' + new URLSearchParams(new FormData(form)).toString(), true);
+    });
+
+    main.addEventListener('change', (event) => {
+        const select = event.target.closest('form.filters select, form.filters input[type="date"]');
+        if (!select) return;
+        const form = select.form;
+        if (!form) return;
+        const url = form.action || window.location.pathname;
+        loadView(url + '?' + new URLSearchParams(new FormData(form)).toString(), true);
+    });
+
+    main.addEventListener('click', (event) => {
+        const link = event.target.closest('a.class-tab');
+        if (!link || link.target) return;
+        event.preventDefault();
+        loadView(link.href, true);
+    });
+
+    window.addEventListener('popstate', () => loadView(window.location.href, false));
+})();
+</script>
 </body>
 </html>

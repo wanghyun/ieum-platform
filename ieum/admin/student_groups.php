@@ -80,6 +80,7 @@ $students = sql_query("
 h1{margin:0;font-size:26px}.meta{color:#667085}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px}
 .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}select{height:38px;border:1px solid #cfd6df;border-radius:6px;padding:0 10px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}.student{border:1px solid #d8dee9;border-radius:8px;padding:14px;background:#fff}.name{font-size:18px;font-weight:900}.sub{color:#667085;margin-top:6px;font-size:13px}
+.wrap.is-loading{opacity:.55;pointer-events:none}.filters select{min-width:140px}
 </style>
 </head>
 <body>
@@ -132,5 +133,53 @@ h1{margin:0;font-size:26px}.meta{color:#667085}.panel{background:#fff;border:1px
         <?php if ($i === 0) { ?><article class="student">조건에 맞는 학생이 없습니다.</article><?php } ?>
     </section>
 </main>
+<script>
+(function () {
+    const main = document.querySelector('main.wrap');
+    if (!main) return;
+
+    const loadView = async (url, push) => {
+        main.classList.add('is-loading');
+        try {
+            const response = await fetch(url, {
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+                credentials: 'same-origin'
+            });
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const next = doc.querySelector('main.wrap');
+            if (!next) {
+                window.location.href = url;
+                return;
+            }
+            main.innerHTML = next.innerHTML;
+            if (push) history.pushState({ieumAjax: true}, '', url);
+        } catch (error) {
+            window.location.href = url;
+        } finally {
+            main.classList.remove('is-loading');
+        }
+    };
+
+    main.addEventListener('submit', (event) => {
+        const form = event.target.closest('form.filters');
+        if (!form || String(form.method || 'get').toLowerCase() !== 'get') return;
+        event.preventDefault();
+        const url = form.action || window.location.pathname;
+        loadView(url + '?' + new URLSearchParams(new FormData(form)).toString(), true);
+    });
+
+    main.addEventListener('change', (event) => {
+        const select = event.target.closest('form.filters select');
+        if (!select) return;
+        const form = select.form;
+        if (!form) return;
+        const url = form.action || window.location.pathname;
+        loadView(url + '?' + new URLSearchParams(new FormData(form)).toString(), true);
+    });
+
+    window.addEventListener('popstate', () => loadView(window.location.href, false));
+})();
+</script>
 </body>
 </html>
