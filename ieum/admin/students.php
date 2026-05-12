@@ -812,6 +812,30 @@ $filter_grade = isset($_GET['grade_group']) ? preg_replace('/[^0-9A-Za-z_]/', ''
 $filter_class_time_raw = isset($_GET['class_time_id']) ? trim($_GET['class_time_id']) : '';
 $filter_class_time_id = ctype_digit($filter_class_time_raw) ? (int) $filter_class_time_raw : 0;
 $q_sql = sql_escape_string($q);
+
+function ieum_student_list_url($overrides = array())
+{
+    global $q, $filter_program, $filter_grade, $filter_class_time_raw;
+
+    $params = array(
+        'q' => $q,
+        'program_code' => $filter_program,
+        'grade_group' => $filter_grade,
+        'class_time_id' => $filter_class_time_raw,
+    );
+    foreach ($overrides as $key => $value) {
+        $params[$key] = $value;
+    }
+    foreach ($params as $key => $value) {
+        if ($value === '' || $value === null) {
+            unset($params[$key]);
+        }
+    }
+
+    $query = http_build_query($params);
+    return IEUM_URL . '/admin/students.php' . ($query ? '?' . $query : '');
+}
+
 ieum_refresh_student_auto_grades($academy_id);
 $where = " where 1 ";
 $where .= " and s.academy_id = '{$academy_id}' ";
@@ -830,6 +854,30 @@ if ($filter_class_time_raw === 'unassigned') {
     $where .= " and s.class_time_id = 0 ";
 } elseif ($filter_class_time_id) {
     $where .= " and s.class_time_id = '{$filter_class_time_id}' ";
+}
+
+$count_where_no_class = " where s.academy_id = '{$academy_id}' and s.is_active = 1 ";
+if ($q !== '') {
+    $count_where_no_class .= " and (s.student_code like '%{$q_sql}%' or s.student_name like '%{$q_sql}%' or s.student_phone like '%{$q_sql}%' or exists (select 1 from " . IEUM_STUDENT_GUARDIAN_TABLE . " g where g.student_id = s.student_id and g.is_active = 1 and (g.guardian_name like '%{$q_sql}%' or g.guardian_phone like '%{$q_sql}%'))) ";
+}
+if ($filter_program !== '') {
+    $count_where_no_class .= " and s.program_code = '{$filter_program_sql}' ";
+}
+if ($filter_grade !== '') {
+    $count_where_no_class .= " and s.grade_group = '{$filter_grade_sql}' ";
+}
+
+$count_where_no_program = " where s.academy_id = '{$academy_id}' and s.is_active = 1 ";
+if ($q !== '') {
+    $count_where_no_program .= " and (s.student_code like '%{$q_sql}%' or s.student_name like '%{$q_sql}%' or s.student_phone like '%{$q_sql}%' or exists (select 1 from " . IEUM_STUDENT_GUARDIAN_TABLE . " g where g.student_id = s.student_id and g.is_active = 1 and (g.guardian_name like '%{$q_sql}%' or g.guardian_phone like '%{$q_sql}%'))) ";
+}
+if ($filter_grade !== '') {
+    $count_where_no_program .= " and s.grade_group = '{$filter_grade_sql}' ";
+}
+if ($filter_class_time_raw === 'unassigned') {
+    $count_where_no_program .= " and s.class_time_id = 0 ";
+} elseif ($filter_class_time_id) {
+    $count_where_no_program .= " and s.class_time_id = '{$filter_class_time_id}' ";
 }
 
 $students = sql_query("
@@ -902,18 +950,16 @@ $total_all = sql_fetch("
 
 $unassigned_count = sql_fetch("
     select count(*) as cnt
-      from " . IEUM_STUDENT_TABLE . "
-     where academy_id = '{$academy_id}'
-       and is_active = 1
-       and class_time_id = 0
+      from " . IEUM_STUDENT_TABLE . " s
+      {$count_where_no_class}
+       and s.class_time_id = 0
 ", false);
 
 $program_counts = array();
 $program_counts_result = sql_query("
     select program_code, count(*) as cnt
-      from " . IEUM_STUDENT_TABLE . "
-     where academy_id = '{$academy_id}'
-       and is_active = 1
+      from " . IEUM_STUDENT_TABLE . " s
+      {$count_where_no_program}
   group by program_code
 ", false);
 while ($program_count = sql_fetch_array($program_counts_result)) {
@@ -923,7 +969,15 @@ while ($program_count = sql_fetch_array($program_counts_result)) {
 $class_counts_result = sql_query("
     select c.class_time_id, c.class_name, c.start_time, count(s.student_id) as cnt
       from " . IEUM_CLASS_TIME_TABLE . " c
- left join " . IEUM_STUDENT_TABLE . " s on s.class_time_id = c.class_time_id and s.academy_id = c.academy_id and s.is_active = 1
+ left join " . IEUM_STUDENT_TABLE . " s on s.class_time_id = c.class_time_id and s.academy_id = c.academy_id and s.student_id in (
+           select ss.student_id
+             from " . IEUM_STUDENT_TABLE . " ss
+            where ss.academy_id = '{$academy_id}'
+              and ss.is_active = 1
+              " . ($q !== '' ? " and (ss.student_code like '%{$q_sql}%' or ss.student_name like '%{$q_sql}%' or ss.student_phone like '%{$q_sql}%' or exists (select 1 from " . IEUM_STUDENT_GUARDIAN_TABLE . " g where g.student_id = ss.student_id and g.is_active = 1 and (g.guardian_name like '%{$q_sql}%' or g.guardian_phone like '%{$q_sql}%'))) " : "") . "
+              " . ($filter_program !== '' ? " and ss.program_code = '{$filter_program_sql}' " : "") . "
+              " . ($filter_grade !== '' ? " and ss.grade_group = '{$filter_grade_sql}' " : "") . "
+       )
      where c.academy_id = '{$academy_id}'
        and c.is_active = 1
   group by c.class_time_id
@@ -987,14 +1041,14 @@ textarea{min-height:82px;resize:vertical}
                     $program_code = $program_option['program_code'];
                     $program_count = isset($program_counts[$program_code]) ? (int) $program_counts[$program_code] : 0;
                 ?>
-                <a class="chip <?php echo $filter_program === $program_code ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php?program_code=<?php echo urlencode($program_code); ?>">
+                <a class="chip <?php echo $filter_program === $program_code ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('program_code' => $program_code))); ?>">
                     <?php echo get_text($program_option['program_name']); ?> <?php echo number_format($program_count); ?>명
                 </a>
                 <?php } ?>
                 <span class="summary-label">수업 부</span>
-                <a class="chip <?php echo $filter_class_time_raw === 'unassigned' ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php?class_time_id=unassigned">미지정 <?php echo number_format((int) $unassigned_count['cnt']); ?>명</a>
+                <a class="chip <?php echo $filter_class_time_raw === 'unassigned' ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('class_time_id' => 'unassigned'))); ?>">미지정 <?php echo number_format((int) $unassigned_count['cnt']); ?>명</a>
                 <?php while ($class_count = sql_fetch_array($class_counts_result)) { ?>
-                <a class="chip <?php echo $filter_class_time_id === (int) $class_count['class_time_id'] ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php?class_time_id=<?php echo (int) $class_count['class_time_id']; ?>">
+                <a class="chip <?php echo $filter_class_time_id === (int) $class_count['class_time_id'] ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('class_time_id' => (int) $class_count['class_time_id']))); ?>">
                     <?php echo get_text($class_count['class_name'] . ' ' . $class_count['start_time']); ?> <?php echo number_format((int) $class_count['cnt']); ?>명
                 </a>
                 <?php } ?>

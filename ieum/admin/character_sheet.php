@@ -2,6 +2,7 @@
 $sub_menu = '950180';
 require_once './_common.php';
 require_once IEUM_PATH . '/lib/character.php';
+require_once IEUM_PATH . '/lib/program.php';
 
 $g5['title'] = '아이이음 인성 체크표';
 $academy = ieum_require_academy_page();
@@ -11,7 +12,13 @@ if (!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $week_start)) {
     $week_start = date('Y-m-d', strtotime('monday this week', strtotime(G5_TIME_YMD)));
 }
 $week_end = date('Y-m-d', strtotime($week_start . ' +6 days'));
+$program_code = isset($_GET['program_code']) ? ieum_program_code($_GET['program_code']) : '';
 $class_time_id = isset($_GET['class_time_id']) ? (int) $_GET['class_time_id'] : 0;
+$program_filter_sql = '';
+if ($program_code !== '') {
+    $program_sql = sql_escape_string($program_code);
+    $program_filter_sql = " and s.program_code = '{$program_sql}' ";
+}
 $class_filter_sql = $class_time_id ? " and s.class_time_id = '{$class_time_id}' " : "";
 
 function ieum_sheet_grade_label($value)
@@ -50,6 +57,7 @@ $selected_class = sql_fetch("
      limit 1
 ", false);
 $class_label = isset($selected_class['class_name']) ? trim($selected_class['class_name'] . ' ' . $selected_class['start_time']) : '전체 부';
+$program_label = $program_code !== '' ? ieum_program_label($academy_id, $program_code) : '전체 프로그램';
 $scheduled_dates = array_keys(ieum_attendance_scheduled_dates('mon,tue,wed,thu,fri', $week_start, $week_end, $academy_id));
 $excluded = array();
 $all_weekdays = array();
@@ -70,6 +78,7 @@ $students = sql_query("
  left join " . IEUM_CLASS_TIME_TABLE . " c on c.class_time_id = s.class_time_id and c.academy_id = s.academy_id
      where s.academy_id = '{$academy_id}'
        and s.is_active = 1
+       {$program_filter_sql}
        {$class_filter_sql}
   order by c.sort_order asc, c.start_time asc, s.student_name asc
 ", false);
@@ -88,7 +97,7 @@ $students = sql_query("
 <main class="wrap">
     <section class="topline">
         <div>
-            <h1><?php echo get_text($class_label); ?> 주간 인성 체크표</h1>
+            <h1><?php echo get_text($program_label . ' · ' . $class_label); ?> 주간 인성 체크표</h1>
             <div class="meta"><?php echo get_text($academy['academy_name']); ?> · <?php echo get_text($week_start); ?> ~ <?php echo get_text($week_end); ?> · 정상 수업일만 표시</div>
             <?php if ($excluded) { ?><div class="excluded">제외일: <?php echo get_text(implode(', ', $excluded)); ?> · 도장 휴관일은 수업일 설정에서 반영됩니다.</div><?php } ?>
         </div>

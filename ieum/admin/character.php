@@ -2,6 +2,7 @@
 $sub_menu = '950180';
 require_once './_common.php';
 require_once IEUM_PATH . '/lib/character.php';
+require_once IEUM_PATH . '/lib/program.php';
 
 $g5['title'] = '아이이음 인성 입력';
 $academy = ieum_require_academy_page();
@@ -17,6 +18,8 @@ if (!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $week_start)) {
 }
 $month = substr($week_start, 0, 7);
 $week_sql = sql_escape_string($week_start);
+$program_options = ieum_program_options($academy_id, true);
+$program_code = isset($_GET['program_code']) ? ieum_program_code($_GET['program_code']) : '';
 $class_time_id = isset($_GET['class_time_id']) ? (int) $_GET['class_time_id'] : 0;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -30,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $month = substr($week_start, 0, 7);
         $week_sql = sql_escape_string($week_start);
+        $program_code = isset($_POST['program_code']) ? ieum_program_code($_POST['program_code']) : '';
         $class_time_id = isset($_POST['class_time_id']) ? (int) $_POST['class_time_id'] : 0;
         $scores = isset($_POST['scores']) && is_array($_POST['scores']) ? $_POST['scores'] : array();
         $saved = 0;
@@ -93,6 +97,11 @@ $classes = sql_query("
 while ($class = sql_fetch_array($classes)) {
     $class_options[] = $class;
 }
+$program_filter_sql = '';
+if ($program_code !== '') {
+    $program_sql = sql_escape_string($program_code);
+    $program_filter_sql = " and s.program_code = '{$program_sql}' ";
+}
 $class_filter_sql = $class_time_id ? " and s.class_time_id = '{$class_time_id}' " : "";
 $selected_class_label = '전체 부';
 foreach ($class_options as $class) {
@@ -102,7 +111,7 @@ foreach ($class_options as $class) {
     }
 }
 $students = sql_query("
-    select s.student_id, s.student_code, s.student_name, s.grade_group, c.class_name, c.start_time,
+    select s.student_id, s.student_code, s.student_name, s.program_code, s.grade_group, c.class_name, c.start_time,
            coalesce(r.courtesy, 4) as courtesy,
            coalesce(r.focus, 4) as focus,
            coalesce(r.confidence, 4) as confidence,
@@ -113,16 +122,18 @@ $students = sql_query("
  left join " . IEUM_REPORT_CHARACTER_TABLE . " r on r.student_id = s.student_id and r.academy_id = s.academy_id and r.week_start = '{$week_sql}'
      where s.academy_id = '{$academy_id}'
        and s.is_active = 1
+       {$program_filter_sql}
        {$class_filter_sql}
   order by c.sort_order asc, c.start_time asc, s.student_name asc
 ", false);
 
 $report_students = sql_query("
-    select s.student_id, s.student_code, s.student_name, s.admission_date, s.attendance_days, s.grade_group, c.class_name, c.start_time
+    select s.student_id, s.student_code, s.student_name, s.admission_date, s.attendance_days, s.program_code, s.grade_group, c.class_name, c.start_time
       from " . IEUM_STUDENT_TABLE . " s
  left join " . IEUM_CLASS_TIME_TABLE . " c on c.class_time_id = s.class_time_id and c.academy_id = s.academy_id
      where s.academy_id = '{$academy_id}'
        and s.is_active = 1
+       {$program_filter_sql}
        {$class_filter_sql}
   order by c.sort_order asc, c.start_time asc, s.student_name asc
 ", false);
@@ -151,6 +162,12 @@ $report_students = sql_query("
     <?php if ($error) { ?><p class="notice err"><?php echo get_text($error); ?></p><?php } ?>
     <form method="get" class="filters">
         <input type="date" name="week_start" value="<?php echo get_text($week_start); ?>">
+        <select name="program_code">
+            <option value="">전체 프로그램</option>
+            <?php foreach ($program_options as $program) { ?>
+            <option value="<?php echo get_text($program['program_code']); ?>" <?php echo get_selected($program_code, $program['program_code']); ?>><?php echo get_text($program['program_name']); ?></option>
+            <?php } ?>
+        </select>
         <select name="class_time_id">
             <option value="0">전체 부</option>
             <?php foreach ($class_options as $class) { ?>
@@ -160,12 +177,12 @@ $report_students = sql_query("
             <?php } ?>
         </select>
         <button type="submit" class="btn primary">주간 조회</button>
-        <a class="btn print" target="_blank" rel="noopener" href="<?php echo IEUM_URL; ?>/admin/character_sheet.php?week_start=<?php echo get_text($week_start); ?>&amp;class_time_id=<?php echo (int) $class_time_id; ?>">체크표 인쇄</a>
+        <a class="btn print" target="_blank" rel="noopener" href="<?php echo IEUM_URL; ?>/admin/character_sheet.php?week_start=<?php echo get_text($week_start); ?>&amp;program_code=<?php echo get_text($program_code); ?>&amp;class_time_id=<?php echo (int) $class_time_id; ?>">체크표 인쇄</a>
     </form>
     <div class="class-tabs">
-        <a class="class-tab <?php echo $class_time_id ? '' : 'active'; ?>" href="<?php echo IEUM_URL; ?>/admin/character.php?week_start=<?php echo get_text($week_start); ?>&amp;class_time_id=0">전체 부</a>
+        <a class="class-tab <?php echo $class_time_id ? '' : 'active'; ?>" href="<?php echo IEUM_URL; ?>/admin/character.php?week_start=<?php echo get_text($week_start); ?>&amp;program_code=<?php echo get_text($program_code); ?>&amp;class_time_id=0">전체 부</a>
         <?php foreach ($class_options as $class) { ?>
-        <a class="class-tab <?php echo $class_time_id === (int) $class['class_time_id'] ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/character.php?week_start=<?php echo get_text($week_start); ?>&amp;class_time_id=<?php echo (int) $class['class_time_id']; ?>">
+        <a class="class-tab <?php echo $class_time_id === (int) $class['class_time_id'] ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/character.php?week_start=<?php echo get_text($week_start); ?>&amp;program_code=<?php echo get_text($program_code); ?>&amp;class_time_id=<?php echo (int) $class['class_time_id']; ?>">
             <?php echo get_text($class['class_name'] . ' ' . $class['start_time']); ?>
         </a>
         <?php } ?>
@@ -175,11 +192,12 @@ $report_students = sql_query("
     <section class="panel">
         <div class="section-head">
             <h2><?php echo get_text($selected_class_label); ?> 주간 인성 입력</h2>
-            <a class="btn print" target="_blank" rel="noopener" href="<?php echo IEUM_URL; ?>/admin/character_sheet.php?week_start=<?php echo get_text($week_start); ?>&amp;class_time_id=<?php echo (int) $class_time_id; ?>">이 부 체크표 인쇄</a>
+            <a class="btn print" target="_blank" rel="noopener" href="<?php echo IEUM_URL; ?>/admin/character_sheet.php?week_start=<?php echo get_text($week_start); ?>&amp;program_code=<?php echo get_text($program_code); ?>&amp;class_time_id=<?php echo (int) $class_time_id; ?>">이 부 체크표 인쇄</a>
         </div>
         <form method="post">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <input type="hidden" name="week_start" value="<?php echo get_text($week_start); ?>">
+            <input type="hidden" name="program_code" value="<?php echo get_text($program_code); ?>">
             <input type="hidden" name="class_time_id" value="<?php echo (int) $class_time_id; ?>">
             <table>
                 <thead>

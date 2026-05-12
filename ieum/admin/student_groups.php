@@ -1,11 +1,14 @@
 <?php
 $sub_menu = '950160';
 require_once './_common.php';
+require_once IEUM_PATH . '/lib/program.php';
 
 $g5['title'] = '아이이음 부별 학생 보기';
 $academy = ieum_require_academy_page();
 $academy_id = (int) $academy['academy_id'];
 
+$program_options = ieum_program_options($academy_id, true);
+$program_code = isset($_GET['program_code']) ? ieum_program_code($_GET['program_code']) : '';
 $class_time_id = isset($_GET['class_time_id']) ? (int) $_GET['class_time_id'] : 0;
 $grade_group = isset($_GET['grade_group']) ? preg_replace('/[^0-9A-Za-z_]/', '', trim($_GET['grade_group'])) : '';
 
@@ -44,6 +47,10 @@ $class_times = sql_query("
 ", false);
 
 $where = " where s.academy_id = '{$academy_id}' and s.is_active = 1 ";
+if ($program_code !== '') {
+    $program_sql = sql_escape_string($program_code);
+    $where .= " and s.program_code = '{$program_sql}' ";
+}
 if ($class_time_id) {
     $where .= " and s.class_time_id = '{$class_time_id}' ";
 }
@@ -89,6 +96,12 @@ h1{margin:0;font-size:26px}.meta{color:#667085}.panel{background:#fff;border:1px
 
     <section class="panel">
         <form method="get" class="filters">
+            <select name="program_code">
+                <option value="">전체 프로그램</option>
+                <?php foreach ($program_options as $program) { ?>
+                <option value="<?php echo get_text($program['program_code']); ?>" <?php echo get_selected($program_code, $program['program_code']); ?>><?php echo get_text($program['program_name']); ?></option>
+                <?php } ?>
+            </select>
             <select name="class_time_id">
                 <option value="0">전체 부</option>
                 <?php while ($class = sql_fetch_array($class_times)) { ?>
@@ -111,6 +124,7 @@ h1{margin:0;font-size:26px}.meta{color:#667085}.panel{background:#fff;border:1px
         <article class="student">
             <div class="name"><?php echo get_text($row['student_name']); ?></div>
             <div class="sub"><?php echo get_text($row['student_code']); ?></div>
+            <div class="sub"><?php echo get_text(ieum_program_label($academy_id, isset($row['program_code']) ? $row['program_code'] : '')); ?></div>
             <div class="sub"><?php echo get_text(ieum_group_grade_label($row['grade_group'])); ?></div>
             <div class="sub"><?php echo get_text($row['class_name'] ? $row['class_name'] . ' ' . $row['start_time'] : '부 미지정'); ?></div>
         </article>
