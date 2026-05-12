@@ -124,6 +124,7 @@ $risk_rows = sql_query("
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:6px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;flex-wrap:wrap}.meta{color:#667085;margin-top:6px}.filters{display:flex;gap:8px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:800}.primary{background:#1769c2;border-color:#1769c2;color:#fff}input{height:38px;border:1px solid #cfd6df;border-radius:8px;padding:0 10px}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0}.card{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:16px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.label{font-size:13px;color:#667085}.num{font-size:30px;font-weight:900;margin-top:4px}.main{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06)}h2{margin:0 0 12px;font-size:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}.left{text-align:left}.good{color:#176b2c}.warn{color:#9a5b00}.danger{color:#a4262c}@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.ieum-user{margin-left:0}table{display:block;overflow-x:auto;white-space:nowrap}}@media(max-width:520px){.grid{grid-template-columns:1fr}}
 </style>
+<style>.wrap.is-loading{opacity:.55;pointer-events:none}</style>
 </head>
 <body>
 <?php echo ieum_admin_header('operations'); ?>
@@ -190,5 +191,52 @@ $risk_rows = sql_query("
         </article>
     </section>
 </main>
+<script>
+(function () {
+    const main = document.querySelector('main.wrap');
+    if (!main) return;
+    const loadView = async (url, push) => {
+        main.classList.add('is-loading');
+        try {
+            const response = await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}, credentials: 'same-origin'});
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const next = doc.querySelector('main.wrap');
+            if (!next) {
+                window.location.href = url;
+                return;
+            }
+            main.innerHTML = next.innerHTML;
+            if (push) history.pushState({ieumAjax: true}, '', url);
+        } catch (error) {
+            window.location.href = url;
+        } finally {
+            main.classList.remove('is-loading');
+        }
+    };
+    main.addEventListener('submit', (event) => {
+        const form = event.target.closest('form.filters');
+        if (!form || String(form.method || 'get').toLowerCase() !== 'get') return;
+        event.preventDefault();
+        const url = form.action || window.location.pathname;
+        loadView(url + '?' + new URLSearchParams(new FormData(form)).toString(), true);
+    });
+    main.addEventListener('change', (event) => {
+        const control = event.target.closest('form.filters input');
+        if (!control) return;
+        const form = control.form;
+        if (!form) return;
+        const url = form.action || window.location.pathname;
+        loadView(url + '?' + new URLSearchParams(new FormData(form)).toString(), true);
+    });
+    main.addEventListener('click', (event) => {
+        const link = event.target.closest('form.filters a.btn');
+        if (!link || link.target) return;
+        event.preventDefault();
+        loadView(link.href, true);
+    });
+    window.addEventListener('popstate', () => loadView(window.location.href, false));
+})();
+</script>
 </body>
 </html>
