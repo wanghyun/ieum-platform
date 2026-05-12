@@ -103,6 +103,22 @@ function ieum_project_phase_status_label($status)
     $labels = array('done' => '완료', 'review' => '보강', 'todo' => '미작업', 'hold' => '보류');
     return isset($labels[$status]) ? $labels[$status] : $status;
 }
+
+$scenario_items = array(
+    array('status' => 'done', 'title' => 'Git 정리와 원격 백업', 'detail' => '빌드 산출물 추적 제거, 기능 변경 분리 커밋, GitHub push 완료'),
+    array('status' => 'ready', 'title' => '학생 등록', 'detail' => '프로그램, 학년/부, 수업부, 보호자, 수련비, 차량 정보를 한 학생 기준으로 끝까지 입력'),
+    array('status' => 'ready', 'title' => '출석 앱 연결', 'detail' => '태블릿 QR 연결, 기기명 확인, 잘못 입력/중복 번호/등원 완료 10초 표시 확인'),
+    array('status' => 'ready', 'title' => '출석 → 문자 큐', 'detail' => '등원 처리 후 보호자 문자 큐 생성, 수신 대상 체크, 중복 등원 방지 확인'),
+    array('status' => 'ready', 'title' => '차량 운영', 'detail' => '등원/하원 차량 배정, 차량 일지, 탑승 확인, 차량 메모 대시보드 노출 확인'),
+    array('status' => 'ready', 'title' => '수련비 운영', 'detail' => '납부일 자동 발송 설정, 미리 납부자 제외, 미납 포함 청구 문구 확인'),
+    array('status' => 'ready', 'title' => '인성 입력', 'detail' => '부별 인성 입력, 아이잘해 미션 참여 체크, 월간 학부모 리포트 확인'),
+);
+
+function ieum_project_scenario_status_label($status)
+{
+    $labels = array('done' => '완료', 'ready' => '테스트 대기', 'issue' => '수정 필요');
+    return isset($labels[$status]) ? $labels[$status] : $status;
+}
 ?>
 <!doctype html>
 <html lang="ko">
@@ -111,7 +127,7 @@ function ieum_project_phase_status_label($status)
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>아이이음 프로젝트 진행 현황</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1180px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}.meta{color:#667085;margin-top:6px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.form-grid{display:grid;grid-template-columns:1fr 120px;gap:10px}.form-grid textarea{grid-column:1 / -1;min-height:90px}input,select,textarea{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px;width:100%}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #1769c2;border-radius:8px;background:#1769c2;color:#fff;text-decoration:none;padding:9px 13px;font-weight:800;cursor:pointer}.task{border:1px solid #d8dee9;border-radius:8px;padding:14px;margin-top:10px;background:#fff}.task-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2ff;color:#253469;padding:4px 10px;font-weight:800;font-size:12px}.task p{line-height:1.55}.muted{color:#667085;font-size:13px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.phase-head{display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:center}.phase-score{border:1px solid #d9dee7;border-radius:8px;padding:16px;background:#f8fbff}.phase-score strong{display:block;font-size:34px}.progress{height:12px;background:#e9eef6;border-radius:999px;overflow:hidden;margin-top:10px}.progress span{display:block;height:100%;background:#1769c2}.phase-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}.phase-item{border:1px solid #d9dee7;border-radius:8px;padding:13px;background:#fff}.phase-item h3{margin:6px 0 6px;font-size:16px}.phase-item p{margin:0;color:#667085;font-size:13px;line-height:1.5}.phase-badge{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:900}.phase-badge.done{background:#eef9f1;color:#176b2c}.phase-badge.review{background:#fff8e6;color:#8a5200}.phase-badge.todo{background:#eef2ff;color:#253469}.next-list{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.next-card{border:1px solid #d9dee7;border-radius:8px;padding:13px;background:#fff}.next-card strong{display:block;margin-bottom:5px}@media(max-width:900px){.phase-head,.phase-grid,.next-list{grid-template-columns:1fr}}@media(max-width:760px){.form-grid{grid-template-columns:1fr}.ieum-user{margin-left:0}.task-head{align-items:flex-start;flex-direction:column}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1180px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}.meta{color:#667085;margin-top:6px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.form-grid{display:grid;grid-template-columns:1fr 120px;gap:10px}.form-grid textarea{grid-column:1 / -1;min-height:90px}input,select,textarea{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px;width:100%}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #1769c2;border-radius:8px;background:#1769c2;color:#fff;text-decoration:none;padding:9px 13px;font-weight:800;cursor:pointer}.task{border:1px solid #d8dee9;border-radius:8px;padding:14px;margin-top:10px;background:#fff}.task-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2ff;color:#253469;padding:4px 10px;font-weight:800;font-size:12px}.task p{line-height:1.55}.muted{color:#667085;font-size:13px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.phase-head{display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:center}.phase-score{border:1px solid #d9dee7;border-radius:8px;padding:16px;background:#f8fbff}.phase-score strong{display:block;font-size:34px}.progress{height:12px;background:#e9eef6;border-radius:999px;overflow:hidden;margin-top:10px}.progress span{display:block;height:100%;background:#1769c2}.phase-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}.phase-item{border:1px solid #d9dee7;border-radius:8px;padding:13px;background:#fff}.phase-item h3{margin:6px 0 6px;font-size:16px}.phase-item p{margin:0;color:#667085;font-size:13px;line-height:1.5}.phase-badge{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:900}.phase-badge.done{background:#eef9f1;color:#176b2c}.phase-badge.review{background:#fff8e6;color:#8a5200}.phase-badge.todo{background:#eef2ff;color:#253469}.next-list{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.next-card{border:1px solid #d9dee7;border-radius:8px;padding:13px;background:#fff}.next-card strong{display:block;margin-bottom:5px}.scenario-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}.scenario{display:grid;grid-template-columns:94px 1fr;gap:12px;border:1px solid #d9dee7;border-radius:8px;padding:13px;background:#fff}.scenario-state{display:inline-flex;align-items:center;justify-content:center;align-self:start;min-height:32px;border-radius:999px;font-size:12px;font-weight:900}.scenario-state.done{background:#eef9f1;color:#176b2c}.scenario-state.ready{background:#eef2ff;color:#253469}.scenario-state.issue{background:#fdecec;color:#a4262c}.scenario strong{display:block;margin-bottom:4px}.scenario p{margin:0;color:#667085;font-size:13px;line-height:1.5}@media(max-width:900px){.phase-head,.phase-grid,.next-list,.scenario-list{grid-template-columns:1fr}}@media(max-width:760px){.form-grid{grid-template-columns:1fr}.ieum-user{margin-left:0}.task-head{align-items:flex-start;flex-direction:column}.scenario{grid-template-columns:1fr}.scenario-state{justify-content:flex-start;padding:6px 10px}}
 </style>
 </head>
 <body>
@@ -154,9 +170,25 @@ function ieum_project_phase_status_label($status)
     <section class="panel">
         <h2>다음 우선순위</h2>
         <div class="next-list">
-            <article class="next-card"><strong>1. Git 정리</strong><span class="muted">Android 캐시 추적 제외, 변경 파일 묶음 정리, 커밋 기준 확정</span></article>
-            <article class="next-card"><strong>2. 실사용 시나리오 테스트</strong><span class="muted">학생 등록 → 출석 앱 → 문자 큐 → 차량 → 수련비 → 인성 입력</span></article>
-            <article class="next-card"><strong>3. 관장님 UX 다듬기</strong><span class="muted">용어 통일, 리스트 필터, 대량 원생 관리, 모바일/태블릿 화면 확인</span></article>
+            <article class="next-card"><strong>1. 실사용 시나리오 테스트</strong><span class="muted">학생 등록 → 출석 앱 → 문자 큐 → 차량 → 수련비 → 인성 입력</span></article>
+            <article class="next-card"><strong>2. 관장님 UX 다듬기</strong><span class="muted">용어 통일, 리스트 필터, 대량 원생 관리, 모바일/태블릿 화면 확인</span></article>
+            <article class="next-card"><strong>3. 1차 마감 리포트</strong><span class="muted">완료/보강/보류 항목을 정리해 승인자가 바로 판단할 수 있게 정리</span></article>
+        </div>
+    </section>
+
+    <section class="panel">
+        <h2>실사용 점검표</h2>
+        <p class="muted">실제 도장 하루 운영 흐름을 기준으로 확인할 순서입니다. 통과하지 못한 항목은 “다음 작업 지시”에 바로 남겨서 보강합니다.</p>
+        <div class="scenario-list">
+            <?php foreach ($scenario_items as $item) { ?>
+            <article class="scenario">
+                <span class="scenario-state <?php echo get_text($item['status']); ?>"><?php echo get_text(ieum_project_scenario_status_label($item['status'])); ?></span>
+                <div>
+                    <strong><?php echo get_text($item['title']); ?></strong>
+                    <p><?php echo get_text($item['detail']); ?></p>
+                </div>
+            </article>
+            <?php } ?>
         </div>
     </section>
 
