@@ -304,6 +304,9 @@ $birthday_students = sql_query("
 <style>
 .vehicle-overview{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:10px;align-items:center;margin-bottom:18px}.vehicle-pill{border:1px solid #d9dee7;border-radius:8px;background:#fff;padding:13px}.vehicle-pill strong{display:block;font-size:24px}.vehicle-pill span{display:block;color:#667085;font-size:13px;margin-top:4px}.vehicle-pill.warn{border-color:#f4c27a;background:#fffaf0}.vehicle-pill.danger{border-color:#efb2b2;background:#fff5f5}.vehicle-actions{display:grid;gap:8px}.vehicle-note-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.vehicle-note-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f7;color:#344054;padding:4px 7px;font-size:12px;font-weight:900;white-space:nowrap}.vehicle-note-meta{display:grid;gap:3px;margin-top:8px}.vehicle-note .memo-line{color:#111827;font-weight:800}.vehicle-note.self{border-color:#bfdbfe;background:#f7fbff}@media(max-width:900px){.vehicle-overview{grid-template-columns:1fr 1fr}.vehicle-actions{grid-column:1/-1}}@media(max-width:520px){.vehicle-overview{grid-template-columns:1fr}.vehicle-note-head{display:grid}}
 </style>
+<style>
+.daily-focus{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-bottom:18px}.focus-panel{background:#fff;border:1px solid #d9dee7;border-radius:12px;padding:18px;box-shadow:0 10px 24px rgba(15,23,42,.06)}.focus-panel h2{margin-bottom:6px}.focus-copy{color:#667085;margin:0 0 14px;line-height:1.45}.focus-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.focus-action{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #d9dee7;border-radius:10px;background:#fff;color:#111827;text-decoration:none;padding:14px}.focus-action:hover{border-color:#9bb7df;background:#f8fbff}.focus-action strong{display:block;font-size:17px}.focus-action span{display:block;color:#667085;font-size:13px;margin-top:4px}.focus-count{font-size:24px;font-weight:900;white-space:nowrap}.focus-action.warn{border-color:#f4c27a;background:#fffaf0}.focus-action.danger{border-color:#efb2b2;background:#fff5f5}.start-lane{display:grid;gap:8px}.start-step{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;border:1px solid #d9dee7;border-radius:10px;background:#fff;color:#111827;text-decoration:none;padding:12px}.start-step:hover{border-color:#9bb7df;background:#f8fbff}.step-no{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:#1769c2;color:#fff;font-weight:900}.start-step strong{display:block}.start-step span{display:block;color:#667085;font-size:13px;margin-top:3px}.step-go{color:#1769c2;font-weight:900}@media(max-width:900px){.daily-focus{grid-template-columns:1fr}.focus-actions{grid-template-columns:1fr 1fr}}@media(max-width:520px){.focus-actions{grid-template-columns:1fr}.start-step{grid-template-columns:30px 1fr}.step-go{display:none}}
+</style>
 </head>
 <body>
 <?php echo ieum_admin_header('dashboard'); ?>
@@ -320,6 +323,40 @@ $birthday_students = sql_query("
     </section>
     <?php if ($message) { ?><p class="notice ok"><?php echo get_text($message); ?></p><?php } ?>
     <?php if ($error) { ?><p class="notice err"><?php echo get_text($error); ?></p><?php } ?>
+
+    <section class="daily-focus">
+        <article class="focus-panel">
+            <h2>오늘 운영 체크</h2>
+            <p class="focus-copy">관장님이 매일 먼저 보면 되는 항목입니다. 위험한 것부터 확인하고 바로 처리하면 됩니다.</p>
+            <div class="focus-actions">
+                <a class="focus-action <?php echo (int) $missing_today['cnt'] ? 'warn' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/attendance_today.php">
+                    <div><strong>미등원 확인</strong><span>오늘 등원 예정인데 아직 안 온 학생</span></div>
+                    <span class="focus-count"><?php echo number_format((int) $missing_today['cnt']); ?>명</span>
+                </a>
+                <a class="focus-action <?php echo (int) $tuition['unpaid_over_count'] ? 'danger' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php">
+                    <div><strong>수련비 미결제</strong><span><?php echo (int) $tuition_settings['overdue_after_days']; ?>일 초과 관리 대상</span></div>
+                    <span class="focus-count"><?php echo number_format((int) $tuition['unpaid_over_count']); ?>명</span>
+                </a>
+                <a class="focus-action <?php echo (int) $sms['failed_count'] ? 'danger' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/sms_queue.php?status=failed">
+                    <div><strong>문자 실패</strong><span>보호자 안내 실패 확인</span></div>
+                    <span class="focus-count"><?php echo number_format((int) $sms['failed_count']); ?>건</span>
+                </a>
+                <a class="focus-action <?php echo (int) $vehicle_note_count['cnt'] ? 'warn' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php">
+                    <div><strong>차량 메모</strong><span>기사님 탑승확인 특이사항</span></div>
+                    <span class="focus-count"><?php echo number_format((int) $vehicle_note_count['cnt']); ?>건</span>
+                </a>
+            </div>
+        </article>
+        <article class="focus-panel">
+            <h2>처음 쓰는 도장 흐름</h2>
+            <p class="focus-copy">처음엔 가볍게 시작하고, 필요한 만큼만 깊게 들어가면 됩니다.</p>
+            <div class="start-lane">
+                <a class="start-step" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form"><span class="step-no">1</span><div><strong>학생 등록</strong><span>학생번호와 보호자 연락처부터 입력</span></div><span class="step-go">열기</span></a>
+                <a class="start-step" href="<?php echo IEUM_URL; ?>/admin/tablet_devices.php"><span class="step-no">2</span><div><strong>출석기 연결</strong><span>도장 코드와 PIN으로 태블릿 연결</span></div><span class="step-go">열기</span></a>
+                <a class="start-step" href="<?php echo IEUM_URL; ?>/admin/attendance_today.php"><span class="step-no">3</span><div><strong>오늘 출석 확인</strong><span>등원, 미등원, 문자 상태 확인</span></div><span class="step-go">열기</span></a>
+            </div>
+        </article>
+    </section>
 
     <section class="grid">
         <article class="card"><div class="label">오늘 등원 예정</div><div class="num"><?php echo number_format((int) $expected_today['cnt']); ?></div><div class="hint">전체 사용 학생 <?php echo number_format((int) $student['cnt']); ?>명</div></article>
