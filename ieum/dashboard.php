@@ -292,6 +292,61 @@ $vehicle_notes = sql_query("
      limit 8
 ", false);
 
+$birthday_month_count = sql_fetch("
+    select count(*) as cnt
+      from " . IEUM_STUDENT_TABLE . "
+     where academy_id = '{$academy_id}'
+       and is_active = 1
+       and birth_date is not null
+       and birth_date <> '0000-00-00'
+       and month(birth_date) = month('{$today}')
+", false);
+
+$birthday_upcoming_count = sql_fetch("
+    select count(*) as cnt
+      from " . IEUM_STUDENT_TABLE . "
+     where academy_id = '{$academy_id}'
+       and is_active = 1
+       and birth_date is not null
+       and birth_date <> '0000-00-00'
+       and str_to_date(concat(year('{$today}'), date_format(birth_date, '-%m-%d')), '%Y-%m-%d')
+           between '{$today}' and date_add('{$today}', interval 7 day)
+", false);
+
+$long_absent_count = sql_fetch("
+    select count(*) as cnt
+      from (
+        select s.student_id,
+               max(a.attendance_date) as last_attendance,
+               coalesce(s.admission_date, date(s.created_at)) as base_date
+          from " . IEUM_STUDENT_TABLE . " s
+     left join " . IEUM_ATTENDANCE_TABLE . " a on a.academy_id = s.academy_id
+           and a.student_id = s.student_id
+         where s.academy_id = '{$academy_id}'
+           and s.is_active = 1
+      group by s.student_id
+        having (last_attendance is null and datediff('{$today}', base_date) >= 14)
+            or (last_attendance is not null and datediff('{$today}', last_attendance) >= 14)
+      ) t
+", false);
+
+$long_absent_students = sql_query("
+    select s.student_name, s.student_code, c.class_name, c.start_time,
+           max(a.attendance_date) as last_attendance,
+           coalesce(s.admission_date, date(s.created_at)) as base_date
+      from " . IEUM_STUDENT_TABLE . " s
+ left join " . IEUM_CLASS_TIME_TABLE . " c on c.class_time_id = s.class_time_id and c.academy_id = s.academy_id
+ left join " . IEUM_ATTENDANCE_TABLE . " a on a.academy_id = s.academy_id
+       and a.student_id = s.student_id
+     where s.academy_id = '{$academy_id}'
+       and s.is_active = 1
+  group by s.student_id
+    having (last_attendance is null and datediff('{$today}', base_date) >= 14)
+        or (last_attendance is not null and datediff('{$today}', last_attendance) >= 14)
+  order by coalesce(last_attendance, base_date) asc, s.student_name asc
+     limit 8
+", false);
+
 $birthday_students = sql_query("
     select student_name, student_code, birth_date, school_name, grade_group
       from " . IEUM_STUDENT_TABLE . "
@@ -321,6 +376,9 @@ $birthday_students = sql_query("
 </style>
 <style>
 .daily-focus{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-bottom:18px}.focus-panel{background:#fff;border:1px solid #d9dee7;border-radius:12px;padding:18px;box-shadow:0 10px 24px rgba(15,23,42,.06)}.focus-panel h2{margin-bottom:6px}.focus-copy{color:#667085;margin:0 0 14px;line-height:1.45}.focus-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.focus-action{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #d9dee7;border-radius:10px;background:#fff;color:#111827;text-decoration:none;padding:14px}.focus-action:hover{border-color:#9bb7df;background:#f8fbff}.focus-action strong{display:block;font-size:17px}.focus-action span{display:block;color:#667085;font-size:13px;margin-top:4px}.focus-count{font-size:24px;font-weight:900;white-space:nowrap}.focus-action.warn{border-color:#f4c27a;background:#fffaf0}.focus-action.danger{border-color:#efb2b2;background:#fff5f5}.start-lane{display:grid;gap:8px}.start-step{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;border:1px solid #d9dee7;border-radius:10px;background:#fff;color:#111827;text-decoration:none;padding:12px}.start-step:hover{border-color:#9bb7df;background:#f8fbff}.step-no{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:#1769c2;color:#fff;font-weight:900}.start-step strong{display:block}.start-step span{display:block;color:#667085;font-size:13px;margin-top:3px}.step-go{color:#1769c2;font-weight:900}@media(max-width:900px){.daily-focus{grid-template-columns:1fr}.focus-actions{grid-template-columns:1fr 1fr}}@media(max-width:520px){.focus-actions{grid-template-columns:1fr}.start-step{grid-template-columns:30px 1fr}.step-go{display:none}}
+</style>
+<style>
+.auto-check{background:#fff;border:1px solid #d9dee7;border-radius:12px;padding:18px;box-shadow:0 10px 24px rgba(15,23,42,.06);margin-bottom:18px}.auto-check-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;margin-bottom:14px;flex-wrap:wrap}.auto-check-head h2{margin-bottom:4px}.auto-check-head p{margin:0;color:#667085;line-height:1.45}.auto-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.auto-card{border:1px solid #d9dee7;border-radius:10px;padding:14px;background:#fff;color:#111827;text-decoration:none}.auto-card:hover{border-color:#9bb7df;background:#f8fbff}.auto-card.warn{border-color:#f4c27a;background:#fffaf0}.auto-card.danger{border-color:#efb2b2;background:#fff5f5}.auto-label{color:#667085;font-size:13px;font-weight:900}.auto-number{display:block;font-size:30px;font-weight:1000;margin:4px 0}.auto-card p{margin:0;color:#475467;font-size:13px;line-height:1.45}.auto-list{display:grid;gap:7px;margin-top:12px}.auto-list-row{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #edf1f7;padding-top:7px;font-size:13px}.auto-list-row strong{font-size:14px}.auto-list-row span{color:#667085;text-align:right}.auto-empty{color:#667085;font-size:13px;margin-top:10px}@media(max-width:900px){.auto-grid{grid-template-columns:1fr 1fr}}@media(max-width:560px){.auto-grid{grid-template-columns:1fr}.auto-list-row{display:grid}.auto-list-row span{text-align:left}}
 </style>
 </head>
 <body>
@@ -377,6 +435,46 @@ $birthday_students = sql_query("
                 <?php } ?>
             </div>
         </article>
+    </section>
+
+    <section class="auto-check">
+        <div class="auto-check-head">
+            <div>
+                <h2>아이이음 자동 체크</h2>
+                <p>관장님이 직접 기억하지 않아도 미리 챙길 일을 알려드립니다.</p>
+            </div>
+            <a class="btn" href="<?php echo IEUM_URL; ?>/admin/operations.php">운영 지표 보기</a>
+        </div>
+        <div class="auto-grid">
+            <a class="auto-card <?php echo (int) $birthday_month_count['cnt'] ? 'warn' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php">
+                <span class="auto-label">이번 달 생일자</span>
+                <strong class="auto-number"><?php echo number_format((int) $birthday_month_count['cnt']); ?>명</strong>
+                <p>앞으로 7일 안에 생일인 학생은 <?php echo number_format((int) $birthday_upcoming_count['cnt']); ?>명입니다.</p>
+            </a>
+            <a class="auto-card <?php echo (int) $long_absent_count['cnt'] ? 'danger' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/attendance_today.php">
+                <span class="auto-label">장기 미등원 신호</span>
+                <strong class="auto-number"><?php echo number_format((int) $long_absent_count['cnt']); ?>명</strong>
+                <p>최근 14일 이상 출석 기록이 없어 상담 확인이 필요한 학생입니다.</p>
+            </a>
+            <a class="auto-card <?php echo $tuition_notice_pending_count ? 'warn' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/sms_templates.php">
+                <span class="auto-label">오늘 자동 안내 예정</span>
+                <strong class="auto-number"><?php echo number_format($tuition_notice_pending_count); ?>건</strong>
+                <p>수련비 납부일/미납 기준에 따라 문자 발송 대상이 잡힌 건수입니다.</p>
+            </a>
+        </div>
+        <div class="auto-list">
+            <?php $lai = 0; while ($row = sql_fetch_array($long_absent_students)) { $lai++; ?>
+            <?php
+            $last_base = $row['last_attendance'] ?: $row['base_date'];
+            $absent_days = $last_base ? max(0, floor((strtotime($today) - strtotime($last_base)) / 86400)) : 0;
+            ?>
+            <div class="auto-list-row">
+                <strong><?php echo get_text($row['student_name'] . ' (' . $row['student_code'] . ')'); ?></strong>
+                <span><?php echo get_text($row['class_name'] ? $row['class_name'] . ' ' . $row['start_time'] : '부 미지정'); ?> · <?php echo $row['last_attendance'] ? '최근 출석 ' . get_text($row['last_attendance']) : '출석 기록 없음'; ?> · <?php echo number_format($absent_days); ?>일</span>
+            </div>
+            <?php } ?>
+            <?php if ($lai === 0) { ?><div class="auto-empty">장기 미등원 신호가 없습니다.</div><?php } ?>
+        </div>
     </section>
 
     <section class="grid">
