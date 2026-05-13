@@ -49,6 +49,34 @@ function ieum_journal_grade_label($value)
     return isset($labels[$value]) ? $labels[$value] : $value;
 }
 
+function ieum_journal_ensure_stop_location_columns()
+{
+    $columns = array(
+        'stop_address' => "alter table " . IEUM_VEHICLE_STOP_TABLE . " add stop_address varchar(160) not null default '' after stop_name",
+        'map_lat' => "alter table " . IEUM_VEHICLE_STOP_TABLE . " add map_lat decimal(10,7) null after stop_address",
+        'map_lng' => "alter table " . IEUM_VEHICLE_STOP_TABLE . " add map_lng decimal(10,7) null after map_lat",
+        'map_url' => "alter table " . IEUM_VEHICLE_STOP_TABLE . " add map_url varchar(255) not null default '' after map_lng",
+    );
+    foreach ($columns as $column => $sql) {
+        $exists = sql_fetch("show columns from " . IEUM_VEHICLE_STOP_TABLE . " like '" . sql_escape_string($column) . "'", false);
+        if (empty($exists['Field'])) {
+            sql_query($sql, false);
+        }
+    }
+}
+
+function ieum_journal_stop_map_href($row)
+{
+    $map_url = isset($row['map_url']) ? trim($row['map_url']) : '';
+    if ($map_url !== '') {
+        return $map_url;
+    }
+    $query = isset($row['stop_address']) && trim($row['stop_address']) !== '' ? trim($row['stop_address']) : (isset($row['stop_name']) ? trim($row['stop_name']) : '');
+    return $query !== '' ? 'https://map.naver.com/v5/search/' . rawurlencode($query) : '';
+}
+
+ieum_journal_ensure_stop_location_columns();
+
 $routes = sql_query("
     select *
       from " . IEUM_VEHICLE_ROUTE_TABLE . "
@@ -60,7 +88,7 @@ $routes = sql_query("
 $rows = sql_query("
     select sv.ride_type, sv.place_name, sv.contact_phone, sv.ride_days, sv.memo as vehicle_memo, s.student_name, s.grade_group, s.memo as student_memo,
            c.class_name, c.start_time as class_start_time,
-           st.stop_id, st.stop_name, st.stop_time,
+           st.stop_id, st.stop_name, st.stop_address, st.map_url, st.map_lat, st.map_lng, st.stop_time,
            r.route_id, r.route_name, r.vehicle_label, r.driver_name, r.driver_phone
       from " . IEUM_STUDENT_VEHICLE_TABLE . " sv
       join " . IEUM_STUDENT_TABLE . " s on s.student_id = sv.student_id and s.academy_id = sv.academy_id
@@ -68,7 +96,7 @@ $rows = sql_query("
       join " . IEUM_VEHICLE_STOP_TABLE . " st on st.stop_id = sv.stop_id and st.academy_id = sv.academy_id
  left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = sv.route_id and r.academy_id = sv.academy_id
      where {$where}
-  order by field(sv.ride_type, 'pickup', 'dropoff'), r.sort_order asc, st.stop_time asc, st.sort_order asc, st.stop_name asc, s.student_name asc
+  order by field(sv.ride_type, 'pickup', 'dropoff'), r.sort_order asc, st.sort_order asc, st.stop_time asc, st.stop_name asc, s.student_name asc
 ", false);
 ?>
 <!doctype html>
@@ -79,6 +107,7 @@ $rows = sql_query("
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1120px;margin:20px auto;padding:0 18px}.wrap.is-loading{opacity:.55;pointer-events:none}.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}h1{margin:0;font-size:26px}.meta{color:#667085;margin-top:6px}.filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 10px}.btn,select,input[type=date]{border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:700}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.journal-guide{margin:0 0 16px;color:#667085;font-size:13px}.group{background:#fff;border:1px solid #d9dee7;border-radius:8px;margin-bottom:14px;overflow:hidden}.group-head{display:flex;justify-content:space-between;gap:12px;background:#15204a;color:#fff;padding:10px 12px;font-weight:900}.group-head small{font-weight:600;color:#dbeafe;text-align:right}.stop-head{background:#eef2f7;padding:8px 12px;font-weight:900;border-top:1px solid #d9dee7}.student-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:7px;border-top:1px solid #e2e8f0}.student-card{border:1px solid #dbe2ec;border-radius:6px;background:#fff;padding:7px;min-width:0}.student-main{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;font-weight:900}.student-main span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.student-main small{color:#667085;font-weight:800;white-space:nowrap}.student-sub{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;margin-top:4px;font-size:12px}.student-sub span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.phone{white-space:nowrap;font-weight:800}.memo{min-height:17px;margin-top:4px;color:#344054;font-size:12px;line-height:1.3;word-break:keep-all;overflow-wrap:anywhere}.empty{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:32px;text-align:center;color:#667085}
+.stop-head .map-link{display:inline-flex;margin-left:6px;padding:2px 7px;border-radius:999px;background:#dbeafe;color:#1769c2;text-decoration:none;font-size:11px;font-weight:900}.stop-address{margin-left:4px;color:#667085;font-size:12px;font-weight:700}
 @media (max-width:900px){.student-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:720px){.student-grid{grid-template-columns:1fr}.topline{align-items:flex-start;flex-direction:column}.student-sub{grid-template-columns:1fr}}
 @media print{@page{size:A4;margin:5mm}body{background:#fff;color:#111;font-size:9px}.filter,.print-hide{display:none}.wrap{max-width:none;margin:0;padding:0}.topline{margin-bottom:4px;align-items:flex-end}h1{font-size:16px}.meta{font-size:9px;margin-top:2px}.group{break-inside:avoid;border-color:#999;border-radius:4px;margin-bottom:4px}.group-head{background:#eee!important;color:#111!important;padding:3px 5px;font-size:9.5px}.group-head small{color:#333}.stop-head{background:#f4f4f4!important;padding:3px 5px;font-size:9.5px}.student-grid{grid-template-columns:repeat(3,1fr);gap:3px;padding:3px}.student-card{padding:3px 4px;border-color:#b8b8b8;border-radius:4px;break-inside:avoid;min-height:39px}.student-main{font-size:9.5px;gap:4px}.student-sub,.memo{font-size:8px}.student-sub{margin-top:1px;gap:3px}.memo{min-height:11px;margin-top:1px;line-height:1.2}.phone{font-size:8px}.empty{border-color:#999;padding:18px}}
@@ -135,7 +164,15 @@ $rows = sql_query("
                 echo '</div>';
             }
             $current_stop = $stop_key;
-            echo '<div class="stop-head">' . get_text($row['stop_time'] . ' ' . $row['stop_name']) . '</div>';
+            $map_href = ieum_journal_stop_map_href($row);
+            echo '<div class="stop-head">' . get_text($row['stop_time'] . ' ' . $row['stop_name']);
+            if (!empty($row['stop_address'])) {
+                echo '<span class="stop-address">' . get_text($row['stop_address']) . '</span>';
+            }
+            if ($map_href !== '') {
+                echo '<a class="map-link print-hide" href="' . get_text($map_href) . '" target="_blank" rel="noopener">지도</a>';
+            }
+            echo '</div>';
             echo '<div class="student-grid">';
         }
         $student_count++;

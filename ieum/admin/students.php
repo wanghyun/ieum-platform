@@ -311,7 +311,7 @@ function ieum_fetch_vehicle_routes($academy_id)
      left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = s.route_id and r.academy_id = s.academy_id
          where s.academy_id = '{$academy_id}'
            and s.is_active = 1
-      order by field(s.stop_type, 'pickup', 'dropoff'), s.stop_time asc, s.sort_order asc, s.stop_name asc
+      order by field(s.stop_type, 'pickup', 'dropoff'), r.sort_order asc, s.sort_order asc, s.stop_time asc, s.stop_name asc
     ", false);
 
     while ($row = sql_fetch_array($result)) {

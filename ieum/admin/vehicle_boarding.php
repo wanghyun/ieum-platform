@@ -48,6 +48,34 @@ function ieum_boarding_grade_label($value)
     return isset($labels[$value]) ? $labels[$value] : $value;
 }
 
+function ieum_boarding_ensure_stop_location_columns()
+{
+    $columns = array(
+        'stop_address' => "alter table " . IEUM_VEHICLE_STOP_TABLE . " add stop_address varchar(160) not null default '' after stop_name",
+        'map_lat' => "alter table " . IEUM_VEHICLE_STOP_TABLE . " add map_lat decimal(10,7) null after stop_address",
+        'map_lng' => "alter table " . IEUM_VEHICLE_STOP_TABLE . " add map_lng decimal(10,7) null after map_lat",
+        'map_url' => "alter table " . IEUM_VEHICLE_STOP_TABLE . " add map_url varchar(255) not null default '' after map_lng",
+    );
+    foreach ($columns as $column => $sql) {
+        $exists = sql_fetch("show columns from " . IEUM_VEHICLE_STOP_TABLE . " like '" . sql_escape_string($column) . "'", false);
+        if (empty($exists['Field'])) {
+            sql_query($sql, false);
+        }
+    }
+}
+
+function ieum_boarding_stop_map_href($row)
+{
+    $map_url = isset($row['map_url']) ? trim($row['map_url']) : '';
+    if ($map_url !== '') {
+        return $map_url;
+    }
+    $query = isset($row['stop_address']) && trim($row['stop_address']) !== '' ? trim($row['stop_address']) : (isset($row['stop_name']) ? trim($row['stop_name']) : '');
+    return $query !== '' ? 'https://map.naver.com/v5/search/' . rawurlencode($query) : '';
+}
+
+ieum_boarding_ensure_stop_location_columns();
+
 function ieum_create_vehicle_alert_queue($academy_id, $vehicle, $status_label, $note)
 {
     $academy_id = (int) $academy_id;
@@ -191,7 +219,7 @@ $rows = sql_query("
     select sv.student_vehicle_id, sv.ride_type, sv.place_name, sv.contact_phone, sv.memo as vehicle_memo,
            s.student_name, s.grade_group, s.memo as student_memo,
            c.class_name, c.start_time as class_start_time,
-           st.stop_name, st.stop_time,
+            st.stop_name, st.stop_address, st.map_url, st.map_lat, st.map_lng, st.stop_time,
            r.route_name, r.vehicle_label, r.driver_name, r.driver_phone,
            bl.status as boarding_status, bl.note as boarding_note, bl.checked_at, bl.resolved_at
       from " . IEUM_STUDENT_VEHICLE_TABLE . " sv
@@ -201,7 +229,7 @@ $rows = sql_query("
  left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = sv.route_id and r.academy_id = sv.academy_id
  left join " . IEUM_VEHICLE_BOARDING_TABLE . " bl on bl.academy_id = sv.academy_id and bl.student_vehicle_id = sv.student_vehicle_id and bl.journal_date = '" . sql_escape_string($journal_date) . "'
      where {$where}
-  order by r.sort_order asc, st.stop_time asc, st.sort_order asc, st.stop_name asc, s.student_name asc
+  order by r.sort_order asc, st.sort_order asc, st.stop_time asc, st.stop_name asc, s.student_name asc
 ", false);
 ?>
 <!doctype html>
@@ -212,6 +240,7 @@ $rows = sql_query("
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:760px;margin:18px auto;padding:0 14px}h1{margin:0 0 6px;font-size:24px}.meta{color:#667085;margin-bottom:14px}.filter{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:8px;margin-bottom:12px}.filter input,.filter select,.note{width:100%;border:1px solid #cfd6df;border-radius:8px;padding:10px;font-size:15px}.btn{border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:10px 12px;font-weight:900;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.resolve{background:#0f766e;border-color:#0f766e;color:#fff}.notice{padding:10px 12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.route-head{margin:16px 0 8px;padding:11px 12px;background:#101a42;color:#fff;border-radius:10px;font-weight:900}.route-head small{display:block;margin-top:3px;color:#cbd5e1;font-size:12px}.stop{margin:10px 0 8px;padding:8px 10px;background:#e8edf5;color:#111827;border-radius:8px;font-weight:900}.card{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:0 4px 12px rgba(15,23,42,.05)}.card.resolved{opacity:.72}.student{display:flex;justify-content:space-between;gap:10px;font-size:18px;font-weight:900}.student small{font-size:13px;color:#667085}.info{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:6px;color:#344054;font-size:14px}.phone{font-weight:900;white-space:nowrap}.memo{margin-top:6px;color:#667085;font-size:13px}.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:10px}.actions button{min-height:42px}.status{display:inline-flex;margin-top:8px;padding:5px 8px;border-radius:999px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900}.status.boarded{background:#e8f7ee;color:#176b2c}.status.missed{background:#fdecec;color:#a4262c}.status.called{background:#fff4df;color:#915c00}.empty{padding:28px;text-align:center;color:#667085;background:#fff;border:1px solid #d9dee7;border-radius:10px}@media(max-width:760px){.filter{grid-template-columns:1fr 1fr}.filter .primary{grid-column:1/-1}.info{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.top{display:none}.wrap{margin-top:12px}}
+.stop .map-link{display:inline-flex;margin-left:6px;padding:2px 7px;border-radius:999px;background:#dbeafe;color:#1769c2;text-decoration:none;font-size:12px;font-weight:900}.stop-address{display:block;margin-top:3px;color:#667085;font-size:12px;font-weight:700}
 </style>
 </head>
 <body>
@@ -259,7 +288,15 @@ $rows = sql_query("
         $stop_key = $row['stop_time'] . '|' . $row['stop_name'];
         if ($current_stop !== $stop_key) {
             $current_stop = $stop_key;
-            echo '<div class="stop">' . get_text($row['stop_time'] . ' ' . $row['stop_name']) . '</div>';
+            $map_href = ieum_boarding_stop_map_href($row);
+            echo '<div class="stop">' . get_text($row['stop_time'] . ' ' . $row['stop_name']);
+            if (!empty($row['stop_address'])) {
+                echo '<span class="stop-address">' . get_text($row['stop_address']) . '</span>';
+            }
+            if ($map_href !== '') {
+                echo '<a class="map-link" href="' . get_text($map_href) . '" target="_blank" rel="noopener">지도</a>';
+            }
+            echo '</div>';
         }
         $status = isset($row['boarding_status']) ? $row['boarding_status'] : '';
         $status_label = isset($status_labels[$status]) ? $status_labels[$status] : '미확인';

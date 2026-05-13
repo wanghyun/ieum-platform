@@ -25,6 +25,34 @@ function ieum_stop_type_options()
     );
 }
 
+function ieum_vehicle_ensure_stop_location_columns()
+{
+    $columns = array(
+        'stop_address' => "alter table " . IEUM_VEHICLE_STOP_TABLE . " add stop_address varchar(160) not null default '' after stop_name",
+        'map_lat' => "alter table " . IEUM_VEHICLE_STOP_TABLE . " add map_lat decimal(10,7) null after stop_address",
+        'map_lng' => "alter table " . IEUM_VEHICLE_STOP_TABLE . " add map_lng decimal(10,7) null after map_lat",
+        'map_url' => "alter table " . IEUM_VEHICLE_STOP_TABLE . " add map_url varchar(255) not null default '' after map_lng",
+    );
+    foreach ($columns as $column => $sql) {
+        $exists = sql_fetch("show columns from " . IEUM_VEHICLE_STOP_TABLE . " like '" . sql_escape_string($column) . "'", false);
+        if (empty($exists['Field'])) {
+            sql_query($sql, false);
+        }
+    }
+}
+
+function ieum_vehicle_map_href($row)
+{
+    $map_url = isset($row['map_url']) ? trim($row['map_url']) : '';
+    if ($map_url !== '') {
+        return $map_url;
+    }
+    $query = isset($row['stop_address']) && trim($row['stop_address']) !== '' ? trim($row['stop_address']) : (isset($row['stop_name']) ? trim($row['stop_name']) : '');
+    return $query !== '' ? 'https://map.naver.com/v5/search/' . rawurlencode($query) : '';
+}
+
+ieum_vehicle_ensure_stop_location_columns();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrf_token = isset($_POST['csrf_token']) ? trim($_POST['csrf_token']) : '';
     if (!ieum_verify_csrf_token($csrf_token)) {
@@ -90,6 +118,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $route_id = isset($_POST['route_id']) ? (int) $_POST['route_id'] : 0;
             $stop_type = isset($_POST['stop_type']) ? preg_replace('/[^0-9a-z_]/', '', trim($_POST['stop_type'])) : 'pickup';
             $stop_name = isset($_POST['stop_name']) ? trim($_POST['stop_name']) : '';
+            $stop_address = isset($_POST['stop_address']) ? trim($_POST['stop_address']) : '';
+            $map_lat = isset($_POST['map_lat']) && trim($_POST['map_lat']) !== '' ? (float) $_POST['map_lat'] : null;
+            $map_lng = isset($_POST['map_lng']) && trim($_POST['map_lng']) !== '' ? (float) $_POST['map_lng'] : null;
+            $map_url = isset($_POST['map_url']) ? trim($_POST['map_url']) : '';
             $stop_time = isset($_POST['stop_time']) ? preg_replace('/[^0-9:]/', '', trim($_POST['stop_time'])) : '00:00';
             $sort_order = isset($_POST['sort_order']) ? max(0, (int) $_POST['sort_order']) : 0;
             $is_active = isset($_POST['is_active']) ? 1 : 0;
@@ -106,6 +138,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $route_id_sql = (int) $route_id;
                 $stop_type_sql = sql_escape_string($stop_type);
                 $stop_name_sql = sql_escape_string($stop_name);
+                $stop_address_sql = sql_escape_string($stop_address);
+                $map_lat_sql = $map_lat === null ? 'null' : "'" . sql_escape_string(sprintf('%.7F', $map_lat)) . "'";
+                $map_lng_sql = $map_lng === null ? 'null' : "'" . sql_escape_string(sprintf('%.7F', $map_lng)) . "'";
+                $map_url_sql = sql_escape_string($map_url);
                 $stop_time_sql = sql_escape_string($stop_time);
 
                 if ($stop_id) {
@@ -114,6 +150,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            set route_id = '{$route_id_sql}',
                                stop_type = '{$stop_type_sql}',
                                stop_name = '{$stop_name_sql}',
+                               stop_address = '{$stop_address_sql}',
+                               map_lat = {$map_lat_sql},
+                               map_lng = {$map_lng_sql},
+                               map_url = '{$map_url_sql}',
                                stop_time = '{$stop_time_sql}',
                                sort_order = '{$sort_order}',
                                is_active = '{$is_active}',
@@ -129,6 +169,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 route_id = '{$route_id_sql}',
                                 stop_type = '{$stop_type_sql}',
                                 stop_name = '{$stop_name_sql}',
+                                stop_address = '{$stop_address_sql}',
+                                map_lat = {$map_lat_sql},
+                                map_lng = {$map_lng_sql},
+                                map_url = '{$map_url_sql}',
                                 stop_time = '{$stop_time_sql}',
                                 sort_order = '{$sort_order}',
                                 is_active = '{$is_active}',
@@ -171,7 +215,7 @@ $stops = sql_query("
       from " . IEUM_VEHICLE_STOP_TABLE . " s
  left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = s.route_id and r.academy_id = s.academy_id
      where s.academy_id = '{$academy_id}'
-  order by s.is_active desc, field(s.stop_type, 'pickup', 'dropoff'), s.stop_time asc, s.sort_order asc, s.stop_name asc
+  order by s.is_active desc, field(s.stop_type, 'pickup', 'dropoff'), r.sort_order asc, s.sort_order asc, s.stop_time asc, s.stop_name asc
 ", false);
 ?>
 <!doctype html>
@@ -185,9 +229,9 @@ $stops = sql_query("
 .top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}
 .wrap{max-width:1240px;margin:28px auto;padding:0 20px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px}
 h1{margin:0 0 8px;font-size:26px}.meta{color:#667085;margin-bottom:16px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}
-input,select{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid.route{display:grid;grid-template-columns:130px 1fr 120px 130px 130px 90px 90px 90px;gap:8px;align-items:center}.grid.stop{display:grid;grid-template-columns:120px 1fr 1fr 130px 90px 90px 90px;gap:8px;align-items:center}
+input,select{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid.route{display:grid;grid-template-columns:130px 1fr 120px 130px 130px 90px 90px 90px;gap:8px;align-items:center}.grid.stop{display:grid;grid-template-columns:110px 1fr 1.1fr 1.25fr 105px 80px 1.05fr 150px 80px 80px;gap:8px;align-items:center}.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.map-link{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:999px;background:#eef5ff;color:#1769c2;text-decoration:none;font-size:12px;font-weight:900}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.print{background:#111827;border-color:#111827;color:#fff}
-table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}th{background:#72829d;color:#fff}.left{text-align:left}.muted{color:#667085}.inactive{background:#fafafa;color:#8a94a6}.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 14px}
+table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}th{background:#72829d;color:#fff}.left{text-align:left}.muted{color:#667085;font-size:12px;line-height:1.45}.inactive{background:#fafafa;color:#8a94a6}.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 14px}
 @media(max-width:980px){.grid.route,.grid.stop{grid-template-columns:1fr}table{display:block;overflow-x:auto;white-space:nowrap}}
 </style>
 </head>
@@ -196,7 +240,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
 <?php echo ieum_admin_subnav('vehicles'); ?>
 <main class="wrap">
     <h1>차량 관리</h1>
-    <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 노선은 차량/기사 묶음, 운행 지점은 장소+시간입니다. 학생은 픽업 지점과 하차 지점을 각각 선택합니다.</div>
+    <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 노선은 차량/기사 묶음, 운행 지점은 장소+시간+지도입니다. 학생은 픽업 지점과 하차 지점을 각각 선택합니다.</div>
     <?php if ($message) { ?><p class="notice ok"><?php echo get_text($message); ?></p><?php } ?>
     <?php if ($error) { ?><p class="notice err"><?php echo get_text($error); ?></p><?php } ?>
 
@@ -243,8 +287,14 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
                 <?php } ?>
             </select>
             <input type="text" name="stop_name" placeholder="장소 예: 아이이음초등학교" maxlength="100" required>
+            <input type="text" name="stop_address" placeholder="주소 또는 기사님 참고 위치" maxlength="160">
             <input type="time" name="stop_time" value="14:10" required>
             <input type="number" name="sort_order" placeholder="순서" min="0">
+            <input type="text" name="map_url" placeholder="지도 링크 선택" maxlength="255">
+            <div class="coord-grid">
+                <input type="text" name="map_lat" placeholder="위도">
+                <input type="text" name="map_lng" placeholder="경도">
+            </div>
             <label><input type="checkbox" name="is_active" value="1" checked> 사용</label>
             <button type="submit" class="btn primary">추가</button>
         </form>
@@ -253,7 +303,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
     <section class="panel">
         <h2>운행 지점</h2>
         <table>
-            <thead><tr><th>구분</th><th>시간</th><th>장소</th><th>노선</th><th>차량</th><th>상태</th><th>수정</th></tr></thead>
+            <thead><tr><th>구분</th><th>시간</th><th>장소</th><th>주소/지도</th><th>노선</th><th>차량</th><th>순서</th><th>상태</th><th>수정</th></tr></thead>
             <tbody>
             <?php $i = 0; while ($row = sql_fetch_array($stops)) { $i++; ?>
             <tr class="<?php echo $row['is_active'] ? '' : 'inactive'; ?>">
@@ -270,6 +320,17 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
                     </td>
                     <td><input type="time" name="stop_time" value="<?php echo get_text($row['stop_time']); ?>"></td>
                     <td><input type="text" name="stop_name" value="<?php echo get_text($row['stop_name']); ?>" maxlength="100"></td>
+                    <td class="left">
+                        <input type="text" name="stop_address" value="<?php echo get_text(isset($row['stop_address']) ? $row['stop_address'] : ''); ?>" maxlength="160" placeholder="주소 또는 참고 위치">
+                        <input type="text" name="map_url" value="<?php echo get_text(isset($row['map_url']) ? $row['map_url'] : ''); ?>" maxlength="255" placeholder="지도 링크">
+                        <div class="coord-grid">
+                            <input type="text" name="map_lat" value="<?php echo get_text(isset($row['map_lat']) ? $row['map_lat'] : ''); ?>" placeholder="위도">
+                            <input type="text" name="map_lng" value="<?php echo get_text(isset($row['map_lng']) ? $row['map_lng'] : ''); ?>" placeholder="경도">
+                        </div>
+                        <?php $map_href = ieum_vehicle_map_href($row); if ($map_href !== '') { ?>
+                        <a class="map-link" href="<?php echo get_text($map_href); ?>" target="_blank" rel="noopener">지도 확인</a>
+                        <?php } ?>
+                    </td>
                     <td>
                         <select name="route_id">
                             <option value="0">노선 선택 안함</option>
@@ -279,15 +340,15 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
                         </select>
                     </td>
                     <td><?php echo get_text($row['vehicle_label']); ?></td>
+                    <td><input type="number" name="sort_order" value="<?php echo (int) $row['sort_order']; ?>" min="0"></td>
                     <td><label><input type="checkbox" name="is_active" value="1" <?php echo $row['is_active'] ? 'checked' : ''; ?>> 사용</label></td>
                     <td>
-                        <input type="hidden" name="sort_order" value="<?php echo (int) $row['sort_order']; ?>">
                         <button type="submit" class="btn">저장</button>
                     </td>
                 </form>
             </tr>
             <?php } ?>
-            <?php if ($i === 0) { ?><tr><td colspan="7">등록된 운행 지점이 없습니다.</td></tr><?php } ?>
+            <?php if ($i === 0) { ?><tr><td colspan="9">등록된 운행 지점이 없습니다.</td></tr><?php } ?>
             </tbody>
         </table>
     </section>
@@ -303,6 +364,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
                         <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                         <input type="hidden" name="action" value="save_route">
                         <input type="hidden" name="route_id" value="<?php echo (int) $row['route_id']; ?>">
+                        <input type="hidden" name="sort_order" value="<?php echo (int) $row['sort_order']; ?>">
                         <td>
                             <select name="route_type">
                                 <?php foreach (ieum_vehicle_type_options() as $value => $label) { ?>
@@ -317,7 +379,6 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
                         <td><?php echo number_format((int) $row['student_count']); ?>명</td>
                         <td><label><input type="checkbox" name="is_active" value="1" <?php echo $row['is_active'] ? 'checked' : ''; ?>> 사용</label></td>
                         <td>
-                            <input type="hidden" name="sort_order" value="<?php echo (int) $row['sort_order']; ?>">
                             <button type="submit" class="btn">저장</button>
                         </td>
                     </form>
