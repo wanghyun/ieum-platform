@@ -229,7 +229,7 @@ $stops = sql_query("
 .top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}
 .wrap{max-width:1240px;margin:28px auto;padding:0 20px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px}
 h1{margin:0 0 8px;font-size:26px}.meta{color:#667085;margin-bottom:16px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}
-input,select{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid.route{display:grid;grid-template-columns:130px 1fr 120px 130px 130px 90px 90px 90px;gap:8px;align-items:center}.grid.stop{display:grid;grid-template-columns:110px 1fr 1.1fr 1.25fr 105px 80px 1.05fr 150px 80px 80px;gap:8px;align-items:center}.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.map-link{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:999px;background:#eef5ff;color:#1769c2;text-decoration:none;font-size:12px;font-weight:900}
+input,select{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid.route{display:grid;grid-template-columns:130px 1fr 120px 130px 130px 90px 90px 90px;gap:8px;align-items:center}.grid.stop{display:grid;grid-template-columns:110px 1fr 1.1fr 1.25fr 105px 80px 1.05fr 110px 150px 80px 80px;gap:8px;align-items:center}.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.map-link{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:999px;background:#eef5ff;color:#1769c2;text-decoration:none;font-size:12px;font-weight:900}.map-search{background:#eef5ff;border-color:#bfdbfe;color:#1769c2}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.print{background:#111827;border-color:#111827;color:#fff}
 table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}th{background:#72829d;color:#fff}.left{text-align:left}.muted{color:#667085;font-size:12px;line-height:1.45}.inactive{background:#fafafa;color:#8a94a6}.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 14px}
 @media(max-width:980px){.grid.route,.grid.stop{grid-template-columns:1fr}table{display:block;overflow-x:auto;white-space:nowrap}}
@@ -291,6 +291,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
             <input type="time" name="stop_time" value="14:10" required>
             <input type="number" name="sort_order" placeholder="순서" min="0">
             <input type="text" name="map_url" placeholder="지도 링크 선택" maxlength="255">
+            <button type="button" class="btn map-search">지도 검색</button>
             <div class="coord-grid">
                 <input type="text" name="map_lat" placeholder="위도">
                 <input type="text" name="map_lng" placeholder="경도">
@@ -323,6 +324,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
                     <td class="left">
                         <input type="text" name="stop_address" value="<?php echo get_text(isset($row['stop_address']) ? $row['stop_address'] : ''); ?>" maxlength="160" placeholder="주소 또는 참고 위치">
                         <input type="text" name="map_url" value="<?php echo get_text(isset($row['map_url']) ? $row['map_url'] : ''); ?>" maxlength="255" placeholder="지도 링크">
+                        <button type="button" class="btn map-search">지도 검색</button>
                         <div class="coord-grid">
                             <input type="text" name="map_lat" value="<?php echo get_text(isset($row['map_lat']) ? $row['map_lat'] : ''); ?>" placeholder="위도">
                             <input type="text" name="map_lng" value="<?php echo get_text(isset($row['map_lng']) ? $row['map_lng'] : ''); ?>" placeholder="경도">
@@ -389,5 +391,31 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
         </table>
     </section>
 </main>
+<script>
+(function () {
+    const buildMapSearchUrl = (form) => {
+        const name = form.querySelector('[name="stop_name"]');
+        const address = form.querySelector('[name="stop_address"]');
+        const query = ((address && address.value.trim()) || (name && name.value.trim()) || '').trim();
+        return query ? 'https://map.naver.com/v5/search/' + encodeURIComponent(query) : '';
+    };
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest('.map-search');
+        if (!button) return;
+        const form = button.closest('form');
+        if (!form) return;
+        const url = buildMapSearchUrl(form);
+        if (!url) {
+            alert('장소명 또는 주소를 먼저 입력하세요.');
+            return;
+        }
+        const mapInput = form.querySelector('[name="map_url"]');
+        if (mapInput && !mapInput.value.trim()) {
+            mapInput.value = url;
+        }
+        window.open(url, '_blank', 'noopener');
+    });
+})();
+</script>
 </body>
 </html>
