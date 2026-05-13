@@ -34,6 +34,7 @@ define('IEUM_TABLET_DEVICE_TABLE', 'ieum_tablet_devices');
 define('IEUM_HQ_BILLING_WALLET_TABLE', 'ieum_hq_billing_wallet');
 define('IEUM_HQ_BILLING_WALLET_LOG_TABLE', 'ieum_hq_billing_wallet_logs');
 define('IEUM_BILLING_SEND_LOG_TABLE', 'ieum_billing_send_logs');
+define('IEUM_MAP_SETTING_TABLE', 'ieum_map_settings');
 
 if (is_file(IEUM_PATH . '/config.php')) {
     require_once IEUM_PATH . '/config.php';

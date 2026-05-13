@@ -735,6 +735,22 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ieum_install_add_column_if_missing(IEUM_TUITION_SETTING_TABLE, 'bill_auto_include_arrears', 'tinyint(1) not null default 1 after bill_auto_send_scope');
 
     sql_query("
+        create table if not exists " . IEUM_MAP_SETTING_TABLE . " (
+            academy_id int unsigned not null,
+            provider varchar(30) not null default 'naver',
+            use_dynamic_map tinyint(1) not null default 0,
+            use_geocoding tinyint(1) not null default 0,
+            use_directions tinyint(1) not null default 0,
+            naver_client_id varchar(120) not null default '',
+            naver_client_secret varchar(160) not null default '',
+            naver_web_service_url varchar(255) not null default '',
+            memo varchar(255) not null default '',
+            updated_at datetime null,
+            primary key (academy_id)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
         insert into " . IEUM_STUDENT_TABLE . "
             set academy_id = 1,
                 student_code = '1001',

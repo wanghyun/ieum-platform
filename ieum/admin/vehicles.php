@@ -1,10 +1,12 @@
 <?php
 $sub_menu = '950180';
 require_once './_common.php';
+require_once IEUM_PATH . '/lib/maps.php';
 
 $g5['title'] = '아이이음 차량 관리';
 $academy = ieum_require_academy_page();
 $academy_id = (int) $academy['academy_id'];
+$map_settings = ieum_map_get_settings($academy_id);
 $message = '';
 $error = '';
 
@@ -237,6 +239,7 @@ input,select{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:1
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.print{background:#111827;border-color:#111827;color:#fff}
 table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}th{background:#72829d;color:#fff}.left{text-align:left}.muted{color:#667085;font-size:12px;line-height:1.45}.inactive{background:#fafafa;color:#8a94a6}.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 14px}
 .flow-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.flow-card{border:1px solid #d9e2f1;border-radius:10px;overflow:hidden;background:#fff}.flow-head{display:flex;justify-content:space-between;gap:10px;padding:12px 14px;background:#15204a;color:#fff;font-weight:900}.flow-head small{color:#cbd5e1}.flow-list{list-style:none;margin:0;padding:0}.flow-list li{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid #edf1f7}.flow-time{font-weight:900;color:#1769c2}.flow-name{font-weight:900}.flow-meta{display:block;margin-top:3px;color:#667085;font-size:12px}.flow-empty{padding:18px;color:#667085;text-align:center;background:#f8fafc}.flow-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef5ff;color:#1769c2;padding:4px 8px;font-size:12px;font-weight:900;text-decoration:none}
+.api-hint{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #bfdbfe;background:#eff6ff;border-radius:8px;padding:12px 14px;margin-bottom:18px;color:#344054}.api-hint strong{color:#1769c2}.api-hint a{flex:0 0 auto}
 @media(max-width:980px){.grid.route,.grid.stop{grid-template-columns:1fr}table{display:block;overflow-x:auto;white-space:nowrap}}
 @media(max-width:760px){.flow-grid{grid-template-columns:1fr}.flow-list li{grid-template-columns:60px 1fr}}
 </style>
@@ -249,6 +252,11 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
     <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 노선은 차량/기사 묶음, 운행 지점은 장소+시간+지도입니다. 학생은 픽업 지점과 하차 지점을 각각 선택합니다.</div>
     <?php if ($message) { ?><p class="notice ok"><?php echo get_text($message); ?></p><?php } ?>
     <?php if ($error) { ?><p class="notice err"><?php echo get_text($error); ?></p><?php } ?>
+
+    <div class="api-hint">
+        <div>현재 지도 방식: <strong><?php echo get_text(ieum_map_mode_label($map_settings)); ?></strong> · API 키가 없어도 지도 검색 링크로 운영할 수 있습니다.</div>
+        <a class="btn" href="<?php echo IEUM_URL; ?>/admin/map_settings.php">지도 API 설정</a>
+    </div>
 
     <section class="panel">
         <div class="section-title">
