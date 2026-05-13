@@ -811,17 +811,28 @@ $filter_program = isset($_GET['program_code']) ? ieum_program_code($_GET['progra
 $filter_grade = isset($_GET['grade_group']) ? preg_replace('/[^0-9A-Za-z_]/', '', trim($_GET['grade_group'])) : '';
 $filter_class_time_raw = isset($_GET['class_time_id']) ? trim($_GET['class_time_id']) : '';
 $filter_class_time_id = ctype_digit($filter_class_time_raw) ? (int) $filter_class_time_raw : 0;
+$filter_insight = isset($_GET['insight']) ? preg_replace('/[^0-9a-z_]/', '', trim($_GET['insight'])) : '';
+$insight_options = array(
+    '' => '전체 신호',
+    'birthday_month' => '이번 달 생일자',
+    'birthday_week' => '7일 이내 생일',
+    'long_absent' => '장기 미등원',
+);
+if (!isset($insight_options[$filter_insight])) {
+    $filter_insight = '';
+}
 $q_sql = sql_escape_string($q);
 
 function ieum_student_list_url($overrides = array())
 {
-    global $q, $filter_program, $filter_grade, $filter_class_time_raw;
+    global $q, $filter_program, $filter_grade, $filter_class_time_raw, $filter_insight;
 
     $params = array(
         'q' => $q,
         'program_code' => $filter_program,
         'grade_group' => $filter_grade,
         'class_time_id' => $filter_class_time_raw,
+        'insight' => $filter_insight,
     );
     foreach ($overrides as $key => $value) {
         $params[$key] = $value;
@@ -836,7 +847,37 @@ function ieum_student_list_url($overrides = array())
     return IEUM_URL . '/admin/students.php' . ($query ? '?' . $query : '');
 }
 
+function ieum_student_insight_where($alias, $insight, $today)
+{
+    $alias = preg_replace('/[^0-9A-Za-z_]/', '', $alias);
+    if ($alias === '') {
+        $alias = 's';
+    }
+    $today_sql = sql_escape_string($today);
+    if ($insight === 'birthday_month') {
+        return " and {$alias}.is_active = 1 and {$alias}.birth_date is not null and {$alias}.birth_date <> '0000-00-00' and month({$alias}.birth_date) = month('{$today_sql}') ";
+    }
+    if ($insight === 'birthday_week') {
+        return " and {$alias}.is_active = 1 and {$alias}.birth_date is not null and {$alias}.birth_date <> '0000-00-00' and str_to_date(concat(year('{$today_sql}'), date_format({$alias}.birth_date, '-%m-%d')), '%Y-%m-%d') between '{$today_sql}' and date_add('{$today_sql}', interval 7 day) ";
+    }
+    if ($insight === 'long_absent') {
+        return " and {$alias}.is_active = 1
+                 and coalesce({$alias}.admission_date, date({$alias}.created_at)) <= date_sub('{$today_sql}', interval 14 day)
+                 and not exists (
+                     select 1
+                       from " . IEUM_ATTENDANCE_TABLE . " ia
+                      where ia.academy_id = {$alias}.academy_id
+                        and ia.student_id = {$alias}.student_id
+                        and ia.attendance_date >= date_sub('{$today_sql}', interval 13 day)
+                 ) ";
+    }
+
+    return '';
+}
+
 ieum_refresh_student_auto_grades($academy_id);
+$insight_where = ieum_student_insight_where('s', $filter_insight, G5_TIME_YMD);
+$insight_where_ss = ieum_student_insight_where('ss', $filter_insight, G5_TIME_YMD);
 $where = " where 1 ";
 $where .= " and s.academy_id = '{$academy_id}' ";
 if ($q !== '') {
@@ -855,6 +896,7 @@ if ($filter_class_time_raw === 'unassigned') {
 } elseif ($filter_class_time_id) {
     $where .= " and s.class_time_id = '{$filter_class_time_id}' ";
 }
+$where .= $insight_where;
 
 $count_where_no_class = " where s.academy_id = '{$academy_id}' and s.is_active = 1 ";
 if ($q !== '') {
@@ -866,6 +908,7 @@ if ($filter_program !== '') {
 if ($filter_grade !== '') {
     $count_where_no_class .= " and s.grade_group = '{$filter_grade_sql}' ";
 }
+$count_where_no_class .= $insight_where;
 
 $count_where_no_program = " where s.academy_id = '{$academy_id}' and s.is_active = 1 ";
 if ($q !== '') {
@@ -879,6 +922,7 @@ if ($filter_class_time_raw === 'unassigned') {
 } elseif ($filter_class_time_id) {
     $count_where_no_program .= " and s.class_time_id = '{$filter_class_time_id}' ";
 }
+$count_where_no_program .= $insight_where;
 
 $students = sql_query("
     select s.*, c.class_name, c.start_time,
@@ -977,6 +1021,7 @@ $class_counts_result = sql_query("
               " . ($q !== '' ? " and (ss.student_code like '%{$q_sql}%' or ss.student_name like '%{$q_sql}%' or ss.student_phone like '%{$q_sql}%' or exists (select 1 from " . IEUM_STUDENT_GUARDIAN_TABLE . " g where g.student_id = ss.student_id and g.is_active = 1 and (g.guardian_name like '%{$q_sql}%' or g.guardian_phone like '%{$q_sql}%'))) " : "") . "
               " . ($filter_program !== '' ? " and ss.program_code = '{$filter_program_sql}' " : "") . "
               " . ($filter_grade !== '' ? " and ss.grade_group = '{$filter_grade_sql}' " : "") . "
+              {$insight_where_ss}
        )
      where c.academy_id = '{$academy_id}'
        and c.is_active = 1
@@ -1038,7 +1083,7 @@ textarea{min-height:82px;resize:vertical}
             <div class="count"><?php echo get_text($current_academy['academy_name']); ?></div>
             <div class="summary">
                 <span class="summary-label">전체/프로그램</span>
-                <a class="chip <?php echo ($filter_program === '' && $filter_class_time_raw === '' && $filter_grade === '' && $q === '') ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php">전체 학생 <?php echo number_format((int) $total_all['cnt']); ?>명</a>
+                <a class="chip <?php echo ($filter_program === '' && $filter_class_time_raw === '' && $filter_grade === '' && $filter_insight === '' && $q === '') ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php">전체 학생 <?php echo number_format((int) $total_all['cnt']); ?>명</a>
                 <?php foreach ($program_options as $program_option) {
                     $program_code = $program_option['program_code'];
                     $program_count = isset($program_counts[$program_code]) ? (int) $program_counts[$program_code] : 0;
@@ -1052,6 +1097,16 @@ textarea{min-height:82px;resize:vertical}
                 <?php while ($class_count = sql_fetch_array($class_counts_result)) { ?>
                 <a class="chip <?php echo $filter_class_time_id === (int) $class_count['class_time_id'] ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('class_time_id' => (int) $class_count['class_time_id']))); ?>">
                     <?php echo get_text($class_count['class_name'] . ' ' . $class_count['start_time']); ?> <?php echo number_format((int) $class_count['cnt']); ?>명
+                </a>
+                <?php } ?>
+                <span class="summary-label">자동 체크</span>
+                <?php foreach ($insight_options as $insight_value => $insight_label) {
+                    if ($insight_value === '') {
+                        continue;
+                    }
+                ?>
+                <a class="chip <?php echo $filter_insight === $insight_value ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('insight' => $insight_value))); ?>">
+                    <?php echo get_text($insight_label); ?>
                 </a>
                 <?php } ?>
             </div>
@@ -1508,10 +1563,18 @@ textarea{min-height:82px;resize:vertical}
                     </option>
                     <?php } ?>
                 </select>
+                <select name="insight">
+                    <?php foreach ($insight_options as $insight_value => $insight_label) { ?>
+                    <option value="<?php echo get_text($insight_value); ?>" <?php echo get_selected($filter_insight, $insight_value); ?>><?php echo get_text($insight_label); ?></option>
+                    <?php } ?>
+                </select>
                 <button type="submit" class="btn">검색</button>
-                <?php if ($q !== '' || $filter_program !== '' || $filter_grade !== '' || $filter_class_time_raw !== '') { ?><a class="btn muted" href="<?php echo IEUM_URL; ?>/admin/students.php">전체</a><?php } ?>
+                <?php if ($q !== '' || $filter_program !== '' || $filter_grade !== '' || $filter_class_time_raw !== '' || $filter_insight !== '') { ?><a class="btn muted" href="<?php echo IEUM_URL; ?>/admin/students.php">전체</a><?php } ?>
             </form>
         </div>
+        <?php if ($filter_insight !== '') { ?>
+        <p class="notice ok">자동 체크 목록: <?php echo get_text($insight_options[$filter_insight]); ?> 학생만 보고 있습니다.</p>
+        <?php } ?>
         <table>
             <thead>
             <tr>
@@ -1559,7 +1622,7 @@ textarea{min-height:82px;resize:vertical}
             <?php } ?>
             <?php if ($i === 0) { ?>
             <tr>
-                <td colspan="10">등록된 학생이 없습니다.</td>
+                <td colspan="11">등록된 학생이 없습니다.</td>
             </tr>
             <?php } ?>
             </tbody>

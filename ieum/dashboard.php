@@ -446,12 +446,12 @@ $birthday_students = sql_query("
             <a class="btn" href="<?php echo IEUM_URL; ?>/admin/operations.php">운영 지표 보기</a>
         </div>
         <div class="auto-grid">
-            <a class="auto-card <?php echo (int) $birthday_month_count['cnt'] ? 'warn' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php">
+            <a class="auto-card <?php echo (int) $birthday_month_count['cnt'] ? 'warn' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php?insight=birthday_month">
                 <span class="auto-label">이번 달 생일자</span>
                 <strong class="auto-number"><?php echo number_format((int) $birthday_month_count['cnt']); ?>명</strong>
                 <p>앞으로 7일 안에 생일인 학생은 <?php echo number_format((int) $birthday_upcoming_count['cnt']); ?>명입니다.</p>
             </a>
-            <a class="auto-card <?php echo (int) $long_absent_count['cnt'] ? 'danger' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/attendance_today.php">
+            <a class="auto-card <?php echo (int) $long_absent_count['cnt'] ? 'danger' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php?insight=long_absent">
                 <span class="auto-label">장기 미등원 신호</span>
                 <strong class="auto-number"><?php echo number_format((int) $long_absent_count['cnt']); ?>명</strong>
                 <p>최근 14일 이상 출석 기록이 없어 상담 확인이 필요한 학생입니다.</p>
