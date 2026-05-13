@@ -343,6 +343,7 @@ $summary = array(
     'dropoff_only' => 0,
     'none' => 0,
 );
+$summary_all = $summary;
 while ($row = sql_fetch_array($student_result)) {
     $has_pickup = !empty($row['pickup_route_id']) || !empty($row['pickup_stop_id']) || !empty($row['pickup_place_name']);
     $has_dropoff = !empty($row['dropoff_route_id']) || !empty($row['dropoff_stop_id']) || !empty($row['dropoff_place_name']);
@@ -356,14 +357,8 @@ while ($row = sql_fetch_array($student_result)) {
         $assignment_status = 'none';
     }
 
-    if ($filter_assignment !== '' && $assignment_status !== $filter_assignment) {
-        continue;
-    }
-
-    $row['assignment_status'] = $assignment_status;
-    $students[] = $row;
-    $summary['total']++;
-    $summary[$assignment_status]++;
+    $summary_all['total']++;
+    $summary_all[$assignment_status]++;
 
     $pickup_route_id = (int) $row['pickup_route_id'];
     if ($pickup_route_id && isset($route_summary[$pickup_route_id])) {
@@ -373,6 +368,15 @@ while ($row = sql_fetch_array($student_result)) {
     if ($dropoff_route_id && isset($route_summary[$dropoff_route_id])) {
         $route_summary[$dropoff_route_id]['dropoff']++;
     }
+
+    if ($filter_assignment !== '' && $assignment_status !== $filter_assignment) {
+        continue;
+    }
+
+    $row['assignment_status'] = $assignment_status;
+    $students[] = $row;
+    $summary['total']++;
+    $summary[$assignment_status]++;
 }
 
 $assignment_labels = array(
@@ -444,7 +448,7 @@ $assignment_labels = array(
                 $query = $_GET;
                 $query['assignment'] = $key;
             ?>
-            <a class="<?php echo $filter_assignment === $key ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/vehicle_assignments.php?<?php echo http_build_query($query); ?>"><?php echo get_text($label); ?> <?php echo number_format((int) $summary[$key]); ?>명</a>
+            <a class="<?php echo $filter_assignment === $key ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/vehicle_assignments.php?<?php echo http_build_query($query); ?>"><?php echo get_text($label); ?> <?php echo number_format((int) $summary_all[$key]); ?>명</a>
             <?php } ?>
         </div>
     </section>
