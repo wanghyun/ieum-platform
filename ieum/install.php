@@ -224,6 +224,21 @@ if (isset($_GET['run']) && $_GET['run'] === '1') {
     ");
 
     sql_query("
+        create table if not exists " . IEUM_DASHBOARD_SHORTCUT_TABLE . " (
+            shortcut_id int unsigned not null auto_increment,
+            academy_id int unsigned not null,
+            shortcut_key varchar(50) not null,
+            sort_order int unsigned not null default 0,
+            is_active tinyint(1) not null default 1,
+            created_at datetime not null,
+            updated_at datetime null,
+            primary key (shortcut_id),
+            unique key uq_academy_shortcut (academy_id, shortcut_key),
+            key idx_academy_sort (academy_id, is_active, sort_order)
+        ) engine={$engine} default charset={$charset}
+    ");
+
+    sql_query("
         create table if not exists " . IEUM_TABLET_DEVICE_TABLE . " (
             device_id int unsigned not null auto_increment,
             academy_id int unsigned not null,
