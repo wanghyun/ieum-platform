@@ -343,16 +343,17 @@ foreach ($stop_rows as $stop) {
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}
-.wrap{max-width:1240px;margin:28px auto;padding:0 20px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px}
+.wrap{max-width:1240px;margin:28px auto;padding:0 20px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px;overflow:hidden}
 h1{margin:0 0 8px;font-size:26px}.meta{color:#667085;margin-bottom:16px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}
-input,select{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid.route{display:grid;grid-template-columns:130px 1fr 120px 130px 130px 90px 90px 90px;gap:8px;align-items:center}.grid.stop{display:grid;grid-template-columns:110px 1fr 1.1fr 1.25fr 105px 80px 1.05fr 110px 150px 80px 80px;gap:8px;align-items:center}.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.map-link{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:999px;background:#eef5ff;color:#1769c2;text-decoration:none;font-size:12px;font-weight:900}.map-search{background:#eef5ff;border-color:#bfdbfe;color:#1769c2}
+input,select{width:100%;max-width:100%;min-width:0;border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid.route,.grid.stop{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:center}.grid.route input[name="route_name"],.grid.stop select[name="route_id"],.grid.stop input[name="stop_name"],.grid.stop input[name="stop_address"],.grid.stop input[name="map_url"],.grid.stop .coord-grid{grid-column:span 2}.grid.route label,.grid.stop label{display:flex;align-items:center;gap:6px;min-height:40px;white-space:nowrap}.grid.route label input,.grid.stop label input{width:auto;flex:0 0 auto}.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:0}.map-link{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:999px;background:#eef5ff;color:#1769c2;text-decoration:none;font-size:12px;font-weight:900}.map-search{background:#eef5ff;border-color:#bfdbfe;color:#1769c2}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.print{background:#111827;border-color:#111827;color:#fff}
-table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}th{background:#72829d;color:#fff}.left{text-align:left}.muted{color:#667085;font-size:12px;line-height:1.45}.inactive{background:#fafafa;color:#8a94a6}.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 14px}
+table{width:100%;min-width:980px;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}td input,td select{min-width:110px}td.left input{margin-bottom:6px}th{background:#72829d;color:#fff}.panel>table{display:block;overflow-x:auto;white-space:nowrap}.left{text-align:left}.muted{color:#667085;font-size:12px;line-height:1.45}.inactive{background:#fafafa;color:#8a94a6}.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 14px;flex-wrap:wrap}
 .flow-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.flow-card{border:1px solid #d9e2f1;border-radius:10px;overflow:hidden;background:#fff}.flow-head{display:flex;justify-content:space-between;gap:10px;padding:12px 14px;background:#15204a;color:#fff;font-weight:900}.flow-head small{color:#cbd5e1}.flow-list{list-style:none;margin:0;padding:0}.flow-list li{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid #edf1f7}.flow-time{font-weight:900;color:#1769c2}.flow-name{font-weight:900}.flow-meta{display:block;margin-top:3px;color:#667085;font-size:12px}.flow-empty{padding:18px;color:#667085;text-align:center;background:#f8fafc}.flow-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef5ff;color:#1769c2;padding:4px 8px;font-size:12px;font-weight:900;text-decoration:none}
 .api-hint{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #bfdbfe;background:#eff6ff;border-radius:8px;padding:12px 14px;margin-bottom:18px;color:#344054}.api-hint strong{color:#1769c2}.api-hint a{flex:0 0 auto}
-.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.summary-card{border:1px solid #d9e2f1;border-radius:10px;background:#fff;padding:14px}.summary-card .label{color:#667085;font-size:13px;font-weight:800}.summary-card strong{display:block;margin-top:6px;font-size:24px}.summary-card small{display:block;margin-top:4px;color:#667085}.order-actions{display:flex;gap:4px;justify-content:center}.order-actions form{display:inline}.mini{min-height:30px;padding:4px 8px;font-size:13px}.section-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-@media(max-width:980px){.grid.route,.grid.stop{grid-template-columns:1fr}table{display:block;overflow-x:auto;white-space:nowrap}}
-@media(max-width:760px){.flow-grid,.summary-grid{grid-template-columns:1fr}.flow-list li{grid-template-columns:60px 1fr}}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:18px}.summary-card{border:1px solid #d9e2f1;border-radius:10px;background:#fff;padding:14px;min-width:0}.summary-card .label{color:#667085;font-size:13px;font-weight:800}.summary-card strong{display:block;margin-top:6px;font-size:22px;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere}.summary-card small{display:block;margin-top:4px;color:#667085}.order-actions{display:flex;gap:4px;justify-content:center}.order-actions form{display:inline}.mini{min-height:30px;padding:4px 8px;font-size:13px}.section-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.table-wrap{width:100%;overflow-x:auto}
+@media(max-width:980px){.grid.route,.grid.stop{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}.grid.route input[name="route_name"],.grid.stop select[name="route_id"],.grid.stop input[name="stop_name"],.grid.stop input[name="stop_address"],.grid.stop input[name="map_url"],.grid.stop .coord-grid{grid-column:auto}table{white-space:nowrap}.section-title{align-items:flex-start;flex-direction:column}}
+@media(max-width:1100px){.panel>table.vehicle-stop-table,.panel>table.vehicle-route-table{display:block;min-width:0;overflow:visible;white-space:normal}.vehicle-stop-table thead,.vehicle-route-table thead{display:none}.vehicle-stop-table tbody,.vehicle-route-table tbody{display:block}.vehicle-stop-table tr,.vehicle-route-table tr{display:block;border:1px solid #d8dee9;border-radius:10px;margin-bottom:12px;padding:10px;background:#fff}.vehicle-stop-table tr.inactive,.vehicle-route-table tr.inactive{background:#fafafa}.vehicle-stop-table td,.vehicle-route-table td{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;align-items:center;border:0;border-top:1px solid #edf1f7;text-align:left;padding:10px 0}.vehicle-stop-table td:first-child,.vehicle-route-table td:first-child{border-top:0}.vehicle-stop-table td:before,.vehicle-route-table td:before{content:attr(data-label);font-size:13px;font-weight:900;color:#667085}.vehicle-stop-table td input,.vehicle-stop-table td select,.vehicle-route-table td input,.vehicle-route-table td select{min-width:0}.vehicle-stop-table .order-actions,.vehicle-route-table .order-actions{justify-content:flex-start}}
+@media(max-width:760px){.flow-grid,.summary-grid{grid-template-columns:1fr}.flow-list li{grid-template-columns:60px 1fr}.api-hint{align-items:flex-start;flex-direction:column}.api-hint a{width:100%}}
 </style>
 </head>
 <body>
@@ -500,7 +501,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
 
     <section class="panel">
         <h2>운행 지점</h2>
-        <table>
+        <table class="vehicle-stop-table">
             <thead><tr><th>구분</th><th>시간</th><th>장소</th><th>주소/지도</th><th>노선</th><th>차량</th><th>순서</th><th>이동</th><th>상태</th><th>수정</th></tr></thead>
             <tbody>
             <?php $i = 0; foreach ($stop_rows as $row) { $i++; ?>
@@ -509,16 +510,16 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
                     <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                     <input type="hidden" name="action" value="save_stop">
                     <input type="hidden" name="stop_id" value="<?php echo (int) $row['stop_id']; ?>">
-                    <td>
+                    <td data-label="구분">
                         <select name="stop_type">
                             <?php foreach (ieum_stop_type_options() as $value => $label) { ?>
                             <option value="<?php echo get_text($value); ?>" <?php echo get_selected($row['stop_type'], $value); ?>><?php echo get_text($label); ?></option>
                             <?php } ?>
                         </select>
                     </td>
-                    <td><input type="time" name="stop_time" value="<?php echo get_text($row['stop_time']); ?>"></td>
-                    <td><input type="text" name="stop_name" value="<?php echo get_text($row['stop_name']); ?>" maxlength="100"></td>
-                    <td class="left">
+                    <td data-label="시간"><input type="time" name="stop_time" value="<?php echo get_text($row['stop_time']); ?>"></td>
+                    <td data-label="장소"><input type="text" name="stop_name" value="<?php echo get_text($row['stop_name']); ?>" maxlength="100"></td>
+                    <td class="left" data-label="주소/지도">
                         <input type="text" name="stop_address" value="<?php echo get_text(isset($row['stop_address']) ? $row['stop_address'] : ''); ?>" maxlength="160" placeholder="주소 또는 참고 위치">
                         <input type="text" name="map_url" value="<?php echo get_text(isset($row['map_url']) ? $row['map_url'] : ''); ?>" maxlength="255" placeholder="지도 링크">
                         <button type="button" class="btn map-search">지도 검색</button>
@@ -530,7 +531,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
                         <a class="map-link" href="<?php echo get_text($map_href); ?>" target="_blank" rel="noopener">지도 확인</a>
                         <?php } ?>
                     </td>
-                    <td>
+                    <td data-label="노선">
                         <select name="route_id">
                             <option value="0">노선 선택 안함</option>
                             <?php foreach ($route_options as $route) { ?>
@@ -538,16 +539,16 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
                             <?php } ?>
                         </select>
                     </td>
-                    <td><?php echo get_text($row['vehicle_label']); ?></td>
-                    <td><input type="number" name="sort_order" value="<?php echo (int) $row['sort_order']; ?>" min="0"></td>
-                    <td>
+                    <td data-label="차량"><?php echo get_text($row['vehicle_label']); ?></td>
+                    <td data-label="순서"><input type="number" name="sort_order" value="<?php echo (int) $row['sort_order']; ?>" min="0"></td>
+                    <td data-label="이동">
                         <div class="order-actions">
                             <button type="submit" class="btn mini" form="move-up-<?php echo (int) $row['stop_id']; ?>">↑</button>
                             <button type="submit" class="btn mini" form="move-down-<?php echo (int) $row['stop_id']; ?>">↓</button>
                         </div>
                     </td>
-                    <td><label><input type="checkbox" name="is_active" value="1" <?php echo $row['is_active'] ? 'checked' : ''; ?>> 사용</label></td>
-                    <td>
+                    <td data-label="상태"><label><input type="checkbox" name="is_active" value="1" <?php echo $row['is_active'] ? 'checked' : ''; ?>> 사용</label></td>
+                    <td data-label="수정">
                         <button type="submit" class="btn">저장</button>
                     </td>
                 </form>
@@ -572,7 +573,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
 
     <section class="panel">
         <h2>노선</h2>
-        <table>
+        <table class="vehicle-route-table">
             <thead><tr><th>구분</th><th>노선명</th><th>차량</th><th>담당</th><th>연락처</th><th>배정 학생</th><th>상태</th><th>수정</th></tr></thead>
             <tbody>
             <?php $i = 0; while ($row = sql_fetch_array($routes)) { $i++; ?>
@@ -582,20 +583,20 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
                         <input type="hidden" name="action" value="save_route">
                         <input type="hidden" name="route_id" value="<?php echo (int) $row['route_id']; ?>">
                         <input type="hidden" name="sort_order" value="<?php echo (int) $row['sort_order']; ?>">
-                        <td>
+                        <td data-label="구분">
                             <select name="route_type">
                                 <?php foreach (ieum_vehicle_type_options() as $value => $label) { ?>
                                 <option value="<?php echo get_text($value); ?>" <?php echo get_selected($row['route_type'], $value); ?>><?php echo get_text($label); ?></option>
                                 <?php } ?>
                             </select>
                         </td>
-                        <td><input type="text" name="route_name" value="<?php echo get_text($row['route_name']); ?>" maxlength="80"></td>
-                        <td><input type="text" name="vehicle_label" value="<?php echo get_text($row['vehicle_label']); ?>" maxlength="50"></td>
-                        <td><input type="text" name="driver_name" value="<?php echo get_text($row['driver_name']); ?>" maxlength="50"></td>
-                        <td><input type="text" name="driver_phone" value="<?php echo get_text($row['driver_phone']); ?>" maxlength="30"></td>
-                        <td><?php echo number_format((int) $row['student_count']); ?>명</td>
-                        <td><label><input type="checkbox" name="is_active" value="1" <?php echo $row['is_active'] ? 'checked' : ''; ?>> 사용</label></td>
-                        <td>
+                        <td data-label="노선명"><input type="text" name="route_name" value="<?php echo get_text($row['route_name']); ?>" maxlength="80"></td>
+                        <td data-label="차량"><input type="text" name="vehicle_label" value="<?php echo get_text($row['vehicle_label']); ?>" maxlength="50"></td>
+                        <td data-label="담당"><input type="text" name="driver_name" value="<?php echo get_text($row['driver_name']); ?>" maxlength="50"></td>
+                        <td data-label="연락처"><input type="text" name="driver_phone" value="<?php echo get_text($row['driver_phone']); ?>" maxlength="30"></td>
+                        <td data-label="배정 학생"><?php echo number_format((int) $row['student_count']); ?>명</td>
+                        <td data-label="상태"><label><input type="checkbox" name="is_active" value="1" <?php echo $row['is_active'] ? 'checked' : ''; ?>> 사용</label></td>
+                        <td data-label="수정">
                             <button type="submit" class="btn">저장</button>
                         </td>
                     </form>
