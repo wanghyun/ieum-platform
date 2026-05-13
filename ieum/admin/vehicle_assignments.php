@@ -8,6 +8,7 @@ $academy = ieum_require_academy_page();
 $academy_id = (int) $academy['academy_id'];
 $message = '';
 $error = '';
+$journal_link = '';
 
 function ieum_vehicle_assign_grade_label($value)
 {
@@ -230,6 +231,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($skipped > 0) {
                 $message .= ' 이미 배정된 ' . number_format($skipped) . '명은 건너뛰었습니다.';
             }
+            if ($saved > 0) {
+                $journal_link = IEUM_URL . '/admin/vehicle_journal.php?ride_type=' . $ride_type . '&route_id=' . $route_id;
+            }
         }
     }
 }
@@ -347,7 +351,7 @@ $assignment_labels = array(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:22px}.meta{color:#667085;margin-top:6px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn,select,input[type=text]{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:800}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.btn.subtle{background:#f8fafc}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;margin-bottom:18px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.notice{border-radius:8px;padding:12px 14px;margin-bottom:14px;font-weight:800}.notice.ok{background:#eef9f1;color:#176b2c}.notice.err{background:#fdecec;color:#a4262c}.filter,.bulk{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.bulk{background:#f8fafc;border:1px solid #d9dee7;border-radius:8px;padding:12px;margin-bottom:14px}.bulk input[type=text]{min-width:220px;flex:1}.bulk .check{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:8px 10px;border:1px solid #d9dee7;border-radius:8px;background:#fff;font-weight:800}.bulk-hint{width:100%;color:#667085;font-size:13px}.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:18px}.card{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:16px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.card span{display:block;color:#667085;font-size:13px;font-weight:800}.card strong{display:block;margin-top:5px;font-size:28px}.card.warn{border-color:#f4c27a;background:#fffaf0}.route-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.route-card{border:1px solid #d9dee7;border-radius:8px;padding:14px;background:#fff}.route-card h3{margin:0 0 8px;font-size:17px}.route-card .muted{color:#667085;font-size:13px}.route-counts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.route-counts div{border-radius:8px;background:#f4f7fb;padding:10px}.route-counts span{display:block;color:#667085;font-size:12px;font-weight:800}.route-counts strong{font-size:22px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:1020px}th,td{border:1px solid #d8dee9;padding:10px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.pick-col{width:42px}.badge{display:inline-flex;align-items:center;justify-content:center;min-width:76px;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900}.badge.both{background:#e8f5ef;color:#087443}.badge.pickup_only{background:#eaf2ff;color:#1769c2}.badge.dropoff_only{background:#fff4e5;color:#9a5b00}.badge.none{background:#feecec;color:#a4262c}.student-name{font-weight:900}.sub{display:block;color:#667085;font-size:12px;margin-top:3px}.vehicle-text{font-weight:800}.vehicle-memo{display:block;color:#667085;font-size:12px;margin-top:3px}.empty{padding:28px;text-align:center;color:#667085}.quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.quick a{display:inline-flex;border:1px solid #d9dee7;border-radius:999px;padding:6px 10px;text-decoration:none;color:#344054;background:#f8fafc;font-size:13px;font-weight:800}.quick a.active{background:#1769c2;border-color:#1769c2;color:#fff}@media(max-width:980px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.route-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.wrap{padding:0 14px}.cards,.route-grid{grid-template-columns:1fr}.hero{align-items:flex-start}.actions .btn{width:100%}.filter select,.filter .btn,.bulk select,.bulk input,.bulk .btn{width:100%}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:22px}.meta{color:#667085;margin-top:6px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn,select,input[type=text]{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:800}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.btn.subtle{background:#f8fafc}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;margin-bottom:18px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.notice{border-radius:8px;padding:12px 14px;margin-bottom:14px;font-weight:800}.notice.ok{background:#eef9f1;color:#176b2c}.notice.err{background:#fdecec;color:#a4262c}.notice .btn{margin-left:8px;min-height:32px;padding:5px 10px}.filter,.bulk{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.bulk{background:#f8fafc;border:1px solid #d9dee7;border-radius:8px;padding:12px;margin-bottom:14px}.bulk input[type=text]{min-width:220px;flex:1}.bulk .check{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:8px 10px;border:1px solid #d9dee7;border-radius:8px;background:#fff;font-weight:800}.bulk-tools{width:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.selected-count{margin-left:auto;color:#1769c2;font-weight:900}.bulk-hint{width:100%;color:#667085;font-size:13px}.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:18px}.card{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:16px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.card span{display:block;color:#667085;font-size:13px;font-weight:800}.card strong{display:block;margin-top:5px;font-size:28px}.card.warn{border-color:#f4c27a;background:#fffaf0}.route-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.route-card{border:1px solid #d9dee7;border-radius:8px;padding:14px;background:#fff}.route-card h3{margin:0 0 8px;font-size:17px}.route-card .muted{color:#667085;font-size:13px}.route-counts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.route-counts div{border-radius:8px;background:#f4f7fb;padding:10px}.route-counts span{display:block;color:#667085;font-size:12px;font-weight:800}.route-counts strong{font-size:22px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:1020px}th,td{border:1px solid #d8dee9;padding:10px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.pick-col{width:42px}.badge{display:inline-flex;align-items:center;justify-content:center;min-width:76px;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900}.badge.both{background:#e8f5ef;color:#087443}.badge.pickup_only{background:#eaf2ff;color:#1769c2}.badge.dropoff_only{background:#fff4e5;color:#9a5b00}.badge.none{background:#feecec;color:#a4262c}.student-name{font-weight:900}.sub{display:block;color:#667085;font-size:12px;margin-top:3px}.vehicle-text{font-weight:800}.vehicle-memo{display:block;color:#667085;font-size:12px;margin-top:3px}.empty{padding:28px;text-align:center;color:#667085}.quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.quick a{display:inline-flex;border:1px solid #d9dee7;border-radius:999px;padding:6px 10px;text-decoration:none;color:#344054;background:#f8fafc;font-size:13px;font-weight:800}.quick a.active{background:#1769c2;border-color:#1769c2;color:#fff}@media(max-width:980px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.route-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.selected-count{margin-left:0;width:100%}}@media(max-width:620px){.wrap{padding:0 14px}.cards,.route-grid{grid-template-columns:1fr}.hero{align-items:flex-start}.actions .btn{width:100%}.filter select,.filter .btn,.bulk select,.bulk input,.bulk .btn{width:100%}.notice .btn{margin:8px 0 0;width:100%}}
 </style>
 </head>
 <body>
@@ -365,7 +369,7 @@ $assignment_labels = array(
             <a class="btn primary" href="<?php echo IEUM_URL; ?>/admin/students.php">학생 관리</a>
         </div>
     </div>
-    <?php if ($message !== '') { ?><div class="notice ok"><?php echo get_text($message); ?></div><?php } ?>
+    <?php if ($message !== '') { ?><div class="notice ok"><?php echo get_text($message); ?><?php if ($journal_link !== '') { ?><a class="btn" href="<?php echo get_text($journal_link); ?>">차량 일지 확인</a><?php } ?></div><?php } ?>
     <?php if ($error !== '') { ?><div class="notice err"><?php echo get_text($error); ?></div><?php } ?>
 
     <section class="panel">
@@ -454,6 +458,11 @@ $assignment_labels = array(
             <input type="text" name="bulk_memo" placeholder="차량 메모 선택 입력">
             <label class="check"><input type="checkbox" name="overwrite_existing" value="1"> 기존 배정 덮어쓰기</label>
             <button type="submit" class="btn primary">선택 학생 일괄 배정</button>
+            <div class="bulk-tools">
+                <button type="button" class="btn subtle" id="selectNoneStudents">미배정만 선택</button>
+                <button type="button" class="btn subtle" id="clearSelectedStudents">선택 해제</button>
+                <span class="selected-count" id="selectedStudentCount">선택 0명</span>
+            </div>
             <div class="bulk-hint">기본은 이미 배정된 학생을 건너뜁니다. 연락처와 차량 요일은 학생 정보의 학생 연락처/출석 요일을 자동으로 가져옵니다.</div>
         </div>
         <div class="table-wrap">
@@ -477,7 +486,7 @@ $assignment_labels = array(
                         $class_label = trim(($row['class_name'] ?: '') . ' ' . ($row['class_start_time'] ?: ''));
                     ?>
                     <tr>
-                        <td><input type="checkbox" name="student_ids[]" value="<?php echo (int) $row['student_id']; ?>" class="student-check" aria-label="<?php echo get_text($row['student_name']); ?> 선택"></td>
+                        <td><input type="checkbox" name="student_ids[]" value="<?php echo (int) $row['student_id']; ?>" class="student-check" data-status="<?php echo get_text($status); ?>" aria-label="<?php echo get_text($row['student_name']); ?> 선택"></td>
                         <td><span class="badge <?php echo get_text($status); ?>"><?php echo get_text($assignment_labels[$status]); ?></span></td>
                         <td class="left">
                             <span class="student-name"><?php echo get_text($row['student_name']); ?></span>
@@ -509,9 +518,38 @@ $assignment_labels = array(
 (function(){
     var checkAll = document.getElementById('checkAllStudents');
     var checks = document.querySelectorAll('.student-check');
+    var selectedCount = document.getElementById('selectedStudentCount');
+    function updateSelectedCount() {
+        if (!selectedCount) {
+            return;
+        }
+        var count = 0;
+        checks.forEach(function(check){ if (check.checked) { count++; } });
+        selectedCount.textContent = '선택 ' + count + '명';
+    }
     if (checkAll) {
         checkAll.addEventListener('change', function(){
             checks.forEach(function(check){ check.checked = checkAll.checked; });
+            updateSelectedCount();
+        });
+    }
+    checks.forEach(function(check){
+        check.addEventListener('change', updateSelectedCount);
+    });
+    var selectNone = document.getElementById('selectNoneStudents');
+    if (selectNone) {
+        selectNone.addEventListener('click', function(){
+            checks.forEach(function(check){ check.checked = check.getAttribute('data-status') === 'none'; });
+            if (checkAll) { checkAll.checked = false; }
+            updateSelectedCount();
+        });
+    }
+    var clearSelected = document.getElementById('clearSelectedStudents');
+    if (clearSelected) {
+        clearSelected.addEventListener('click', function(){
+            checks.forEach(function(check){ check.checked = false; });
+            if (checkAll) { checkAll.checked = false; }
+            updateSelectedCount();
         });
     }
 
@@ -534,6 +572,23 @@ $assignment_labels = array(
         rideType.addEventListener('change', filterStops);
         filterStops();
     }
+    var bulkForm = document.getElementById('bulkAssignForm');
+    if (bulkForm) {
+        bulkForm.addEventListener('submit', function(event){
+            var checked = 0;
+            checks.forEach(function(check){ if (check.checked) { checked++; } });
+            if (checked === 0) {
+                event.preventDefault();
+                alert('배정할 학생을 선택하세요.');
+                return;
+            }
+            if (stopSelect && stopSelect.value === '0') {
+                event.preventDefault();
+                alert('배정할 정류장을 선택하세요.');
+            }
+        });
+    }
+    updateSelectedCount();
 })();
 </script>
 </body>
