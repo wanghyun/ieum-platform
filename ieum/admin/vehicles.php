@@ -217,6 +217,10 @@ $stops = sql_query("
      where s.academy_id = '{$academy_id}'
   order by s.is_active desc, field(s.stop_type, 'pickup', 'dropoff'), r.sort_order asc, s.sort_order asc, s.stop_time asc, s.stop_name asc
 ", false);
+$stop_rows = array();
+while ($stop = sql_fetch_array($stops)) {
+    $stop_rows[] = $stop;
+}
 ?>
 <!doctype html>
 <html lang="ko">
@@ -232,7 +236,9 @@ h1{margin:0 0 8px;font-size:26px}.meta{color:#667085;margin-bottom:16px}.notice{
 input,select{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid.route{display:grid;grid-template-columns:130px 1fr 120px 130px 130px 90px 90px 90px;gap:8px;align-items:center}.grid.stop{display:grid;grid-template-columns:110px 1fr 1.1fr 1.25fr 105px 80px 1.05fr 110px 150px 80px 80px;gap:8px;align-items:center}.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.map-link{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:999px;background:#eef5ff;color:#1769c2;text-decoration:none;font-size:12px;font-weight:900}.map-search{background:#eef5ff;border-color:#bfdbfe;color:#1769c2}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.print{background:#111827;border-color:#111827;color:#fff}
 table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}th{background:#72829d;color:#fff}.left{text-align:left}.muted{color:#667085;font-size:12px;line-height:1.45}.inactive{background:#fafafa;color:#8a94a6}.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 14px}
+.flow-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.flow-card{border:1px solid #d9e2f1;border-radius:10px;overflow:hidden;background:#fff}.flow-head{display:flex;justify-content:space-between;gap:10px;padding:12px 14px;background:#15204a;color:#fff;font-weight:900}.flow-head small{color:#cbd5e1}.flow-list{list-style:none;margin:0;padding:0}.flow-list li{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid #edf1f7}.flow-time{font-weight:900;color:#1769c2}.flow-name{font-weight:900}.flow-meta{display:block;margin-top:3px;color:#667085;font-size:12px}.flow-empty{padding:18px;color:#667085;text-align:center;background:#f8fafc}.flow-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef5ff;color:#1769c2;padding:4px 8px;font-size:12px;font-weight:900;text-decoration:none}
 @media(max-width:980px){.grid.route,.grid.stop{grid-template-columns:1fr}table{display:block;overflow-x:auto;white-space:nowrap}}
+@media(max-width:760px){.flow-grid{grid-template-columns:1fr}.flow-list li{grid-template-columns:60px 1fr}}
 </style>
 </head>
 <body>
@@ -302,11 +308,59 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
     </section>
 
     <section class="panel">
+        <h2>노선별 운행 동선</h2>
+        <div class="flow-grid">
+            <?php
+            $flow_groups = array();
+            foreach ($stop_rows as $row) {
+                if (!(int) $row['is_active']) {
+                    continue;
+                }
+                $group_key = $row['stop_type'] . '|' . (int) $row['route_id'];
+                if (!isset($flow_groups[$group_key])) {
+                    $flow_groups[$group_key] = array(
+                        'stop_type' => $row['stop_type'],
+                        'route_name' => $row['route_name'] ?: '노선 미지정',
+                        'vehicle_label' => $row['vehicle_label'],
+                        'items' => array(),
+                    );
+                }
+                $flow_groups[$group_key]['items'][] = $row;
+            }
+            ?>
+            <?php if (empty($flow_groups)) { ?>
+            <div class="flow-empty">등록된 운행 동선이 없습니다.</div>
+            <?php } ?>
+            <?php foreach ($flow_groups as $flow) { ?>
+            <article class="flow-card">
+                <div class="flow-head">
+                    <span><?php echo get_text(($flow['stop_type'] === 'pickup' ? '픽업' : '하차') . ' · ' . $flow['route_name']); ?></span>
+                    <small><?php echo get_text($flow['vehicle_label']); ?></small>
+                </div>
+                <ol class="flow-list">
+                    <?php foreach ($flow['items'] as $item) { ?>
+                    <?php $map_href = ieum_vehicle_map_href($item); ?>
+                    <li>
+                        <span class="flow-time"><?php echo get_text($item['stop_time']); ?></span>
+                        <span>
+                            <span class="flow-name"><?php echo get_text($item['stop_name']); ?></span>
+                            <?php if (!empty($item['stop_address'])) { ?><span class="flow-meta"><?php echo get_text($item['stop_address']); ?></span><?php } ?>
+                        </span>
+                        <?php if ($map_href !== '') { ?><a class="flow-badge" href="<?php echo get_text($map_href); ?>" target="_blank" rel="noopener">지도</a><?php } ?>
+                    </li>
+                    <?php } ?>
+                </ol>
+            </article>
+            <?php } ?>
+        </div>
+    </section>
+
+    <section class="panel">
         <h2>운행 지점</h2>
         <table>
             <thead><tr><th>구분</th><th>시간</th><th>장소</th><th>주소/지도</th><th>노선</th><th>차량</th><th>순서</th><th>상태</th><th>수정</th></tr></thead>
             <tbody>
-            <?php $i = 0; while ($row = sql_fetch_array($stops)) { $i++; ?>
+            <?php $i = 0; foreach ($stop_rows as $row) { $i++; ?>
             <tr class="<?php echo $row['is_active'] ? '' : 'inactive'; ?>">
                 <form method="post">
                     <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
