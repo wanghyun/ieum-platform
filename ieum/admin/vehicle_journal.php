@@ -179,20 +179,23 @@ $rows = sql_query("
             main.classList.remove('is-loading');
         }
     };
+    const buildFormUrl = (form) => {
+        const url = new URL(form.action || window.location.href, window.location.href);
+        url.search = new URLSearchParams(new FormData(form)).toString();
+        return url.toString();
+    };
     main.addEventListener('submit', (event) => {
         const form = event.target.closest('form.filter');
         if (!form || String(form.method || 'get').toLowerCase() !== 'get') return;
         event.preventDefault();
-        const url = form.action || window.location.pathname;
-        loadView(url + '?' + new URLSearchParams(new FormData(form)).toString(), true);
+        loadView(buildFormUrl(form), true);
     });
     main.addEventListener('change', (event) => {
         const control = event.target.closest('form.filter input, form.filter select');
         if (!control) return;
         const form = control.form;
         if (!form) return;
-        const url = form.action || window.location.pathname;
-        loadView(url + '?' + new URLSearchParams(new FormData(form)).toString(), true);
+        loadView(buildFormUrl(form), true);
     });
     window.addEventListener('popstate', () => loadView(window.location.href, false));
 })();
