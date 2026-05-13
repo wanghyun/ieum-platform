@@ -137,6 +137,31 @@ $student = sql_fetch("
        and is_active = 1
 ", false);
 
+$active_programs = sql_fetch("
+    select count(*) as cnt
+      from " . IEUM_ACADEMY_PROGRAM_TABLE . "
+     where academy_id = '{$academy_id}'
+       and is_active = 1
+", false);
+
+$class_times = sql_fetch("
+    select count(*) as cnt
+      from " . IEUM_CLASS_TIME_TABLE . "
+     where academy_id = '{$academy_id}'
+       and is_active = 1
+", false);
+
+$student_guardians = sql_fetch("
+    select count(distinct g.student_id) as cnt
+      from " . IEUM_STUDENT_GUARDIAN_TABLE . " g
+      join " . IEUM_STUDENT_TABLE . " s on s.student_id = g.student_id
+       and s.academy_id = g.academy_id
+       and s.is_active = 1
+     where g.academy_id = '{$academy_id}'
+       and g.is_active = 1
+       and g.guardian_phone <> ''
+", false);
+
 $tablet_devices = sql_fetch("
     select count(*) as cnt
       from " . IEUM_TABLET_DEVICE_TABLE . "
@@ -150,7 +175,53 @@ $total_attendance = sql_fetch("
      where academy_id = '{$academy_id}'
 ", false);
 
-$show_onboarding_flow = (int) $student['cnt'] === 0 || (int) $tablet_devices['cnt'] === 0 || (int) $total_attendance['cnt'] === 0;
+$tuition_plans = sql_fetch("
+    select count(*) as cnt
+      from " . IEUM_TUITION_PLAN_TABLE . "
+     where academy_id = '{$academy_id}'
+       and is_active = 1
+       and monthly_fee > 0
+", false);
+
+$onboarding_steps = array(
+    array(
+        'done' => (int) $active_programs['cnt'] > 0 && (int) $class_times['cnt'] > 0,
+        'label' => '수업 기본 설정',
+        'desc' => '프로그램과 수업 부를 먼저 잡습니다.',
+        'url' => IEUM_URL . '/admin/class_times.php',
+    ),
+    array(
+        'done' => (int) $student['cnt'] > 0 && (int) $student_guardians['cnt'] > 0,
+        'label' => '학생/보호자 등록',
+        'desc' => '학생번호와 문자 받을 보호자를 등록합니다.',
+        'url' => IEUM_URL . '/admin/students.php?mode=form',
+    ),
+    array(
+        'done' => (int) $tablet_devices['cnt'] > 0,
+        'label' => '출석기 연결',
+        'desc' => '도장 코드와 PIN으로 태블릿 앱을 연결합니다.',
+        'url' => IEUM_URL . '/admin/tablet_devices.php',
+    ),
+    array(
+        'done' => (int) $total_attendance['cnt'] > 0,
+        'label' => '첫 출석 테스트',
+        'desc' => '학생번호 입력 후 출석 저장과 문자 큐를 확인합니다.',
+        'url' => IEUM_URL . '/admin/attendance_today.php',
+    ),
+    array(
+        'done' => (int) $tuition_plans['cnt'] > 0,
+        'label' => '수련비 정책',
+        'desc' => '주 횟수별 금액과 납부일 기본값을 설정합니다.',
+        'url' => IEUM_URL . '/admin/tuition.php',
+    ),
+);
+$onboarding_done_count = 0;
+foreach ($onboarding_steps as $step) {
+    if (!empty($step['done'])) {
+        $onboarding_done_count++;
+    }
+}
+$show_onboarding_flow = $onboarding_done_count < count($onboarding_steps);
 
 $attendance = sql_fetch("
     select count(*) as cnt
@@ -383,7 +454,7 @@ $birthday_students = sql_query("
 .vehicle-overview{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:10px;align-items:center;margin-bottom:18px}.vehicle-pill{border:1px solid #d9dee7;border-radius:8px;background:#fff;padding:13px}.vehicle-pill strong{display:block;font-size:24px}.vehicle-pill span{display:block;color:#667085;font-size:13px;margin-top:4px}.vehicle-pill.warn{border-color:#f4c27a;background:#fffaf0}.vehicle-pill.danger{border-color:#efb2b2;background:#fff5f5}.vehicle-actions{display:grid;gap:8px}.vehicle-note-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.vehicle-note-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f7;color:#344054;padding:4px 7px;font-size:12px;font-weight:900;white-space:nowrap}.vehicle-note-meta{display:grid;gap:3px;margin-top:8px}.vehicle-note .memo-line{color:#111827;font-weight:800}.vehicle-note.self{border-color:#bfdbfe;background:#f7fbff}@media(max-width:900px){.vehicle-overview{grid-template-columns:1fr 1fr}.vehicle-actions{grid-column:1/-1}}@media(max-width:520px){.vehicle-overview{grid-template-columns:1fr}.vehicle-note-head{display:grid}}
 </style>
 <style>
-.daily-focus{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-bottom:18px}.focus-panel{background:#fff;border:1px solid #d9dee7;border-radius:12px;padding:18px;box-shadow:0 10px 24px rgba(15,23,42,.06)}.focus-panel h2{margin-bottom:6px}.focus-copy{color:#667085;margin:0 0 14px;line-height:1.45}.focus-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.focus-action{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #d9dee7;border-radius:10px;background:#fff;color:#111827;text-decoration:none;padding:14px}.focus-action:hover{border-color:#9bb7df;background:#f8fbff}.focus-action strong{display:block;font-size:17px}.focus-action span{display:block;color:#667085;font-size:13px;margin-top:4px}.focus-count{font-size:24px;font-weight:900;white-space:nowrap}.focus-action.warn{border-color:#f4c27a;background:#fffaf0}.focus-action.danger{border-color:#efb2b2;background:#fff5f5}.start-lane{display:grid;gap:8px}.start-step{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;border:1px solid #d9dee7;border-radius:10px;background:#fff;color:#111827;text-decoration:none;padding:12px}.start-step:hover{border-color:#9bb7df;background:#f8fbff}.step-no{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:#1769c2;color:#fff;font-weight:900}.start-step strong{display:block}.start-step span{display:block;color:#667085;font-size:13px;margin-top:3px}.step-go{color:#1769c2;font-weight:900}.shortcut-settings{margin-top:10px;border:1px solid #d9dee7;border-radius:10px;background:#f8fafc}.shortcut-settings summary{cursor:pointer;padding:10px 12px;font-weight:900;color:#1769c2}.shortcut-settings summary::-webkit-details-marker{display:none}.shortcut-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 12px 12px}.shortcut-option{display:flex;gap:7px;align-items:center;border:1px solid #d9dee7;border-radius:999px;background:#fff;padding:8px 10px;font-size:13px;font-weight:800}.shortcut-option input{width:auto}.shortcut-help{grid-column:1/-1;color:#667085;font-size:12px;line-height:1.4}.shortcut-settings .btn{grid-column:1/-1;width:100%}@media(max-width:900px){.daily-focus{grid-template-columns:1fr}.focus-actions{grid-template-columns:1fr 1fr}}@media(max-width:520px){.focus-actions{grid-template-columns:1fr}.start-step{grid-template-columns:30px 1fr}.step-go{display:none}.shortcut-options{grid-template-columns:1fr}}
+.daily-focus{display:grid;grid-template-columns:1.15fr 1fr;gap:16px;margin-bottom:18px}.focus-panel{background:#fff;border:1px solid #d9dee7;border-radius:12px;padding:18px;box-shadow:0 10px 24px rgba(15,23,42,.06)}.focus-panel h2{margin-bottom:6px}.focus-copy{color:#667085;margin:0 0 14px;line-height:1.45}.focus-progress{display:flex;align-items:center;gap:10px;margin:0 0 12px;color:#667085;font-size:13px}.focus-progress-track{flex:1;height:9px;background:#eef2f7;border-radius:999px;overflow:hidden}.focus-progress-fill{height:100%;background:#1769c2;border-radius:999px}.focus-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.focus-action{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #d9dee7;border-radius:10px;background:#fff;color:#111827;text-decoration:none;padding:14px}.focus-action:hover{border-color:#9bb7df;background:#f8fbff}.focus-action strong{display:block;font-size:17px}.focus-action span{display:block;color:#667085;font-size:13px;margin-top:4px}.focus-count{font-size:24px;font-weight:900;white-space:nowrap}.focus-action.warn{border-color:#f4c27a;background:#fffaf0}.focus-action.danger{border-color:#efb2b2;background:#fff5f5}.start-lane{display:grid;gap:8px}.start-step{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;border:1px solid #d9dee7;border-radius:10px;background:#fff;color:#111827;text-decoration:none;padding:12px}.start-step:hover{border-color:#9bb7df;background:#f8fbff}.start-step.done{background:#f3fbf5;border-color:#bfe7ca}.step-no{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:#1769c2;color:#fff;font-weight:900}.start-step.done .step-no{background:#176b2c}.start-step strong{display:block}.start-step span{display:block;color:#667085;font-size:13px;margin-top:3px}.step-go{color:#1769c2;font-weight:900}.start-step.done .step-go{color:#176b2c}.shortcut-settings{margin-top:10px;border:1px solid #d9dee7;border-radius:10px;background:#f8fafc}.shortcut-settings summary{cursor:pointer;padding:10px 12px;font-weight:900;color:#1769c2}.shortcut-settings summary::-webkit-details-marker{display:none}.shortcut-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 12px 12px}.shortcut-option{display:flex;gap:7px;align-items:center;border:1px solid #d9dee7;border-radius:999px;background:#fff;padding:8px 10px;font-size:13px;font-weight:800}.shortcut-option input{width:auto}.shortcut-help{grid-column:1/-1;color:#667085;font-size:12px;line-height:1.4}.shortcut-settings .btn{grid-column:1/-1;width:100%}@media(max-width:900px){.daily-focus{grid-template-columns:1fr}.focus-actions{grid-template-columns:1fr 1fr}}@media(max-width:520px){.focus-actions{grid-template-columns:1fr}.start-step{grid-template-columns:30px 1fr}.step-go{display:none}.shortcut-options{grid-template-columns:1fr}}
 </style>
 <style>
 .auto-check{background:#fff;border:1px solid #d9dee7;border-radius:12px;padding:18px;box-shadow:0 10px 24px rgba(15,23,42,.06);margin-bottom:18px}.auto-check-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;margin-bottom:14px;flex-wrap:wrap}.auto-check-head h2{margin-bottom:4px}.auto-check-head p{margin:0;color:#667085;line-height:1.45}.auto-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.auto-card{border:1px solid #d9dee7;border-radius:10px;padding:14px;background:#fff;color:#111827;text-decoration:none}.auto-card:hover{border-color:#9bb7df;background:#f8fbff}.auto-card.warn{border-color:#f4c27a;background:#fffaf0}.auto-card.danger{border-color:#efb2b2;background:#fff5f5}.auto-label{color:#667085;font-size:13px;font-weight:900}.auto-number{display:block;font-size:30px;font-weight:1000;margin:4px 0}.auto-card p{margin:0;color:#475467;font-size:13px;line-height:1.45}.auto-list{display:grid;gap:7px;margin-top:12px}.auto-list-row{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #edf1f7;padding-top:7px;font-size:13px}.auto-list-row strong{font-size:14px}.auto-list-row span{color:#667085;text-align:right}.auto-empty{color:#667085;font-size:13px;margin-top:10px}@media(max-width:900px){.auto-grid{grid-template-columns:1fr 1fr}}@media(max-width:560px){.auto-grid{grid-template-columns:1fr}.auto-list-row{display:grid}.auto-list-row span{text-align:left}}
@@ -431,11 +502,17 @@ $birthday_students = sql_query("
         <article class="focus-panel">
             <h2><?php echo $show_onboarding_flow ? '처음 쓰는 도장 흐름' : '자주 쓰는 바로가기'; ?></h2>
             <p class="focus-copy"><?php echo $show_onboarding_flow ? '처음엔 가볍게 시작하고, 필요한 만큼만 깊게 들어가면 됩니다.' : '초기 세팅이 끝난 뒤에는 매일 쓰는 화면만 빠르게 열면 됩니다.'; ?></p>
+            <?php if ($show_onboarding_flow) { ?>
+            <div class="focus-progress">
+                <div class="focus-progress-track"><div class="focus-progress-fill" style="width:<?php echo (int) round(($onboarding_done_count / max(1, count($onboarding_steps))) * 100); ?>%"></div></div>
+                <strong><?php echo number_format($onboarding_done_count); ?>/<?php echo number_format(count($onboarding_steps)); ?> 완료</strong>
+            </div>
+            <?php } ?>
             <div class="start-lane">
                 <?php if ($show_onboarding_flow) { ?>
-                <a class="start-step" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form"><span class="step-no">1</span><div><strong>학생 등록</strong><span>학생번호와 보호자 연락처부터 입력</span></div><span class="step-go">열기</span></a>
-                <a class="start-step" href="<?php echo IEUM_URL; ?>/admin/tablet_devices.php"><span class="step-no">2</span><div><strong>출석기 연결</strong><span>도장 코드와 PIN으로 태블릿 연결</span></div><span class="step-go">열기</span></a>
-                <a class="start-step" href="<?php echo IEUM_URL; ?>/admin/attendance_today.php"><span class="step-no">3</span><div><strong>오늘 출석 확인</strong><span>등원, 미등원, 문자 상태 확인</span></div><span class="step-go">열기</span></a>
+                <?php $onboarding_no = 0; foreach ($onboarding_steps as $step) { $onboarding_no++; ?>
+                <a class="start-step <?php echo !empty($step['done']) ? 'done' : ''; ?>" href="<?php echo $step['url']; ?>"><span class="step-no"><?php echo !empty($step['done']) ? '✓' : $onboarding_no; ?></span><div><strong><?php echo get_text($step['label']); ?></strong><span><?php echo get_text($step['desc']); ?></span></div><span class="step-go"><?php echo !empty($step['done']) ? '완료' : '열기'; ?></span></a>
+                <?php } ?>
                 <?php } else { ?>
                 <?php $shortcut_no = 0; foreach ($dashboard_shortcuts as $shortcut) { $shortcut_no++; ?>
                 <a class="start-step" href="<?php echo $shortcut['url']; ?>"><span class="step-no"><?php echo $shortcut_no; ?></span><div><strong><?php echo get_text($shortcut['label']); ?></strong><span><?php echo get_text($shortcut['desc']); ?></span></div><span class="step-go">열기</span></a>
