@@ -25,6 +25,16 @@ function ieum_sms_status_label($status)
 
 function ieum_sms_type_label($type)
 {
+    if ($type === 'birthday_care') {
+        return '생일 안내';
+    }
+    if ($type === 'absent_care') {
+        return '안부 확인';
+    }
+    if ($type === 'student_care') {
+        return '학생 안내';
+    }
+
     $labels = array(
         'checkin' => '등원 문자',
         'checkout' => '하원 문자',

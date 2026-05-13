@@ -2,6 +2,7 @@
 $sub_menu = '950120';
 require_once './_common.php';
 require_once IEUM_PATH . '/lib/program.php';
+require_once IEUM_PATH . '/lib/sms_queue.php';
 
 $g5['title'] = '아이이음 학생 관리';
 $current_academy = ieum_require_academy_page();
@@ -299,6 +300,64 @@ function ieum_fetch_guardians($academy_id, $student_id)
     }
 
     return $rows;
+}
+
+function ieum_student_care_sms_message($student_name, $message_type)
+{
+    $student_name = trim($student_name);
+    if ($message_type === 'birthday') {
+        return '[아이이음] 이번 달은 ' . $student_name . ' 학생의 생일이 있는 달입니다. 도장에서 따뜻하게 축하하고 챙기겠습니다.';
+    }
+    if ($message_type === 'long_absent') {
+        return '[아이이음] ' . $student_name . ' 학생이 최근 수업에 보이지 않아 안부 확인차 연락드립니다. 편하실 때 도장으로 연락 부탁드립니다.';
+    }
+
+    return '[아이이음] ' . $student_name . ' 학생 관련 안내드립니다. 확인 후 도장으로 연락 부탁드립니다.';
+}
+
+function ieum_queue_student_care_sms($academy_id, $student_id, $message_type)
+{
+    $academy_id = (int) $academy_id;
+    $student_id = (int) $student_id;
+    $message_type = preg_replace('/[^0-9a-z_]/', '', trim($message_type));
+    $student = sql_fetch("
+        select student_id, student_name
+          from " . IEUM_STUDENT_TABLE . "
+         where academy_id = '{$academy_id}'
+           and student_id = '{$student_id}'
+         limit 1
+    ", false);
+    if (!$student || !isset($student['student_id'])) {
+        return 0;
+    }
+
+    $message = ieum_student_care_sms_message($student['student_name'], $message_type);
+    $queue_type = $message_type === 'birthday' ? 'birthday_care' : ($message_type === 'long_absent' ? 'absent_care' : 'student_care');
+    $phones = array();
+    $guardians = sql_query("
+        select guardian_phone
+          from " . IEUM_STUDENT_GUARDIAN_TABLE . "
+         where academy_id = '{$academy_id}'
+           and student_id = '{$student_id}'
+           and is_active = 1
+           and guardian_phone <> ''
+      order by is_primary desc, sort_order asc, guardian_id asc
+    ", false);
+    while ($guardian = sql_fetch_array($guardians)) {
+        $phone = ieum_student_clean_phone($guardian['guardian_phone']);
+        if ($phone !== '') {
+            $phones[$phone] = true;
+        }
+    }
+
+    $created = 0;
+    foreach (array_keys($phones) as $phone) {
+        if (ieum_create_direct_sms_queue($academy_id, $phone, $message, $queue_type, $student_id, 0)) {
+            $created++;
+        }
+    }
+
+    return $created;
 }
 
 function ieum_fetch_vehicle_routes($academy_id)
@@ -780,6 +839,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $mode = 'list';
             $student_id = 0;
+        } elseif ($action === 'quick_counseling_note') {
+            $target = ieum_fetch_student($post_student_id);
+            $quick_note = isset($_POST['quick_counseling_note']) ? trim($_POST['quick_counseling_note']) : '';
+            if (!$target) {
+                $error = '학생 정보를 찾을 수 없습니다.';
+            } elseif ($quick_note === '') {
+                $error = '상담 메모를 입력하세요.';
+            } else {
+                sql_query("
+                    update " . IEUM_STUDENT_TABLE . "
+                       set counseling_note = '" . sql_escape_string($quick_note) . "',
+                           updated_at = '" . G5_TIME_YMDHIS . "'
+                     where student_id = '{$post_student_id}'
+                       and academy_id = '{$academy_id}'
+                ");
+                $message = get_text($target['student_name']) . ' 학생 상담 메모를 저장했습니다.';
+            }
+            $mode = 'list';
+            $student_id = 0;
+        } elseif ($action === 'queue_care_sms') {
+            $target = ieum_fetch_student($post_student_id);
+            $care_message_type = isset($_POST['care_message_type']) ? preg_replace('/[^0-9a-z_]/', '', trim($_POST['care_message_type'])) : 'student';
+            if (!$target) {
+                $error = '학생 정보를 찾을 수 없습니다.';
+            } else {
+                $created_count = ieum_queue_student_care_sms($academy_id, $post_student_id, $care_message_type);
+                if ($created_count > 0) {
+                    $message = get_text($target['student_name']) . ' 학생 보호자 문자 대기열을 ' . number_format($created_count) . '건 생성했습니다.';
+                } else {
+                    $error = get_text($target['student_name']) . ' 학생에게 문자를 받을 보호자 연락처가 없습니다.';
+                }
+            }
+            $mode = 'list';
+            $student_id = 0;
         }
     }
 }
@@ -1069,6 +1162,7 @@ textarea{min-height:82px;resize:vertical}
 .guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card,.ride-day-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input,.ride-day-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected,.ride-day-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px minmax(160px,1fr) 120px minmax(140px,1fr);gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.money-field{display:grid;grid-template-columns:auto 1fr auto;align-items:center;border:1px solid #cfd6df;border-radius:6px;background:#fff;overflow:hidden}.money-field span,.money-field em{height:40px;display:flex;align-items:center;padding:0 10px;background:#f8fafc;color:#667085;font-style:normal;font-weight:900;white-space:nowrap}.money-field input{border:0;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-radius:0;text-align:right;font-weight:800}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-tools{display:flex;gap:8px;flex-wrap:wrap}.vehicle-tools .btn{min-height:34px;padding:6px 10px;font-size:13px}.vehicle-row{display:grid;grid-template-columns:auto 90px 120px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}.vehicle-memo,.vehicle-days{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-contact{display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-memo span,.vehicle-contact span,.vehicle-days span{font-weight:900;color:#344054}.ride-day-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.ride-day-card{min-height:40px;font-size:15px}
 .photo-box{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:12px}.photo-preview{width:112px;height:112px;border-radius:12px;object-fit:cover;background:#e5e7eb;border:1px solid #d8dee9}.photo-empty{width:112px;height:112px;border-radius:12px;background:#e5e7eb;color:#667085;display:flex;align-items:center;justify-content:center;font-weight:900}.photo-controls{display:grid;gap:8px}.photo-controls input[type=file]{width:100%;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:10px}.photo-controls label{font-size:13px;color:#344054}
 .guardian-row{grid-template-columns:1fr!important;gap:12px!important}.guardian-fields{display:grid;grid-template-columns:1fr .75fr 1.1fr;gap:8px}.guardian-flags{display:flex;gap:8px;flex-wrap:wrap}.guardian-flag{display:inline-flex;align-items:center;gap:6px;border:1px solid #cfd6df;border-radius:999px;background:#fff;padding:8px 10px;font-size:13px;font-weight:900;color:#344054}.guardian-flag input{width:auto}.guardian-flag:has(input:checked){background:#eaf4ff;border-color:#1769c2;color:#1769c2}.guardian-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.guardian-actions .guardian-flag{background:#f8fafc}.guardian-actions .btn{min-height:34px}.guardian-section-title{font-size:12px;font-weight:900;color:#667085;margin:0 0 6px}.guardian-groups{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}.guardian-main{display:flex;gap:8px;flex-wrap:wrap}
+.care-actions{display:grid;gap:8px;min-width:190px}.care-actions summary{cursor:pointer;font-weight:900;color:#1769c2}.care-actions input[type=text]{height:34px;padding:6px 8px;font-size:13px}.care-actions .btn{min-height:32px;padding:6px 8px;font-size:13px}.care-buttons{display:flex;gap:6px;flex-wrap:wrap}.care-note{display:block;margin-top:4px;color:#667085;font-size:12px;line-height:1.35}
 @media (max-width:720px){.form-grid{grid-template-columns:1fr}.search input{min-width:0;width:100%}.search{width:100%;align-items:stretch}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.guardian-fields,.guardian-groups,.photo-box{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}}
 </style>
 </head>
@@ -1608,7 +1702,12 @@ textarea{min-height:82px;resize:vertical}
                 <td><?php echo get_text(ieum_attendance_days_label(isset($row['attendance_days']) ? $row['attendance_days'] : '')); ?></td>
                 <td class="left"><?php echo $row['guardian_summary'] ? nl2br(get_text(str_replace('<br>', "\n", $row['guardian_summary']))) : ''; ?></td>
                 <td class="left"><?php echo $row['vehicle_summary'] ? nl2br(get_text(str_replace('<br>', "\n", $row['vehicle_summary']))) : ''; ?></td>
-                <td class="left"><?php echo get_text($row['memo']); ?></td>
+                <td class="left">
+                    <?php echo get_text($row['memo']); ?>
+                    <?php if (!empty($row['counseling_note'])) { ?>
+                    <span class="care-note">상담: <?php echo get_text($row['counseling_note']); ?></span>
+                    <?php } ?>
+                </td>
                 <td>
                     <a class="btn" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form&amp;student_id=<?php echo (int) $row['student_id']; ?>">수정</a>
                     <form method="post" class="inline" onsubmit="return confirm('<?php echo $row['is_active'] ? '이 학생을 사용중지할까요?' : '이 학생을 다시 사용 상태로 바꿀까요?'; ?>');">
@@ -1617,6 +1716,32 @@ textarea{min-height:82px;resize:vertical}
                         <input type="hidden" name="student_id" value="<?php echo (int) $row['student_id']; ?>">
                         <button type="submit" class="btn <?php echo $row['is_active'] ? 'danger' : 'muted'; ?>"><?php echo $row['is_active'] ? '중지' : '사용'; ?></button>
                     </form>
+                    <details class="care-actions">
+                        <summary>빠른 처리</summary>
+                        <form method="post">
+                            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                            <input type="hidden" name="action" value="quick_counseling_note">
+                            <input type="hidden" name="student_id" value="<?php echo (int) $row['student_id']; ?>">
+                            <input type="text" name="quick_counseling_note" value="<?php echo get_text($row['counseling_note']); ?>" maxlength="255" placeholder="상담/확인 메모">
+                            <button type="submit" class="btn muted">메모 저장</button>
+                        </form>
+                        <div class="care-buttons">
+                            <form method="post" onsubmit="return confirm('생일 축하 안내 문자를 대기열에 넣을까요? Android 게이트웨이가 켜져 있으면 발송될 수 있습니다.');">
+                                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                                <input type="hidden" name="action" value="queue_care_sms">
+                                <input type="hidden" name="student_id" value="<?php echo (int) $row['student_id']; ?>">
+                                <input type="hidden" name="care_message_type" value="birthday">
+                                <button type="submit" class="btn muted">생일 문자</button>
+                            </form>
+                            <form method="post" onsubmit="return confirm('장기 미등원 안부 문자를 대기열에 넣을까요? Android 게이트웨이가 켜져 있으면 발송될 수 있습니다.');">
+                                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                                <input type="hidden" name="action" value="queue_care_sms">
+                                <input type="hidden" name="student_id" value="<?php echo (int) $row['student_id']; ?>">
+                                <input type="hidden" name="care_message_type" value="long_absent">
+                                <button type="submit" class="btn muted">안부 문자</button>
+                            </form>
+                        </div>
+                    </details>
                 </td>
             </tr>
             <?php } ?>
