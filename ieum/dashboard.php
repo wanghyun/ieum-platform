@@ -129,6 +129,21 @@ $student = sql_fetch("
        and is_active = 1
 ", false);
 
+$tablet_devices = sql_fetch("
+    select count(*) as cnt
+      from " . IEUM_TABLET_DEVICE_TABLE . "
+     where academy_id = '{$academy_id}'
+       and status = 'active'
+", false);
+
+$total_attendance = sql_fetch("
+    select count(*) as cnt
+      from " . IEUM_ATTENDANCE_TABLE . "
+     where academy_id = '{$academy_id}'
+", false);
+
+$show_onboarding_flow = (int) $student['cnt'] === 0 || (int) $tablet_devices['cnt'] === 0 || (int) $total_attendance['cnt'] === 0;
+
 $attendance = sql_fetch("
     select count(*) as cnt
       from " . IEUM_ATTENDANCE_TABLE . "
@@ -348,12 +363,18 @@ $birthday_students = sql_query("
             </div>
         </article>
         <article class="focus-panel">
-            <h2>처음 쓰는 도장 흐름</h2>
-            <p class="focus-copy">처음엔 가볍게 시작하고, 필요한 만큼만 깊게 들어가면 됩니다.</p>
+            <h2><?php echo $show_onboarding_flow ? '처음 쓰는 도장 흐름' : '자주 쓰는 바로가기'; ?></h2>
+            <p class="focus-copy"><?php echo $show_onboarding_flow ? '처음엔 가볍게 시작하고, 필요한 만큼만 깊게 들어가면 됩니다.' : '초기 세팅이 끝난 뒤에는 매일 쓰는 화면만 빠르게 열면 됩니다.'; ?></p>
             <div class="start-lane">
+                <?php if ($show_onboarding_flow) { ?>
                 <a class="start-step" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form"><span class="step-no">1</span><div><strong>학생 등록</strong><span>학생번호와 보호자 연락처부터 입력</span></div><span class="step-go">열기</span></a>
                 <a class="start-step" href="<?php echo IEUM_URL; ?>/admin/tablet_devices.php"><span class="step-no">2</span><div><strong>출석기 연결</strong><span>도장 코드와 PIN으로 태블릿 연결</span></div><span class="step-go">열기</span></a>
                 <a class="start-step" href="<?php echo IEUM_URL; ?>/admin/attendance_today.php"><span class="step-no">3</span><div><strong>오늘 출석 확인</strong><span>등원, 미등원, 문자 상태 확인</span></div><span class="step-go">열기</span></a>
+                <?php } else { ?>
+                <a class="start-step" href="<?php echo IEUM_URL; ?>/admin/attendance_today.php"><span class="step-no">1</span><div><strong>오늘 출석</strong><span>등원, 미등원, 문자 상태 확인</span></div><span class="step-go">열기</span></a>
+                <a class="start-step" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php"><span class="step-no">2</span><div><strong>수련비 납부</strong><span>월별 결제, 미결제, 자동발송 확인</span></div><span class="step-go">열기</span></a>
+                <a class="start-step" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php"><span class="step-no">3</span><div><strong>차량 탑승확인</strong><span>기사님 기록과 특이사항 확인</span></div><span class="step-go">열기</span></a>
+                <?php } ?>
             </div>
         </article>
     </section>
