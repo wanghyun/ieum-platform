@@ -206,6 +206,19 @@ $vehicle_note_count = sql_fetch("
        and resolved_at is null
 ", false);
 
+$vehicle_note_summary = sql_fetch("
+    select
+        sum(case when status = 'missed' then 1 else 0 end) as missed_count,
+        sum(case when status = 'called' then 1 else 0 end) as called_count,
+        sum(case when status = 'self' then 1 else 0 end) as self_count,
+        sum(case when note <> '' then 1 else 0 end) as memo_count
+      from " . IEUM_VEHICLE_BOARDING_TABLE . "
+     where academy_id = '{$academy_id}'
+       and journal_date = '{$today}'
+       and (note <> '' or status in ('missed', 'called', 'self'))
+       and resolved_at is null
+", false);
+
 $recent = sql_query("
     select a.checked_at, s.student_code, s.student_name, q.status as sms_status
       from " . IEUM_ATTENDANCE_TABLE . " a
@@ -251,7 +264,7 @@ $class_today = sql_query("
 ", false);
 
 $vehicle_notes = sql_query("
-    select bl.log_id, bl.status, bl.note, bl.checked_at, s.student_name, r.vehicle_label, r.route_name, st.stop_name, st.stop_time
+    select bl.log_id, bl.status, bl.note, bl.checked_at, bl.ride_type, s.student_name, r.vehicle_label, r.route_name, st.stop_name, st.stop_time
       from " . IEUM_VEHICLE_BOARDING_TABLE . " bl
       join " . IEUM_STUDENT_TABLE . " s on s.student_id = bl.student_id and s.academy_id = bl.academy_id
  left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = bl.route_id and r.academy_id = bl.academy_id
@@ -287,6 +300,9 @@ $birthday_students = sql_query("
 </style>
 <style>
 .tuition-overview{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:center;margin-bottom:18px}.tuition-pill{border:1px solid #d9dee7;border-radius:8px;background:#fff;padding:14px}.tuition-pill strong{display:block;font-size:24px}.tuition-pill span{display:block;color:#667085;font-size:13px;margin-top:4px}.tuition-pill.warn{border-color:#f4c27a;background:#fffaf0}.tuition-pill.danger{border-color:#efb2b2;background:#fff5f5}.tuition-actions{display:grid;gap:8px}@media(max-width:900px){.tuition-overview{grid-template-columns:1fr 1fr}.tuition-actions{grid-column:1 / -1}}@media(max-width:520px){.tuition-overview{grid-template-columns:1fr}}
+</style>
+<style>
+.vehicle-overview{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:10px;align-items:center;margin-bottom:18px}.vehicle-pill{border:1px solid #d9dee7;border-radius:8px;background:#fff;padding:13px}.vehicle-pill strong{display:block;font-size:24px}.vehicle-pill span{display:block;color:#667085;font-size:13px;margin-top:4px}.vehicle-pill.warn{border-color:#f4c27a;background:#fffaf0}.vehicle-pill.danger{border-color:#efb2b2;background:#fff5f5}.vehicle-actions{display:grid;gap:8px}.vehicle-note-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.vehicle-note-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f7;color:#344054;padding:4px 7px;font-size:12px;font-weight:900;white-space:nowrap}.vehicle-note-meta{display:grid;gap:3px;margin-top:8px}.vehicle-note .memo-line{color:#111827;font-weight:800}.vehicle-note.self{border-color:#bfdbfe;background:#f7fbff}@media(max-width:900px){.vehicle-overview{grid-template-columns:1fr 1fr}.vehicle-actions{grid-column:1/-1}}@media(max-width:520px){.vehicle-overview{grid-template-columns:1fr}.vehicle-note-head{display:grid}}
 </style>
 </head>
 <body>
@@ -336,6 +352,29 @@ $birthday_students = sql_query("
         <div class="tuition-actions">
             <a class="btn primary" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php">수련비 처리</a>
             <a class="btn" href="<?php echo IEUM_URL; ?>/admin/sms_templates.php">문구/자동발송 설정</a>
+        </div>
+    </section>
+
+    <section class="vehicle-overview">
+        <article class="vehicle-pill <?php echo (int) $vehicle_note_summary['missed_count'] ? 'danger' : ''; ?>">
+            <strong><?php echo number_format((int) $vehicle_note_summary['missed_count']); ?>건</strong>
+            <span>미탑승</span>
+        </article>
+        <article class="vehicle-pill <?php echo (int) $vehicle_note_summary['called_count'] ? 'warn' : ''; ?>">
+            <strong><?php echo number_format((int) $vehicle_note_summary['called_count']); ?>건</strong>
+            <span>보호자 통화</span>
+        </article>
+        <article class="vehicle-pill">
+            <strong><?php echo number_format((int) $vehicle_note_summary['self_count']); ?>건</strong>
+            <span>개별 이동</span>
+        </article>
+        <article class="vehicle-pill <?php echo (int) $vehicle_note_summary['memo_count'] ? 'warn' : ''; ?>">
+            <strong><?php echo number_format((int) $vehicle_note_summary['memo_count']); ?>건</strong>
+            <span>차량 메모</span>
+        </article>
+        <div class="vehicle-actions">
+            <a class="btn primary" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php">탑승 확인</a>
+            <a class="btn" href="<?php echo IEUM_URL; ?>/admin/vehicle_journal.php">차량 일지</a>
         </div>
     </section>
 
@@ -392,9 +431,15 @@ $birthday_students = sql_query("
                 <div class="vehicle-notes">
                     <?php $vi = 0; while ($note = sql_fetch_array($vehicle_notes)) { $vi++; ?>
                     <div class="vehicle-note <?php echo get_text($note['status']); ?>">
-                        <strong><?php echo get_text($note['student_name'] . ' · ' . ieum_dashboard_boarding_status_label($note['status'])); ?></strong>
-                        <span><?php echo get_text(trim(($note['vehicle_label'] ?: '차량 미지정') . ' / ' . ($note['route_name'] ?: '노선 미지정') . ' / ' . ($note['stop_time'] ?: '') . ' ' . ($note['stop_name'] ?: ''))); ?></span>
-                        <?php if ($note['note'] !== '') { ?><span><?php echo get_text($note['note']); ?></span><?php } ?>
+                        <div class="vehicle-note-head">
+                            <strong><?php echo get_text($note['student_name']); ?></strong>
+                            <span class="vehicle-note-badge"><?php echo get_text(ieum_dashboard_boarding_status_label($note['status'])); ?></span>
+                        </div>
+                        <div class="vehicle-note-meta">
+                            <span><?php echo get_text(trim(($note['vehicle_label'] ?: '차량 미지정') . ' / ' . ($note['route_name'] ?: '노선 미지정'))); ?></span>
+                            <span><?php echo get_text(($note['ride_type'] === 'dropoff' ? '하원' : '등원') . ' · ' . trim(($note['stop_time'] ?: '') . ' ' . ($note['stop_name'] ?: '')) . ($note['checked_at'] ? ' · ' . substr($note['checked_at'], 11, 5) : '')); ?></span>
+                            <?php if ($note['note'] !== '') { ?><span class="memo-line"><?php echo get_text($note['note']); ?></span><?php } ?>
+                        </div>
                         <form method="post" class="vehicle-note-form">
                             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                             <input type="hidden" name="action" value="resolve_vehicle_note">
