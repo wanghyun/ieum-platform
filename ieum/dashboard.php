@@ -116,6 +116,7 @@ function ieum_dashboard_boarding_status_label($status)
         'boarded' => '탑승',
         'missed' => '미탑승',
         'called' => '보호자 통화',
+        'self' => '개별 이동',
     );
 
     return isset($labels[$status]) ? $labels[$status] : '미확인';

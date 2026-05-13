@@ -25,6 +25,7 @@ $status_labels = array(
     'boarded' => '탑승',
     'missed' => '미탑승',
     'called' => '보호자 통화',
+    'self' => '개별 이동',
 );
 
 function ieum_boarding_grade_label($value)
@@ -203,6 +204,10 @@ $vehicle_labels = sql_query("
        and vehicle_label <> ''
   order by vehicle_label asc
 ", false);
+$vehicle_label_rows = array();
+while ($vehicle = sql_fetch_array($vehicle_labels)) {
+    $vehicle_label_rows[] = $vehicle;
+}
 
 $route_where = " academy_id = '{$academy_id}' and is_active = 1 ";
 if ($vehicle_label !== '') {
@@ -231,6 +236,30 @@ $rows = sql_query("
      where {$where}
   order by r.sort_order asc, st.sort_order asc, st.stop_time asc, st.stop_name asc, s.student_name asc
 ", false);
+
+$boarding_rows = array();
+$boarding_summary = array(
+    'total' => 0,
+    'boarded' => 0,
+    'missed' => 0,
+    'called' => 0,
+    'self' => 0,
+    'unchecked' => 0,
+    'resolved' => 0,
+);
+while ($row = sql_fetch_array($rows)) {
+    $boarding_rows[] = $row;
+    $boarding_summary['total']++;
+    $status_key = isset($row['boarding_status']) ? $row['boarding_status'] : '';
+    if ($status_key !== '' && isset($boarding_summary[$status_key])) {
+        $boarding_summary[$status_key]++;
+    } else {
+        $boarding_summary['unchecked']++;
+    }
+    if (!empty($row['resolved_at'])) {
+        $boarding_summary['resolved']++;
+    }
+}
 ?>
 <!doctype html>
 <html lang="ko">
@@ -239,7 +268,7 @@ $rows = sql_query("
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:760px;margin:18px auto;padding:0 14px}h1{margin:0 0 6px;font-size:24px}.meta{color:#667085;margin-bottom:14px}.filter{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:8px;margin-bottom:12px}.filter input,.filter select,.note{width:100%;border:1px solid #cfd6df;border-radius:8px;padding:10px;font-size:15px}.btn{border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:10px 12px;font-weight:900;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.resolve{background:#0f766e;border-color:#0f766e;color:#fff}.notice{padding:10px 12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.route-head{margin:16px 0 8px;padding:11px 12px;background:#101a42;color:#fff;border-radius:10px;font-weight:900}.route-head small{display:block;margin-top:3px;color:#cbd5e1;font-size:12px}.stop{margin:10px 0 8px;padding:8px 10px;background:#e8edf5;color:#111827;border-radius:8px;font-weight:900}.card{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:0 4px 12px rgba(15,23,42,.05)}.card.resolved{opacity:.72}.student{display:flex;justify-content:space-between;gap:10px;font-size:18px;font-weight:900}.student small{font-size:13px;color:#667085}.info{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:6px;color:#344054;font-size:14px}.phone{font-weight:900;white-space:nowrap}.memo{margin-top:6px;color:#667085;font-size:13px}.actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:10px}.actions button{min-height:42px}.status{display:inline-flex;margin-top:8px;padding:5px 8px;border-radius:999px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900}.status.boarded{background:#e8f7ee;color:#176b2c}.status.missed{background:#fdecec;color:#a4262c}.status.called{background:#fff4df;color:#915c00}.empty{padding:28px;text-align:center;color:#667085;background:#fff;border:1px solid #d9dee7;border-radius:10px}@media(max-width:760px){.filter{grid-template-columns:1fr 1fr}.filter .primary{grid-column:1/-1}.info{grid-template-columns:1fr}.actions{grid-template-columns:1fr}.top{display:none}.wrap{margin-top:12px}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:840px;margin:18px auto;padding:0 14px}h1{margin:0 0 6px;font-size:24px}.meta{color:#667085;margin-bottom:14px}.filter{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:8px;margin-bottom:12px}.filter input,.filter select,.note{width:100%;border:1px solid #cfd6df;border-radius:8px;padding:10px;font-size:15px}.btn{border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:10px 12px;font-weight:900;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.resolve{background:#0f766e;border-color:#0f766e;color:#fff}.notice{padding:10px 12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.quick-vehicles{display:flex;gap:8px;overflow-x:auto;margin:0 0 12px;padding-bottom:2px}.quick-vehicles a{flex:0 0 auto;display:inline-flex;align-items:center;min-height:34px;border:1px solid #d9dee7;border-radius:999px;background:#fff;color:#344054;text-decoration:none;padding:7px 12px;font-weight:900}.quick-vehicles a.active{background:#1769c2;border-color:#1769c2;color:#fff}.summary{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-bottom:12px}.summary-card{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:10px}.summary-card span{display:block;color:#667085;font-size:12px;font-weight:800}.summary-card strong{display:block;margin-top:3px;font-size:22px}.route-head{margin:16px 0 8px;padding:11px 12px;background:#101a42;color:#fff;border-radius:10px;font-weight:900}.route-head small{display:block;margin-top:3px;color:#cbd5e1;font-size:12px}.stop{margin:10px 0 8px;padding:8px 10px;background:#e8edf5;color:#111827;border-radius:8px;font-weight:900}.card{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:12px;margin-bottom:10px;box-shadow:0 4px 12px rgba(15,23,42,.05)}.card.resolved{opacity:.72}.student{display:flex;justify-content:space-between;gap:10px;font-size:18px;font-weight:900}.student small{font-size:13px;color:#667085}.info{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:6px;color:#344054;font-size:14px}.phone{font-weight:900;white-space:nowrap}.memo{margin-top:6px;color:#667085;font-size:13px}.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}.actions button{min-height:42px}.status{display:inline-flex;margin-top:8px;padding:5px 8px;border-radius:999px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900}.status.boarded{background:#e8f7ee;color:#176b2c}.status.missed{background:#fdecec;color:#a4262c}.status.called{background:#fff4df;color:#915c00}.status.self{background:#eef5ff;color:#1769c2}.empty{padding:28px;text-align:center;color:#667085;background:#fff;border:1px solid #d9dee7;border-radius:10px}@media(max-width:760px){.filter{grid-template-columns:1fr 1fr}.filter .primary{grid-column:1/-1}.summary{grid-template-columns:repeat(3,minmax(0,1fr))}.info{grid-template-columns:1fr}.actions{grid-template-columns:1fr 1fr}.top{display:none}.wrap{margin-top:12px}}
 .stop .map-link{display:inline-flex;margin-left:6px;padding:2px 7px;border-radius:999px;background:#dbeafe;color:#1769c2;text-decoration:none;font-size:12px;font-weight:900}.stop-address{display:block;margin-top:3px;color:#667085;font-size:12px;font-weight:700}
 </style>
 </head>
@@ -259,7 +288,7 @@ $rows = sql_query("
         </select>
         <select name="vehicle_label" onchange="this.form.route_id.value='0'; this.form.submit();">
             <option value="">전체 호차</option>
-            <?php while ($vehicle = sql_fetch_array($vehicle_labels)) { ?>
+            <?php foreach ($vehicle_label_rows as $vehicle) { ?>
             <option value="<?php echo get_text($vehicle['vehicle_label']); ?>" <?php echo get_selected($vehicle_label, $vehicle['vehicle_label']); ?>><?php echo get_text($vehicle['vehicle_label']); ?></option>
             <?php } ?>
         </select>
@@ -271,11 +300,25 @@ $rows = sql_query("
         </select>
         <button type="submit" class="btn primary">조회</button>
     </form>
+    <nav class="quick-vehicles" aria-label="호차 빠른 선택">
+        <a class="<?php echo $vehicle_label === '' ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php?journal_date=<?php echo get_text($journal_date); ?>&amp;ride_type=<?php echo get_text($ride_type); ?>">전체 호차</a>
+        <?php foreach ($vehicle_label_rows as $vehicle) { ?>
+        <a class="<?php echo $vehicle_label === $vehicle['vehicle_label'] ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php?journal_date=<?php echo get_text($journal_date); ?>&amp;ride_type=<?php echo get_text($ride_type); ?>&amp;vehicle_label=<?php echo urlencode($vehicle['vehicle_label']); ?>"><?php echo get_text($vehicle['vehicle_label']); ?></a>
+        <?php } ?>
+    </nav>
+    <section class="summary">
+        <article class="summary-card"><span>대상</span><strong><?php echo number_format((int) $boarding_summary['total']); ?></strong></article>
+        <article class="summary-card"><span>미확인</span><strong><?php echo number_format((int) $boarding_summary['unchecked']); ?></strong></article>
+        <article class="summary-card"><span>탑승</span><strong><?php echo number_format((int) $boarding_summary['boarded']); ?></strong></article>
+        <article class="summary-card"><span>미탑승</span><strong><?php echo number_format((int) $boarding_summary['missed']); ?></strong></article>
+        <article class="summary-card"><span>통화</span><strong><?php echo number_format((int) $boarding_summary['called']); ?></strong></article>
+        <article class="summary-card"><span>개별</span><strong><?php echo number_format((int) $boarding_summary['self']); ?></strong></article>
+    </section>
     <?php
     $current_route = '';
     $current_stop = '';
     $has_rows = false;
-    while ($row = sql_fetch_array($rows)) {
+    foreach ($boarding_rows as $row) {
         $has_rows = true;
         $route_key = trim(($row['vehicle_label'] ?: '') . '|' . ($row['route_name'] ?: ''));
         if ($current_route !== $route_key) {
@@ -324,6 +367,7 @@ $rows = sql_query("
                 <button class="btn primary" type="submit" name="status" value="boarded">탑승</button>
                 <button class="btn" type="submit" name="status" value="missed">미탑승</button>
                 <button class="btn" type="submit" name="status" value="called">보호자 통화</button>
+                <button class="btn" type="submit" name="status" value="self">개별 이동</button>
             </div>
         </form>
         <?php if ($needs_resolve) { ?>
