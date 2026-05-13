@@ -1037,6 +1037,11 @@ $students = sql_query("
   order by s.is_active desc, s.student_name asc, s.student_code asc
 ", false);
 
+$student_rows = array();
+while ($student_row = sql_fetch_array($students)) {
+    $student_rows[] = $student_row;
+}
+
 $class_times = sql_query("
     select *
       from " . IEUM_CLASS_TIME_TABLE . "
@@ -1163,7 +1168,9 @@ textarea{min-height:82px;resize:vertical}
 .photo-box{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:12px}.photo-preview{width:112px;height:112px;border-radius:12px;object-fit:cover;background:#e5e7eb;border:1px solid #d8dee9}.photo-empty{width:112px;height:112px;border-radius:12px;background:#e5e7eb;color:#667085;display:flex;align-items:center;justify-content:center;font-weight:900}.photo-controls{display:grid;gap:8px}.photo-controls input[type=file]{width:100%;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:10px}.photo-controls label{font-size:13px;color:#344054}
 .guardian-row{grid-template-columns:1fr!important;gap:12px!important}.guardian-fields{display:grid;grid-template-columns:1fr .75fr 1.1fr;gap:8px}.guardian-flags{display:flex;gap:8px;flex-wrap:wrap}.guardian-flag{display:inline-flex;align-items:center;gap:6px;border:1px solid #cfd6df;border-radius:999px;background:#fff;padding:8px 10px;font-size:13px;font-weight:900;color:#344054}.guardian-flag input{width:auto}.guardian-flag:has(input:checked){background:#eaf4ff;border-color:#1769c2;color:#1769c2}.guardian-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.guardian-actions .guardian-flag{background:#f8fafc}.guardian-actions .btn{min-height:34px}.guardian-section-title{font-size:12px;font-weight:900;color:#667085;margin:0 0 6px}.guardian-groups{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}.guardian-main{display:flex;gap:8px;flex-wrap:wrap}
 .care-actions{display:grid;gap:8px;min-width:190px}.care-actions summary{cursor:pointer;font-weight:900;color:#1769c2}.care-actions input[type=text]{height:34px;padding:6px 8px;font-size:13px}.care-actions .btn{min-height:32px;padding:6px 8px;font-size:13px}.care-buttons{display:flex;gap:6px;flex-wrap:wrap}.care-note{display:block;margin-top:4px;color:#667085;font-size:12px;line-height:1.35}
-@media (max-width:720px){.form-grid{grid-template-columns:1fr}.search input{min-width:0;width:100%}.search{width:100%;align-items:stretch}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.guardian-fields,.guardian-groups,.photo-box{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}}
+.student-table-wrap{overflow-x:auto}.student-cards{display:none;gap:12px}.student-card{border:1px solid #d9dee7;border-radius:10px;background:#fff;padding:14px;box-shadow:0 8px 18px rgba(15,23,42,.05)}.student-card.inactive{background:#fafafa;color:#667085}.student-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}.student-card-name{font-size:19px;font-weight:1000;color:#111827}.student-card-code{color:#667085;font-size:13px;margin-top:2px}.student-card-status{border-radius:999px;background:#eef2f7;color:#344054;padding:5px 9px;font-size:12px;font-weight:900;white-space:nowrap}.student-card-status.active{background:#eaf4ff;color:#1769c2}.student-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}.student-card-field{border:1px solid #edf1f7;border-radius:8px;background:#f8fafc;padding:9px}.student-card-field strong{display:block;color:#667085;font-size:12px;margin-bottom:3px}.student-card-field span{font-weight:800;color:#111827}.student-card-section{border-top:1px solid #edf1f7;padding-top:10px;margin-top:10px}.student-card-section strong{display:block;color:#344054;margin-bottom:5px}.student-card-empty{color:#98a2b3}.student-card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}.student-card-actions .care-actions{flex:1 1 220px}.empty-card{border:1px dashed #cfd6df;border-radius:10px;background:#fff;padding:24px;text-align:center;color:#667085;font-weight:900}
+@media (max-width:980px){.student-table-wrap{display:none}.student-cards{display:grid}.panel{padding:16px}.search{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}.search input{grid-column:1 / -1;min-width:0}.search .btn{width:100%}}
+@media (max-width:720px){.form-grid{grid-template-columns:1fr}.search{grid-template-columns:1fr}.search input{min-width:0;width:100%}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.guardian-fields,.guardian-groups,.photo-box{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}.student-card-grid{grid-template-columns:1fr}.student-card-head{align-items:flex-start}.student-card-actions{display:grid}.student-card-actions .btn{width:100%}}
 </style>
 </head>
 <body>
@@ -1669,6 +1676,7 @@ textarea{min-height:82px;resize:vertical}
         <?php if ($filter_insight !== '') { ?>
         <p class="notice ok">자동 체크 목록: <?php echo get_text($insight_options[$filter_insight]); ?> 학생만 보고 있습니다.</p>
         <?php } ?>
+        <div class="student-table-wrap">
         <table>
             <thead>
             <tr>
@@ -1688,7 +1696,7 @@ textarea{min-height:82px;resize:vertical}
             <tbody>
             <?php
             $i = 0;
-            while ($row = sql_fetch_array($students)) {
+            foreach ($student_rows as $row) {
                 $i++;
                 $row_class = $row['is_active'] ? '' : 'inactive';
             ?>
@@ -1752,6 +1760,78 @@ textarea{min-height:82px;resize:vertical}
             <?php } ?>
             </tbody>
         </table>
+        </div>
+        <div class="student-cards">
+            <?php foreach ($student_rows as $row) { ?>
+            <article class="student-card <?php echo $row['is_active'] ? '' : 'inactive'; ?>">
+                <div class="student-card-head">
+                    <div>
+                        <div class="student-card-name"><?php echo get_text($row['student_name']); ?></div>
+                        <div class="student-card-code"><?php echo get_text($row['student_code']); ?> · <?php echo get_text(ieum_program_label($academy_id, isset($row['program_code']) ? $row['program_code'] : '')); ?></div>
+                    </div>
+                    <span class="student-card-status <?php echo $row['is_active'] ? 'active' : ''; ?>"><?php echo $row['is_active'] ? '사용' : '중지'; ?></span>
+                </div>
+                <div class="student-card-grid">
+                    <div class="student-card-field"><strong>학년/부</strong><span><?php echo get_text(ieum_grade_label($row['grade_group'])); ?></span></div>
+                    <div class="student-card-field"><strong>수업 부</strong><span><?php echo get_text($row['class_name'] ? $row['class_name'] . ' ' . $row['start_time'] : '미지정'); ?></span></div>
+                    <div class="student-card-field"><strong>출석 요일</strong><span><?php echo get_text(ieum_attendance_days_label(isset($row['attendance_days']) ? $row['attendance_days'] : '')); ?></span></div>
+                    <div class="student-card-field"><strong>관리 메모</strong><span><?php echo get_text($row['memo'] ?: '-'); ?></span></div>
+                </div>
+                <div class="student-card-section">
+                    <strong>보호자</strong>
+                    <div><?php echo $row['guardian_summary'] ? nl2br(get_text(str_replace('<br>', "\n", $row['guardian_summary']))) : '<span class="student-card-empty">등록 없음</span>'; ?></div>
+                </div>
+                <div class="student-card-section">
+                    <strong>차량</strong>
+                    <div><?php echo $row['vehicle_summary'] ? nl2br(get_text(str_replace('<br>', "\n", $row['vehicle_summary']))) : '<span class="student-card-empty">이용 없음</span>'; ?></div>
+                </div>
+                <?php if (!empty($row['counseling_note'])) { ?>
+                <div class="student-card-section">
+                    <strong>상담 메모</strong>
+                    <div><?php echo get_text($row['counseling_note']); ?></div>
+                </div>
+                <?php } ?>
+                <div class="student-card-section student-card-actions">
+                    <a class="btn" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form&amp;student_id=<?php echo (int) $row['student_id']; ?>">수정</a>
+                    <form method="post" class="inline" onsubmit="return confirm('<?php echo $row['is_active'] ? '이 학생을 사용중지할까요?' : '이 학생을 다시 사용 상태로 바꿀까요?'; ?>');">
+                        <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                        <input type="hidden" name="action" value="toggle">
+                        <input type="hidden" name="student_id" value="<?php echo (int) $row['student_id']; ?>">
+                        <button type="submit" class="btn <?php echo $row['is_active'] ? 'danger' : 'muted'; ?>"><?php echo $row['is_active'] ? '중지' : '사용'; ?></button>
+                    </form>
+                    <details class="care-actions">
+                        <summary>빠른 처리</summary>
+                        <form method="post">
+                            <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                            <input type="hidden" name="action" value="quick_counseling_note">
+                            <input type="hidden" name="student_id" value="<?php echo (int) $row['student_id']; ?>">
+                            <input type="text" name="quick_counseling_note" value="<?php echo get_text($row['counseling_note']); ?>" maxlength="255" placeholder="상담/확인 메모">
+                            <button type="submit" class="btn muted">메모 저장</button>
+                        </form>
+                        <div class="care-buttons">
+                            <form method="post" onsubmit="return confirm('생일 축하 안내 문자를 대기열에 넣을까요? Android 게이트웨이가 켜져 있으면 발송될 수 있습니다.');">
+                                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                                <input type="hidden" name="action" value="queue_care_sms">
+                                <input type="hidden" name="student_id" value="<?php echo (int) $row['student_id']; ?>">
+                                <input type="hidden" name="care_message_type" value="birthday">
+                                <button type="submit" class="btn muted">생일 문자</button>
+                            </form>
+                            <form method="post" onsubmit="return confirm('장기 미등원 안부 문자를 대기열에 넣을까요? Android 게이트웨이가 켜져 있으면 발송될 수 있습니다.');">
+                                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                                <input type="hidden" name="action" value="queue_care_sms">
+                                <input type="hidden" name="student_id" value="<?php echo (int) $row['student_id']; ?>">
+                                <input type="hidden" name="care_message_type" value="long_absent">
+                                <button type="submit" class="btn muted">안부 문자</button>
+                            </form>
+                        </div>
+                    </details>
+                </div>
+            </article>
+            <?php } ?>
+            <?php if (!$student_rows) { ?>
+            <div class="empty-card">등록된 학생이 없습니다.</div>
+            <?php } ?>
+        </div>
     </section>
     <?php } ?>
 </main>
