@@ -54,6 +54,7 @@ function ieum_admin_nav_items()
         'url' => IEUM_URL . '/admin/vehicles.php',
         'children' => array(
             'vehicles' => array('label' => '차량 관리', 'url' => IEUM_URL . '/admin/vehicles.php'),
+            'vehicle_assignments' => array('label' => '배정 현황', 'url' => IEUM_URL . '/admin/vehicle_assignments.php'),
             'boarding' => array('label' => '탑승 확인', 'url' => IEUM_URL . '/admin/vehicle_boarding.php'),
         ),
     );

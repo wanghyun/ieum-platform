@@ -539,6 +539,7 @@ $birthday_students = sql_query("
                 <h2>차량</h2>
                 <div class="link-list">
                     <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/vehicles.php"><strong>차량 관리</strong><span>호차/노선/정류장</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/vehicle_assignments.php"><strong>배정 현황</strong><span>호차별 학생 배정</span></a>
                     <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php"><strong>탑승 확인</strong><span>기사님 모바일 기록</span></a>
                     <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/vehicle_journal.php"><strong>차량 일지</strong><span>인쇄용 운행표</span></a>
                 </div>
