@@ -98,6 +98,24 @@ $rows = sql_query("
      where {$where}
   order by field(sv.ride_type, 'pickup', 'dropoff'), r.sort_order asc, st.sort_order asc, st.stop_time asc, st.stop_name asc, s.student_name asc
 ", false);
+
+$journal_rows = array();
+$journal_summary = array(
+    'total' => 0,
+    'pickup' => 0,
+    'dropoff' => 0,
+    'routes' => array(),
+    'stops' => array(),
+);
+while ($row = sql_fetch_array($rows)) {
+    $journal_rows[] = $row;
+    $journal_summary['total']++;
+    if (isset($journal_summary[$row['ride_type']])) {
+        $journal_summary[$row['ride_type']]++;
+    }
+    $journal_summary['routes'][(int) $row['route_id']] = true;
+    $journal_summary['stops'][(int) $row['stop_id']] = true;
+}
 ?>
 <!doctype html>
 <html lang="ko">
@@ -106,11 +124,11 @@ $rows = sql_query("
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1120px;margin:20px auto;padding:0 18px}.wrap.is-loading{opacity:.55;pointer-events:none}.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}h1{margin:0;font-size:26px}.meta{color:#667085;margin-top:6px}.filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 10px}.btn,select,input[type=date]{border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:700}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.journal-guide{margin:0 0 16px;color:#667085;font-size:13px}.group{background:#fff;border:1px solid #d9dee7;border-radius:8px;margin-bottom:14px;overflow:hidden}.group-head{display:flex;justify-content:space-between;gap:12px;background:#15204a;color:#fff;padding:10px 12px;font-weight:900}.group-head small{font-weight:600;color:#dbeafe;text-align:right}.stop-head{background:#eef2f7;padding:8px 12px;font-weight:900;border-top:1px solid #d9dee7}.student-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:7px;border-top:1px solid #e2e8f0}.student-card{border:1px solid #dbe2ec;border-radius:6px;background:#fff;padding:7px;min-width:0}.student-main{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;font-weight:900}.student-main span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.student-main small{color:#667085;font-weight:800;white-space:nowrap}.student-sub{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;margin-top:4px;font-size:12px}.student-sub span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.phone{white-space:nowrap;font-weight:800}.memo{min-height:17px;margin-top:4px;color:#344054;font-size:12px;line-height:1.3;word-break:keep-all;overflow-wrap:anywhere}.empty{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:32px;text-align:center;color:#667085}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1120px;margin:20px auto;padding:0 18px}.wrap.is-loading{opacity:.55;pointer-events:none}.topline{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}h1{margin:0;font-size:26px}.meta{color:#667085;margin-top:6px}.filter{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 10px}.btn,select,input[type=date]{border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:700}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.journal-guide{margin:0 0 16px;color:#667085;font-size:13px}.journal-summary{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:0 0 12px}.summary-item{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:10px}.summary-item span{display:block;color:#667085;font-size:12px;font-weight:800}.summary-item strong{display:block;margin-top:4px;font-size:22px}.group{background:#fff;border:1px solid #d9dee7;border-radius:8px;margin-bottom:14px;overflow:hidden}.group-head{display:flex;justify-content:space-between;gap:12px;background:#15204a;color:#fff;padding:10px 12px;font-weight:900}.group-head small{font-weight:600;color:#dbeafe;text-align:right}.stop-head{background:#eef2f7;padding:8px 12px;font-weight:900;border-top:1px solid #d9dee7}.student-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;padding:7px;border-top:1px solid #e2e8f0}.student-card{border:1px solid #dbe2ec;border-radius:6px;background:#fff;padding:7px;min-width:0}.student-main{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;font-weight:900}.student-main span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.student-main small{color:#667085;font-weight:800;white-space:nowrap}.student-sub{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px;margin-top:4px;font-size:12px}.student-sub span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.phone{white-space:nowrap;font-weight:800}.memo{min-height:17px;margin-top:4px;color:#344054;font-size:12px;line-height:1.3;word-break:keep-all;overflow-wrap:anywhere}.empty{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:32px;text-align:center;color:#667085}
 .stop-head .map-link{display:inline-flex;margin-left:6px;padding:2px 7px;border-radius:999px;background:#dbeafe;color:#1769c2;text-decoration:none;font-size:11px;font-weight:900}.stop-address{margin-left:4px;color:#667085;font-size:12px;font-weight:700}
 @media (max-width:900px){.student-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:720px){.student-grid{grid-template-columns:1fr}.topline{align-items:flex-start;flex-direction:column}.student-sub{grid-template-columns:1fr}}
-@media print{@page{size:A4;margin:5mm}body{background:#fff;color:#111;font-size:9px}.filter,.print-hide{display:none}.wrap{max-width:none;margin:0;padding:0}.topline{margin-bottom:4px;align-items:flex-end}h1{font-size:16px}.meta{font-size:9px;margin-top:2px}.group{break-inside:avoid;border-color:#999;border-radius:4px;margin-bottom:4px}.group-head{background:#eee!important;color:#111!important;padding:3px 5px;font-size:9.5px}.group-head small{color:#333}.stop-head{background:#f4f4f4!important;padding:3px 5px;font-size:9.5px}.student-grid{grid-template-columns:repeat(3,1fr);gap:3px;padding:3px}.student-card{padding:3px 4px;border-color:#b8b8b8;border-radius:4px;break-inside:avoid;min-height:39px}.student-main{font-size:9.5px;gap:4px}.student-sub,.memo{font-size:8px}.student-sub{margin-top:1px;gap:3px}.memo{min-height:11px;margin-top:1px;line-height:1.2}.phone{font-size:8px}.empty{border-color:#999;padding:18px}}
+@media (max-width:720px){.journal-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.student-grid{grid-template-columns:1fr}.topline{align-items:flex-start;flex-direction:column}.student-sub{grid-template-columns:1fr}}
+@media print{@page{size:A4;margin:5mm}body{background:#fff;color:#111;font-size:9px}.filter,.print-hide{display:none}.wrap{max-width:none;margin:0;padding:0}.topline{margin-bottom:4px;align-items:flex-end}h1{font-size:16px}.meta{font-size:9px;margin-top:2px}.journal-summary{grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:4px}.summary-item{padding:3px 5px;border-color:#aaa;border-radius:4px}.summary-item span{font-size:8px}.summary-item strong{font-size:12px;margin-top:1px}.group{break-inside:avoid;border-color:#999;border-radius:4px;margin-bottom:4px}.group-head{background:#eee!important;color:#111!important;padding:3px 5px;font-size:9.5px}.group-head small{color:#333}.stop-head{background:#f4f4f4!important;padding:3px 5px;font-size:9.5px}.student-grid{grid-template-columns:repeat(3,1fr);gap:3px;padding:3px}.student-card{padding:3px 4px;border-color:#b8b8b8;border-radius:4px;break-inside:avoid;min-height:39px}.student-main{font-size:9.5px;gap:4px}.student-sub,.memo{font-size:8px}.student-sub{margin-top:1px;gap:3px}.memo{min-height:11px;margin-top:1px;line-height:1.2}.phone{font-size:8px}.empty{border-color:#999;padding:18px}}
 </style>
 </head>
 <body>
@@ -138,13 +156,20 @@ $rows = sql_query("
         <button type="submit" class="btn">조회</button>
         <a class="btn" href="<?php echo IEUM_URL; ?>/admin/vehicles.php">차량 관리</a>
     </form>
+    <section class="journal-summary">
+        <article class="summary-item"><span>전체 대상</span><strong><?php echo number_format((int) $journal_summary['total']); ?>명</strong></article>
+        <article class="summary-item"><span>픽업</span><strong><?php echo number_format((int) $journal_summary['pickup']); ?>명</strong></article>
+        <article class="summary-item"><span>하차</span><strong><?php echo number_format((int) $journal_summary['dropoff']); ?>명</strong></article>
+        <article class="summary-item"><span>노선</span><strong><?php echo number_format(count($journal_summary['routes'])); ?>개</strong></article>
+        <article class="summary-item"><span>정류장</span><strong><?php echo number_format(count($journal_summary['stops'])); ?>곳</strong></article>
+    </section>
     <p class="journal-guide print-hide">A4 세로 인쇄 기준으로 학생 카드가 한 줄에 3명씩 배치됩니다. 날짜를 바꾸면 해당 요일 차량 이용 학생만 표시됩니다.</p>
     <?php
     $current_group = '';
     $current_stop = '';
     $has_rows = false;
     $student_count = 0;
-    while ($row = sql_fetch_array($rows)) {
+    foreach ($journal_rows as $row) {
         $has_rows = true;
         $group_key = $row['ride_type'] . '|' . (int) $row['route_id'];
         $stop_key = $group_key . '|' . (int) $row['stop_id'];

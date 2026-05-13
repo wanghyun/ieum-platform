@@ -53,6 +53,85 @@ function ieum_vehicle_map_href($row)
     return $query !== '' ? 'https://map.naver.com/v5/search/' . rawurlencode($query) : '';
 }
 
+function ieum_vehicle_normalize_stop_order($academy_id)
+{
+    $academy_id = (int) $academy_id;
+    $groups = array();
+    $result = sql_query("
+        select stop_id, route_id, stop_type
+          from " . IEUM_VEHICLE_STOP_TABLE . "
+         where academy_id = '{$academy_id}'
+      order by route_id asc, field(stop_type, 'pickup', 'dropoff'), sort_order asc, stop_time asc, stop_name asc, stop_id asc
+    ", false);
+    while ($row = sql_fetch_array($result)) {
+        $key = (int) $row['route_id'] . '|' . $row['stop_type'];
+        if (!isset($groups[$key])) {
+            $groups[$key] = 10;
+        }
+        sql_query("
+            update " . IEUM_VEHICLE_STOP_TABLE . "
+               set sort_order = '{$groups[$key]}',
+                   updated_at = '" . G5_TIME_YMDHIS . "'
+             where academy_id = '{$academy_id}'
+               and stop_id = '" . (int) $row['stop_id'] . "'
+        ", false);
+        $groups[$key] += 10;
+    }
+}
+
+function ieum_vehicle_move_stop_order($academy_id, $stop_id, $direction)
+{
+    $academy_id = (int) $academy_id;
+    $stop_id = (int) $stop_id;
+    $direction = $direction === 'down' ? 'down' : 'up';
+
+    ieum_vehicle_normalize_stop_order($academy_id);
+
+    $current = sql_fetch("
+        select *
+          from " . IEUM_VEHICLE_STOP_TABLE . "
+         where academy_id = '{$academy_id}'
+           and stop_id = '{$stop_id}'
+         limit 1
+    ", false);
+    if (empty($current['stop_id'])) {
+        return false;
+    }
+
+    $operator = $direction === 'up' ? '<' : '>';
+    $order = $direction === 'up' ? 'desc' : 'asc';
+    $neighbor = sql_fetch("
+        select *
+          from " . IEUM_VEHICLE_STOP_TABLE . "
+         where academy_id = '{$academy_id}'
+           and route_id = '" . (int) $current['route_id'] . "'
+           and stop_type = '" . sql_escape_string($current['stop_type']) . "'
+           and sort_order {$operator} '" . (int) $current['sort_order'] . "'
+      order by sort_order {$order}, stop_time {$order}, stop_id {$order}
+         limit 1
+    ", false);
+    if (empty($neighbor['stop_id'])) {
+        return false;
+    }
+
+    sql_query("
+        update " . IEUM_VEHICLE_STOP_TABLE . "
+           set sort_order = '" . (int) $neighbor['sort_order'] . "',
+               updated_at = '" . G5_TIME_YMDHIS . "'
+         where academy_id = '{$academy_id}'
+           and stop_id = '{$stop_id}'
+    ", false);
+    sql_query("
+        update " . IEUM_VEHICLE_STOP_TABLE . "
+           set sort_order = '" . (int) $current['sort_order'] . "',
+               updated_at = '" . G5_TIME_YMDHIS . "'
+         where academy_id = '{$academy_id}'
+           and stop_id = '" . (int) $neighbor['stop_id'] . "'
+    ", false);
+
+    return true;
+}
+
 ieum_vehicle_ensure_stop_location_columns();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -62,7 +141,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $action = isset($_POST['action']) ? trim($_POST['action']) : '';
 
-        if ($action === 'save_route') {
+        if ($action === 'move_stop') {
+            $stop_id = isset($_POST['stop_id']) ? (int) $_POST['stop_id'] : 0;
+            $direction = isset($_POST['direction']) ? trim($_POST['direction']) : 'up';
+            $message = ieum_vehicle_move_stop_order($academy_id, $stop_id, $direction) ? '운행 지점 순서를 변경했습니다.' : '이동할 운행 지점이 없습니다.';
+        } elseif ($action === 'normalize_stops') {
+            ieum_vehicle_normalize_stop_order($academy_id);
+            $message = '운행 지점 순서를 시간표 기준으로 정리했습니다.';
+        } elseif ($action === 'save_route') {
             $route_id = isset($_POST['route_id']) ? (int) $_POST['route_id'] : 0;
             $route_type = isset($_POST['route_type']) ? preg_replace('/[^0-9a-z_]/', '', trim($_POST['route_type'])) : 'both';
             $route_name = isset($_POST['route_name']) ? trim($_POST['route_name']) : '';
@@ -223,6 +309,30 @@ $stop_rows = array();
 while ($stop = sql_fetch_array($stops)) {
     $stop_rows[] = $stop;
 }
+
+$route_summary = array();
+foreach ($route_options as $route) {
+    $route_summary[(int) $route['route_id']] = array(
+        'route_name' => $route['route_name'],
+        'vehicle_label' => $route['vehicle_label'],
+        'pickup' => 0,
+        'dropoff' => 0,
+    );
+}
+foreach ($stop_rows as $stop) {
+    $rid = (int) $stop['route_id'];
+    if (!isset($route_summary[$rid])) {
+        $route_summary[$rid] = array(
+            'route_name' => $stop['route_name'] ?: '노선 미지정',
+            'vehicle_label' => $stop['vehicle_label'],
+            'pickup' => 0,
+            'dropoff' => 0,
+        );
+    }
+    if (!empty($stop['is_active']) && isset($route_summary[$rid][$stop['stop_type']])) {
+        $route_summary[$rid][$stop['stop_type']]++;
+    }
+}
 ?>
 <!doctype html>
 <html lang="ko">
@@ -240,8 +350,9 @@ input,select{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:1
 table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}th{background:#72829d;color:#fff}.left{text-align:left}.muted{color:#667085;font-size:12px;line-height:1.45}.inactive{background:#fafafa;color:#8a94a6}.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 14px}
 .flow-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.flow-card{border:1px solid #d9e2f1;border-radius:10px;overflow:hidden;background:#fff}.flow-head{display:flex;justify-content:space-between;gap:10px;padding:12px 14px;background:#15204a;color:#fff;font-weight:900}.flow-head small{color:#cbd5e1}.flow-list{list-style:none;margin:0;padding:0}.flow-list li{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid #edf1f7}.flow-time{font-weight:900;color:#1769c2}.flow-name{font-weight:900}.flow-meta{display:block;margin-top:3px;color:#667085;font-size:12px}.flow-empty{padding:18px;color:#667085;text-align:center;background:#f8fafc}.flow-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef5ff;color:#1769c2;padding:4px 8px;font-size:12px;font-weight:900;text-decoration:none}
 .api-hint{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #bfdbfe;background:#eff6ff;border-radius:8px;padding:12px 14px;margin-bottom:18px;color:#344054}.api-hint strong{color:#1769c2}.api-hint a{flex:0 0 auto}
+.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}.summary-card{border:1px solid #d9e2f1;border-radius:10px;background:#fff;padding:14px}.summary-card .label{color:#667085;font-size:13px;font-weight:800}.summary-card strong{display:block;margin-top:6px;font-size:24px}.summary-card small{display:block;margin-top:4px;color:#667085}.order-actions{display:flex;gap:4px;justify-content:center}.order-actions form{display:inline}.mini{min-height:30px;padding:4px 8px;font-size:13px}.section-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:980px){.grid.route,.grid.stop{grid-template-columns:1fr}table{display:block;overflow-x:auto;white-space:nowrap}}
-@media(max-width:760px){.flow-grid{grid-template-columns:1fr}.flow-list li{grid-template-columns:60px 1fr}}
+@media(max-width:760px){.flow-grid,.summary-grid{grid-template-columns:1fr}.flow-list li{grid-template-columns:60px 1fr}}
 </style>
 </head>
 <body>
@@ -257,6 +368,23 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
         <div>현재 지도 방식: <strong><?php echo get_text(ieum_map_mode_label($map_settings)); ?></strong> · API 키가 없어도 지도 검색 링크로 운영할 수 있습니다.</div>
         <a class="btn" href="<?php echo IEUM_URL; ?>/admin/map_settings.php">지도 API 설정</a>
     </div>
+
+    <section class="summary-grid">
+        <?php foreach ($route_summary as $summary) { ?>
+        <article class="summary-card">
+            <div class="label"><?php echo get_text($summary['vehicle_label'] ?: '차량 미지정'); ?></div>
+            <strong><?php echo get_text($summary['route_name']); ?></strong>
+            <small>픽업 <?php echo number_format((int) $summary['pickup']); ?>곳 · 하차 <?php echo number_format((int) $summary['dropoff']); ?>곳</small>
+        </article>
+        <?php } ?>
+        <?php if (empty($route_summary)) { ?>
+        <article class="summary-card">
+            <div class="label">차량 운영 준비</div>
+            <strong>노선 없음</strong>
+            <small>1호차, 2호차처럼 노선을 먼저 등록하세요.</small>
+        </article>
+        <?php } ?>
+    </section>
 
     <section class="panel">
         <div class="section-title">
@@ -285,7 +413,14 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
     </section>
 
     <section class="panel">
-        <h2>운행 지점 등록</h2>
+        <div class="section-title">
+            <h2>운행 지점 등록</h2>
+            <form method="post" class="section-tools">
+                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                <input type="hidden" name="action" value="normalize_stops">
+                <button type="submit" class="btn">시간순 정렬</button>
+            </form>
+        </div>
         <form method="post" class="grid stop">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <input type="hidden" name="action" value="save_stop">
@@ -366,7 +501,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
     <section class="panel">
         <h2>운행 지점</h2>
         <table>
-            <thead><tr><th>구분</th><th>시간</th><th>장소</th><th>주소/지도</th><th>노선</th><th>차량</th><th>순서</th><th>상태</th><th>수정</th></tr></thead>
+            <thead><tr><th>구분</th><th>시간</th><th>장소</th><th>주소/지도</th><th>노선</th><th>차량</th><th>순서</th><th>이동</th><th>상태</th><th>수정</th></tr></thead>
             <tbody>
             <?php $i = 0; foreach ($stop_rows as $row) { $i++; ?>
             <tr class="<?php echo $row['is_active'] ? '' : 'inactive'; ?>">
@@ -405,14 +540,32 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
                     </td>
                     <td><?php echo get_text($row['vehicle_label']); ?></td>
                     <td><input type="number" name="sort_order" value="<?php echo (int) $row['sort_order']; ?>" min="0"></td>
+                    <td>
+                        <div class="order-actions">
+                            <button type="submit" class="btn mini" form="move-up-<?php echo (int) $row['stop_id']; ?>">↑</button>
+                            <button type="submit" class="btn mini" form="move-down-<?php echo (int) $row['stop_id']; ?>">↓</button>
+                        </div>
+                    </td>
                     <td><label><input type="checkbox" name="is_active" value="1" <?php echo $row['is_active'] ? 'checked' : ''; ?>> 사용</label></td>
                     <td>
                         <button type="submit" class="btn">저장</button>
                     </td>
                 </form>
+                <form method="post" id="move-up-<?php echo (int) $row['stop_id']; ?>">
+                    <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                    <input type="hidden" name="action" value="move_stop">
+                    <input type="hidden" name="stop_id" value="<?php echo (int) $row['stop_id']; ?>">
+                    <input type="hidden" name="direction" value="up">
+                </form>
+                <form method="post" id="move-down-<?php echo (int) $row['stop_id']; ?>">
+                    <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                    <input type="hidden" name="action" value="move_stop">
+                    <input type="hidden" name="stop_id" value="<?php echo (int) $row['stop_id']; ?>">
+                    <input type="hidden" name="direction" value="down">
+                </form>
             </tr>
             <?php } ?>
-            <?php if ($i === 0) { ?><tr><td colspan="9">등록된 운행 지점이 없습니다.</td></tr><?php } ?>
+            <?php if ($i === 0) { ?><tr><td colspan="10">등록된 운행 지점이 없습니다.</td></tr><?php } ?>
             </tbody>
         </table>
     </section>
