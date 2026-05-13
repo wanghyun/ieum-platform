@@ -1017,6 +1017,9 @@ if ($filter_class_time_raw === 'unassigned') {
 }
 $count_where_no_program .= $insight_where;
 
+$billing_month = date('Y-m', strtotime(G5_TIME_YMD));
+$billing_month_sql = sql_escape_string($billing_month);
+
 $students = sql_query("
     select s.*, c.class_name, c.start_time,
            (select group_concat(concat(g.guardian_name, if(g.guardian_relation <> '', concat('(', g.guardian_relation, ')'), ''), ' ', g.guardian_phone, if(g.sms_attendance=1, ' 등원', ''), if(g.sms_checkout=1, ' 하원', ''), if(g.use_for_student_code=1, ' 번호', '')) order by g.sort_order asc separator '<br>')
@@ -1030,9 +1033,22 @@ $students = sql_query("
          left join " . IEUM_VEHICLE_STOP_TABLE . " st on st.stop_id = sv.stop_id and st.academy_id = sv.academy_id
              where sv.academy_id = s.academy_id
                and sv.student_id = s.student_id
-               and sv.is_active = 1) as vehicle_summary
+               and sv.is_active = 1) as vehicle_summary,
+           (select count(*)
+              from " . IEUM_STUDENT_VEHICLE_TABLE . " sv2
+             where sv2.academy_id = s.academy_id
+               and sv2.student_id = s.student_id
+               and sv2.is_active = 1) as vehicle_count,
+           (select max(a.attendance_date)
+              from " . IEUM_ATTENDANCE_TABLE . " a
+             where a.academy_id = s.academy_id
+               and a.student_id = s.student_id) as last_attendance_date,
+           coalesce(tp.status, '') as tuition_status,
+           coalesce(tp.amount_due, 0) as tuition_amount_due,
+           coalesce(tp.amount_paid, 0) as tuition_amount_paid
      from " . IEUM_STUDENT_TABLE . " s
  left join " . IEUM_CLASS_TIME_TABLE . " c on c.class_time_id = s.class_time_id and c.academy_id = s.academy_id
+ left join " . IEUM_TUITION_PAYMENT_TABLE . " tp on tp.academy_id = s.academy_id and tp.student_id = s.student_id and tp.billing_month = '{$billing_month_sql}'
       {$where}
   order by s.is_active desc, s.student_name asc, s.student_code asc
 ", false);
@@ -1168,7 +1184,7 @@ textarea{min-height:82px;resize:vertical}
 .photo-box{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:12px}.photo-preview{width:112px;height:112px;border-radius:12px;object-fit:cover;background:#e5e7eb;border:1px solid #d8dee9}.photo-empty{width:112px;height:112px;border-radius:12px;background:#e5e7eb;color:#667085;display:flex;align-items:center;justify-content:center;font-weight:900}.photo-controls{display:grid;gap:8px}.photo-controls input[type=file]{width:100%;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:10px}.photo-controls label{font-size:13px;color:#344054}
 .guardian-row{grid-template-columns:1fr!important;gap:12px!important}.guardian-fields{display:grid;grid-template-columns:1fr .75fr 1.1fr;gap:8px}.guardian-flags{display:flex;gap:8px;flex-wrap:wrap}.guardian-flag{display:inline-flex;align-items:center;gap:6px;border:1px solid #cfd6df;border-radius:999px;background:#fff;padding:8px 10px;font-size:13px;font-weight:900;color:#344054}.guardian-flag input{width:auto}.guardian-flag:has(input:checked){background:#eaf4ff;border-color:#1769c2;color:#1769c2}.guardian-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.guardian-actions .guardian-flag{background:#f8fafc}.guardian-actions .btn{min-height:34px}.guardian-section-title{font-size:12px;font-weight:900;color:#667085;margin:0 0 6px}.guardian-groups{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}.guardian-main{display:flex;gap:8px;flex-wrap:wrap}
 .care-actions{display:grid;gap:8px;min-width:190px}.care-actions summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;border:1px solid #b7c7de;border-radius:8px;background:#f4f8ff;color:#1769c2;padding:6px 10px;font-weight:900}.care-actions summary::-webkit-details-marker{display:none}.care-actions summary:before{content:'+';display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:#1769c2;color:#fff;font-size:13px;line-height:1}.care-actions[open] summary:before{content:'-';background:#344054}.care-actions form{display:grid;gap:6px}.care-actions input[type=text]{height:36px;padding:7px 9px;font-size:13px}.care-actions .btn{min-height:34px;padding:7px 9px;font-size:13px}.care-buttons{display:flex;gap:6px;flex-wrap:wrap}.care-buttons .btn{border-color:#d8dee9;background:#fff}.care-buttons .btn:hover,.care-actions summary:hover{border-color:#1769c2;background:#eaf4ff}.care-note{display:block;margin-top:4px;color:#667085;font-size:12px;line-height:1.35}
-.student-table-wrap{overflow-x:auto}.student-cards{display:none;gap:12px}.student-card{border:1px solid #d9dee7;border-radius:10px;background:#fff;padding:14px;box-shadow:0 8px 18px rgba(15,23,42,.05)}.student-card.inactive{background:#fafafa;color:#667085}.student-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}.student-card-name{font-size:19px;font-weight:1000;color:#111827}.student-card-code{color:#667085;font-size:13px;margin-top:2px}.student-card-status{border-radius:999px;background:#eef2f7;color:#344054;padding:5px 9px;font-size:12px;font-weight:900;white-space:nowrap}.student-card-status.active{background:#eaf4ff;color:#1769c2}.student-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}.student-card-field{border:1px solid #edf1f7;border-radius:8px;background:#f8fafc;padding:9px}.student-card-field strong{display:block;color:#667085;font-size:12px;margin-bottom:3px}.student-card-field span{font-weight:800;color:#111827}.student-card-section{border-top:1px solid #edf1f7;padding-top:10px;margin-top:10px}.student-card-section strong{display:block;color:#344054;margin-bottom:5px}.student-card-empty{color:#98a2b3}.student-card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}.student-card-actions .care-actions{flex:1 1 220px}.empty-card{border:1px dashed #cfd6df;border-radius:10px;background:#fff;padding:24px;text-align:center;color:#667085;font-weight:900}
+.student-table-wrap{overflow-x:auto}.student-cards{display:none;gap:12px}.student-card{border:1px solid #d9dee7;border-radius:10px;background:#fff;padding:14px;box-shadow:0 8px 18px rgba(15,23,42,.05)}.student-card.inactive{background:#fafafa;color:#667085}.student-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.student-card-name{font-size:19px;font-weight:1000;color:#111827}.student-card-code{color:#667085;font-size:13px;margin-top:2px}.student-card-status{border-radius:999px;background:#eef2f7;color:#344054;padding:5px 9px;font-size:12px;font-weight:900;white-space:nowrap}.student-card-status.active{background:#eaf4ff;color:#1769c2}.student-card-badges{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.student-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f7;color:#344054;padding:5px 8px;font-size:12px;font-weight:900}.student-badge.good{background:#eef9f1;color:#176b2c}.student-badge.warn{background:#fff6df;color:#9a5b00}.student-badge.danger{background:#fff1f1;color:#a4262c}.student-badge.info{background:#eaf4ff;color:#1769c2}.student-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}.student-card-field{border:1px solid #edf1f7;border-radius:8px;background:#f8fafc;padding:9px}.student-card-field strong{display:block;color:#667085;font-size:12px;margin-bottom:3px}.student-card-field span{font-weight:800;color:#111827}.student-card-more{border-top:1px solid #edf1f7;margin-top:10px;padding-top:10px}.student-card-more summary{cursor:pointer;display:flex;justify-content:center;border:1px solid #d8dee9;border-radius:8px;background:#f8fafc;padding:9px;font-weight:1000;color:#1769c2}.student-card-more summary::-webkit-details-marker{display:none}.student-card-section{border-top:1px solid #edf1f7;padding-top:10px;margin-top:10px}.student-card-more .student-card-section:first-of-type{border-top:0}.student-card-section strong{display:block;color:#344054;margin-bottom:5px}.student-card-empty{color:#98a2b3}.student-card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}.student-card-actions .care-actions{flex:1 1 220px}.empty-card{border:1px dashed #cfd6df;border-radius:10px;background:#fff;padding:24px;text-align:center;color:#667085;font-weight:900}
 @media (max-width:980px){.student-table-wrap{display:none}.student-cards{display:grid}.panel{padding:16px}.search{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}.search input{grid-column:1 / -1;min-width:0}.search .btn{width:100%}}
 @media (max-width:720px){.form-grid{grid-template-columns:1fr}.search{grid-template-columns:1fr}.search input{min-width:0;width:100%}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.guardian-fields,.guardian-groups,.photo-box{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}.student-card-grid{grid-template-columns:1fr}.student-card-head{align-items:flex-start}.student-card-actions{display:grid}.student-card-actions .btn{width:100%}}
 </style>
@@ -1763,6 +1779,15 @@ textarea{min-height:82px;resize:vertical}
         </div>
         <div class="student-cards">
             <?php foreach ($student_rows as $row) { ?>
+            <?php
+            $last_attendance = isset($row['last_attendance_date']) ? $row['last_attendance_date'] : '';
+            $last_attendance_label = $last_attendance ? date('m/d', strtotime($last_attendance)) . ' 출석' : '출석 없음';
+            $last_attendance_class = $last_attendance ? 'good' : 'warn';
+            $vehicle_count = isset($row['vehicle_count']) ? (int) $row['vehicle_count'] : 0;
+            $tuition_due = max(0, (int) $row['tuition_amount_due'] - (int) $row['tuition_amount_paid']);
+            $tuition_badge_label = $tuition_due > 0 && $row['tuition_status'] !== 'paid' ? '미납 ' . number_format($tuition_due) . '원' : '수련비 정상';
+            $tuition_badge_class = $tuition_due > 0 && $row['tuition_status'] !== 'paid' ? 'danger' : 'good';
+            ?>
             <article class="student-card <?php echo $row['is_active'] ? '' : 'inactive'; ?>">
                 <div class="student-card-head">
                     <div>
@@ -1771,12 +1796,20 @@ textarea{min-height:82px;resize:vertical}
                     </div>
                     <span class="student-card-status <?php echo $row['is_active'] ? 'active' : ''; ?>"><?php echo $row['is_active'] ? '사용' : '중지'; ?></span>
                 </div>
+                <div class="student-card-badges">
+                    <span class="student-badge <?php echo $last_attendance_class; ?>"><?php echo get_text($last_attendance_label); ?></span>
+                    <span class="student-badge <?php echo $tuition_badge_class; ?>"><?php echo get_text($tuition_badge_label); ?></span>
+                    <?php if ($vehicle_count > 0) { ?><span class="student-badge info">차량 <?php echo number_format($vehicle_count); ?>건</span><?php } ?>
+                    <?php if (!empty($row['counseling_note'])) { ?><span class="student-badge warn">상담 메모</span><?php } ?>
+                </div>
                 <div class="student-card-grid">
                     <div class="student-card-field"><strong>학년/부</strong><span><?php echo get_text(ieum_grade_label($row['grade_group'])); ?></span></div>
                     <div class="student-card-field"><strong>수업 부</strong><span><?php echo get_text($row['class_name'] ? $row['class_name'] . ' ' . $row['start_time'] : '미지정'); ?></span></div>
                     <div class="student-card-field"><strong>출석 요일</strong><span><?php echo get_text(ieum_attendance_days_label(isset($row['attendance_days']) ? $row['attendance_days'] : '')); ?></span></div>
                     <div class="student-card-field"><strong>관리 메모</strong><span><?php echo get_text($row['memo'] ?: '-'); ?></span></div>
                 </div>
+                <details class="student-card-more">
+                    <summary>상세/처리 열기</summary>
                 <div class="student-card-section">
                     <strong>보호자</strong>
                     <div><?php echo $row['guardian_summary'] ? nl2br(get_text(str_replace('<br>', "\n", $row['guardian_summary']))) : '<span class="student-card-empty">등록 없음</span>'; ?></div>
@@ -1826,6 +1859,7 @@ textarea{min-height:82px;resize:vertical}
                         </div>
                     </details>
                 </div>
+                </details>
             </article>
             <?php } ?>
             <?php if (!$student_rows) { ?>
