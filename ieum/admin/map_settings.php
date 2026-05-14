@@ -87,6 +87,12 @@ $has_secret = ieum_map_has_secret($settings);
         이 설정은 <strong>본사 관리자만</strong> 수정합니다. 도장 관리자는 API 키를 보지 않고, 차량 관리 화면에서 주소 검색과 지도 선택 기능만 사용합니다.
         <br>Client Secret은 저장 후 화면에 다시 표시하지 않으며, 서버에서 주소 변환과 경로 계산을 호출할 때만 사용합니다.
     </section>
+    <section class="hint warn">
+        <strong>네이버 콘솔 확인 순서</strong>
+        <br>1. Application에서 Dynamic Map, Geocoding, Directions 5를 선택합니다.
+        <br>2. Web 서비스 URL에 실제 접속 주소를 등록합니다. 로컬 테스트는 <code>http://localhost</code>, 태블릿 테스트는 <code>http://192.168.0.81</code>처럼 접속 주소를 함께 넣습니다.
+        <br>3. Subscription 또는 이용 신청 상태가 활성화되어야 주소 검색이 동작합니다. 미활성 상태에서는 차량 화면이 “네이버 지도에서 열기”로 대체됩니다.
+    </section>
 
     <form method="post" class="panel">
         <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">

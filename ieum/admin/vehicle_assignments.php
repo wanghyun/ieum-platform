@@ -121,6 +121,11 @@ $filter_assignment = isset($_GET['assignment']) ? preg_replace('/[^a-z_]/', '', 
 if (!in_array($filter_assignment, array('', 'both', 'pickup_only', 'dropoff_only', 'none'), true)) {
     $filter_assignment = '';
 }
+$page_size = isset($_GET['page_size']) ? (int) $_GET['page_size'] : 25;
+if (!in_array($page_size, array(10, 25, 50, 100), true)) {
+    $page_size = 25;
+}
+$page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
 
 $program_options = ieum_program_options($academy_id, true);
 $program_labels = array();
@@ -385,6 +390,12 @@ $assignment_labels = array(
     'dropoff_only' => '하원만',
     'none' => '미배정',
 );
+$display_total = count($students);
+$total_pages = max(1, (int) ceil($display_total / $page_size));
+if ($page > $total_pages) {
+    $page = $total_pages;
+}
+$students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
 ?>
 <!doctype html>
 <html lang="ko">
@@ -394,6 +405,13 @@ $assignment_labels = array(
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:22px}.meta{color:#667085;margin-top:6px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn,select,input[type=text]{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:800}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.btn.subtle{background:#f8fafc}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;margin-bottom:18px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.notice{border-radius:8px;padding:12px 14px;margin-bottom:14px;font-weight:800}.notice.ok{background:#eef9f1;color:#176b2c}.notice.err{background:#fdecec;color:#a4262c}.notice .btn{margin-left:8px;min-height:32px;padding:5px 10px}.filter,.bulk{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.bulk{background:#f8fafc;border:1px solid #d9dee7;border-radius:8px;padding:12px;margin-bottom:14px}.bulk input[type=text]{min-width:220px;flex:1}.bulk .check{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:8px 10px;border:1px solid #d9dee7;border-radius:8px;background:#fff;font-weight:800}.day-options{width:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #e2e8f0;padding-top:10px}.day-options strong{font-size:14px}.day-options label{display:inline-flex;align-items:center;gap:5px;border:1px solid #d9dee7;border-radius:999px;background:#fff;padding:7px 10px;font-weight:800}.custom-days{display:inline-flex;gap:6px;flex-wrap:wrap}.custom-days.is-hidden{display:none}.bulk-tools{width:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.selected-count{margin-left:auto;color:#1769c2;font-weight:900}.bulk-hint{width:100%;color:#667085;font-size:13px}.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:18px}.card{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:16px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.card span{display:block;color:#667085;font-size:13px;font-weight:800}.card strong{display:block;margin-top:5px;font-size:28px}.card.warn{border-color:#f4c27a;background:#fffaf0}.route-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.route-card{border:1px solid #d9dee7;border-radius:8px;padding:14px;background:#fff}.route-card h3{margin:0 0 8px;font-size:17px}.route-card .muted{color:#667085;font-size:13px}.route-counts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.route-counts div{border-radius:8px;background:#f4f7fb;padding:10px}.route-counts span{display:block;color:#667085;font-size:12px;font-weight:800}.route-counts strong{font-size:22px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:1020px}th,td{border:1px solid #d8dee9;padding:10px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.pick-col{width:42px}.badge{display:inline-flex;align-items:center;justify-content:center;min-width:76px;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900}.badge.both{background:#e8f5ef;color:#087443}.badge.pickup_only{background:#eaf2ff;color:#1769c2}.badge.dropoff_only{background:#fff4e5;color:#9a5b00}.badge.none{background:#feecec;color:#a4262c}.student-name{font-weight:900}.sub{display:block;color:#667085;font-size:12px;margin-top:3px}.vehicle-text{font-weight:800}.vehicle-memo{display:block;color:#667085;font-size:12px;margin-top:3px}.empty{padding:28px;text-align:center;color:#667085}.quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.quick a{display:inline-flex;border:1px solid #d9dee7;border-radius:999px;padding:6px 10px;text-decoration:none;color:#344054;background:#f8fafc;font-size:13px;font-weight:800}.quick a.active{background:#1769c2;border-color:#1769c2;color:#fff}@media(max-width:980px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.route-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.selected-count{margin-left:0;width:100%}}@media(max-width:620px){.wrap{padding:0 14px}.cards,.route-grid{grid-template-columns:1fr}.hero{align-items:flex-start}.actions .btn{width:100%}.filter select,.filter .btn,.bulk select,.bulk input,.bulk .btn{width:100%}.notice .btn{margin:8px 0 0;width:100%}.day-options label{width:100%}}
+</style>
+<style>
+.pager{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.pager .muted{color:#667085;font-size:13px;font-weight:800}
+.pages{display:flex;gap:5px;flex-wrap:wrap}
+.pages a,.pages span{display:inline-flex;align-items:center;justify-content:center;min-width:34px;min-height:34px;border:1px solid #d9dee7;border-radius:8px;background:#fff;color:#344054;text-decoration:none;font-weight:900}
+.pages span{background:#1769c2;border-color:#1769c2;color:#fff}
 </style>
 </head>
 <body>
@@ -438,6 +456,11 @@ $assignment_labels = array(
                 <option value="">전체 배정</option>
                 <?php foreach ($assignment_labels as $key => $label) { ?>
                 <option value="<?php echo get_text($key); ?>" <?php echo get_selected($filter_assignment, $key); ?>><?php echo get_text($label); ?></option>
+                <?php } ?>
+            </select>
+            <select name="page_size">
+                <?php foreach (array(10, 25, 50, 100) as $size) { ?>
+                <option value="<?php echo (int) $size; ?>" <?php echo get_selected($page_size, $size); ?>><?php echo (int) $size; ?>명씩 보기</option>
                 <?php } ?>
             </select>
             <button type="submit" class="btn primary">조회</button>
@@ -536,7 +559,7 @@ $assignment_labels = array(
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($students as $row) {
+                    <?php foreach ($students_page as $row) {
                         $status = $row['assignment_status'];
                         $program_label = isset($program_labels[$row['program_code']]) ? $program_labels[$row['program_code']] : $row['program_code'];
                         $class_label = trim(($row['class_name'] ?: '') . ' ' . ($row['class_start_time'] ?: ''));
@@ -563,11 +586,28 @@ $assignment_labels = array(
                         <td><a class="btn" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form&student_id=<?php echo (int) $row['student_id']; ?>">수정</a></td>
                     </tr>
                     <?php } ?>
-                    <?php if (!$students) { ?>
+                    <?php if (!$students_page) { ?>
                     <tr><td colspan="8" class="empty">조건에 맞는 학생이 없습니다.</td></tr>
                     <?php } ?>
                 </tbody>
             </table>
+        </div>
+        <div class="pager">
+            <span class="muted">총 <?php echo number_format($display_total); ?>명 중 <?php echo number_format($display_total ? (($page - 1) * $page_size + 1) : 0); ?>-<?php echo number_format(min($display_total, $page * $page_size)); ?>명 표시</span>
+            <div class="pages">
+                <?php
+                $page_query = $_GET;
+                $page_query['page_size'] = $page_size;
+                for ($p = 1; $p <= $total_pages; $p++) {
+                    $page_query['page'] = $p;
+                    if ($p === $page) {
+                        echo '<span>' . number_format($p) . '</span>';
+                    } else {
+                        echo '<a href="' . IEUM_URL . '/admin/vehicle_assignments.php?' . http_build_query($page_query) . '">' . number_format($p) . '</a>';
+                    }
+                }
+                ?>
+            </div>
         </div>
     </section>
     </form>

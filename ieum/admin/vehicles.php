@@ -368,7 +368,7 @@ $can_use_geocoding = !empty($map_settings['use_geocoding']) && ieum_map_has_api_
 .vehicle-setup-grid{display:grid;grid-template-columns:minmax(360px,.95fr) minmax(420px,1.25fr);gap:18px;align-items:start}.vehicle-setup-grid .panel{margin-bottom:0}.map-panel{min-height:100%}.map-stage{height:430px;border:1px solid #d9e2f1;border-radius:10px;background:#eef2f7;overflow:hidden;position:relative}.map-stage.empty{display:flex;align-items:center;justify-content:center;padding:22px;text-align:center;color:#667085;font-weight:900;line-height:1.6}.map-stage .map-empty-inner{max-width:420px}.map-tools{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:10px}.map-tools small{color:#667085}.map-results{display:none;margin-top:10px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:8px;padding:10px;color:#344054;font-weight:800}.map-results.show{display:block}.map-results button{margin-top:8px}.map-pin-count{display:inline-flex;align-items:center;border-radius:999px;background:#eef5ff;color:#1769c2;padding:6px 10px;font-size:12px;font-weight:900}
 h1{margin:0 0 8px;font-size:26px}.meta{color:#667085;margin-bottom:16px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}
 input,select{width:100%;max-width:100%;min-width:0;border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid.route,.grid.stop{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:center}.grid.route input[name="route_name"],.grid.stop select[name="route_id"],.grid.stop input[name="stop_name"],.grid.stop input[name="stop_address"],.grid.stop input[name="map_url"],.grid.stop .coord-grid,.grid.stop .map-results{grid-column:1/-1}.grid.route label,.grid.stop label{display:flex;align-items:center;gap:6px;min-height:40px;white-space:nowrap}.grid.route label input,.grid.stop label input{width:auto;flex:0 0 auto}.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:0}.map-link{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:999px;background:#eef5ff;color:#1769c2;text-decoration:none;font-size:12px;font-weight:900}.map-search{background:#eef5ff;border-color:#bfdbfe;color:#1769c2}.map-search.loading{opacity:.65;pointer-events:none}
-.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.print{background:#111827;border-color:#111827;color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.print{background:#111827;border-color:#111827;color:#fff}.map-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px}.map-status{display:inline-flex;align-items:center;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:900}.map-status.ok{background:#eaf8ef;color:#15703a}.map-status.miss{background:#fff7ed;color:#b45309}.map-status.manual{background:#eef5ff;color:#1769c2}
 table{width:100%;min-width:980px;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}td input,td select{min-width:110px}td.left input{margin-bottom:6px}th{background:#72829d;color:#fff}.panel>table{display:block;overflow-x:auto;white-space:nowrap}.left{text-align:left}.muted{color:#667085;font-size:12px;line-height:1.45}.inactive{background:#fafafa;color:#8a94a6}.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 14px;flex-wrap:wrap}
 .flow-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.flow-card{border:1px solid #d9e2f1;border-radius:10px;overflow:hidden;background:#fff}.flow-head{display:flex;justify-content:space-between;gap:10px;padding:12px 14px;background:#15204a;color:#fff;font-weight:900}.flow-head small{color:#cbd5e1}.flow-list{list-style:none;margin:0;padding:0}.flow-list li{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid #edf1f7}.flow-time{font-weight:900;color:#1769c2}.flow-name{font-weight:900}.flow-meta{display:block;margin-top:3px;color:#667085;font-size:12px}.flow-empty{padding:18px;color:#667085;text-align:center;background:#f8fafc}.flow-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef5ff;color:#1769c2;padding:4px 8px;font-size:12px;font-weight:900;text-decoration:none}
 .api-hint{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #bfdbfe;background:#eff6ff;border-radius:8px;padding:12px 14px;margin-bottom:18px;color:#344054}.api-hint strong{color:#1769c2}.api-hint a{flex:0 0 auto}
@@ -572,14 +572,27 @@ table{width:100%;min-width:980px;border-collapse:collapse}th,td{border:1px solid
                     <td class="left" data-label="주소/지도">
                         <input type="text" name="stop_address" value="<?php echo get_text(isset($row['stop_address']) ? $row['stop_address'] : ''); ?>" maxlength="160" placeholder="주소 또는 참고 위치">
                         <input type="text" name="map_url" value="<?php echo get_text(isset($row['map_url']) ? $row['map_url'] : ''); ?>" maxlength="255" placeholder="지도 링크">
-                        <button type="button" class="btn map-search">지도 검색</button>
+                        <button type="button" class="btn map-search">주소 검색</button>
                         <div class="coord-grid">
                             <input type="text" name="map_lat" value="<?php echo get_text(isset($row['map_lat']) ? $row['map_lat'] : ''); ?>" placeholder="위도">
                             <input type="text" name="map_lng" value="<?php echo get_text(isset($row['map_lng']) ? $row['map_lng'] : ''); ?>" placeholder="경도">
                         </div>
-                        <?php $map_href = ieum_vehicle_map_href($row); if ($map_href !== '') { ?>
-                        <a class="map-link" href="<?php echo get_text($map_href); ?>" target="_blank" rel="noopener">지도 확인</a>
-                        <?php } ?>
+                        <?php
+                        $map_href = ieum_vehicle_map_href($row);
+                        $has_coord = isset($row['map_lat'], $row['map_lng']) && $row['map_lat'] !== '' && $row['map_lng'] !== '';
+                        ?>
+                        <div class="map-actions">
+                            <?php if ($has_coord) { ?>
+                            <span class="map-status ok">좌표 있음</span>
+                            <?php } elseif ($map_href !== '') { ?>
+                            <span class="map-status manual">지도 링크</span>
+                            <?php } else { ?>
+                            <span class="map-status miss">좌표 없음</span>
+                            <?php } ?>
+                            <?php if ($map_href !== '') { ?>
+                            <a class="map-link" href="<?php echo get_text($map_href); ?>" target="_blank" rel="noopener">지도 확인</a>
+                            <?php } ?>
+                        </div>
                     </td>
                     <td data-label="노선">
                         <select name="route_id">
