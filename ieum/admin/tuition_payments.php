@@ -32,6 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $action = isset($_POST['action']) ? trim($_POST['action']) : 'update';
         $payment_id = isset($_POST['payment_id']) ? (int) $_POST['payment_id'] : 0;
         if ($action === 'billing_settings') {
+            $due_notice_enabled = isset($_POST['due_notice_enabled']) ? 1 : 0;
+            $overdue_notice_enabled = isset($_POST['overdue_notice_enabled']) ? 1 : 0;
+            $overdue_after_days = isset($_POST['overdue_after_days']) ? (int) $_POST['overdue_after_days'] : 5;
+            $overdue_after_days = max(1, min(30, $overdue_after_days));
             $bill_auto_send_enabled = isset($_POST['bill_auto_send_enabled']) ? 1 : 0;
             $bill_auto_send_day = isset($_POST['bill_auto_send_day']) ? (int) $_POST['bill_auto_send_day'] : 5;
             $bill_auto_send_day = max(1, min(31, $bill_auto_send_day));
@@ -40,12 +44,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             sql_query("
                 insert into " . IEUM_TUITION_SETTING_TABLE . "
                     set academy_id = '{$academy_id}',
+                        due_notice_enabled = '{$due_notice_enabled}',
+                        overdue_notice_enabled = '{$overdue_notice_enabled}',
+                        overdue_after_days = '{$overdue_after_days}',
                         bill_auto_send_enabled = '{$bill_auto_send_enabled}',
                         bill_auto_send_day = '{$bill_auto_send_day}',
                         bill_auto_send_scope = '" . sql_escape_string($bill_auto_send_scope) . "',
                         bill_auto_include_arrears = '{$bill_auto_include_arrears}',
                         updated_at = '" . G5_TIME_YMDHIS . "'
                 on duplicate key update
+                        due_notice_enabled = values(due_notice_enabled),
+                        overdue_notice_enabled = values(overdue_notice_enabled),
+                        overdue_after_days = values(overdue_after_days),
                         bill_auto_send_enabled = values(bill_auto_send_enabled),
                         bill_auto_send_day = values(bill_auto_send_day),
                         bill_auto_send_scope = values(bill_auto_send_scope),
@@ -234,6 +244,7 @@ if ($created > 0 && $message === '') {
 $csrf_token = ieum_new_csrf_token();
 $hq_wallet_balance = ieum_hq_wallet_balance();
 $settings = ieum_tuition_get_settings($academy_id);
+$overdue_days = max(1, min(30, (int) (isset($settings['overdue_after_days']) ? $settings['overdue_after_days'] : 5)));
 $bill_preview = ieum_hq_tuition_bill_preview($academy_id, $billing_month);
 $preview_rows = $bill_preview['details'];
 if ($preview_filter === 'arrears') {
@@ -256,8 +267,8 @@ $summary = sql_fetch("
         count(*) as total_count,
         sum(case when p.status = 'paid' then 1 else 0 end) as paid_count,
         sum(case when p.status in ('unpaid', 'partial') then 1 else 0 end) as unpaid_count,
-        sum(case when p.status in ('unpaid', 'partial') and p.due_date < '" . G5_TIME_YMD . "' and datediff('" . G5_TIME_YMD . "', p.due_date) <= 5 then 1 else 0 end) as overdue_5_count,
-        sum(case when p.status in ('unpaid', 'partial') and p.due_date < '" . G5_TIME_YMD . "' and datediff('" . G5_TIME_YMD . "', p.due_date) > 5 then 1 else 0 end) as overdue_long_count,
+        sum(case when p.status in ('unpaid', 'partial') and p.due_date < '" . G5_TIME_YMD . "' and datediff('" . G5_TIME_YMD . "', p.due_date) <= '{$overdue_days}' then 1 else 0 end) as overdue_5_count,
+        sum(case when p.status in ('unpaid', 'partial') and p.due_date < '" . G5_TIME_YMD . "' and datediff('" . G5_TIME_YMD . "', p.due_date) > '{$overdue_days}' then 1 else 0 end) as overdue_long_count,
         coalesce(sum(p.amount_due), 0) as due_amount,
         coalesce(sum(p.amount_paid), 0) as paid_amount
       from " . IEUM_TUITION_PAYMENT_TABLE . " p
@@ -285,7 +296,7 @@ $payments = sql_query("
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1320px;margin:28px auto;padding:0 20px}.wrap.is-loading{opacity:.55;pointer-events:none}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}.meta{color:#667085;margin-top:6px}.cards{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:18px 0}.card{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:16px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.label{font-size:13px;color:#667085}.num{font-size:26px;font-weight:900;margin-top:4px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:12px 0 18px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.danger{background:#fff5f5;border-color:#f2b8b8;color:#a4262c}.soft{background:#eef2f7}input,select{border:1px solid #cfd6df;border-radius:6px;padding:9px;font-size:14px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.right{text-align:right}.status-paid{color:#176b2c;font-weight:900}.status-partial{color:#9a5b00;font-weight:900}.status-unpaid{color:#a4262c;font-weight:900}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.actions{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}.help{color:#667085;font-size:13px;margin:8px 0 0}.balance{font-weight:900;color:#a4262c}.sent{color:#176b2c;font-size:12px;font-weight:800}@media(max-width:1100px){.cards{grid-template-columns:repeat(3,1fr)}}@media(max-width:900px){table{display:block;overflow-x:auto;white-space:nowrap}.ieum-user{margin-left:0}}@media(max-width:520px){.cards{grid-template-columns:1fr}}
 </style>
 <style>
-.status-partial{color:#a4262c}.billing-settings{display:grid;grid-template-columns:1.4fr .8fr 1fr 1fr auto;gap:10px;align-items:end;margin-bottom:18px;padding:14px;border:1px solid #d9dee7;border-radius:8px;background:#fbfcff}.billing-settings label{font-weight:800;color:#344054}.billing-settings .field{display:grid;gap:6px}.billing-settings .check{display:flex;align-items:center;gap:7px;min-height:38px}.billing-settings input[type=checkbox]{width:auto}.preview-box{border:1px solid #c7d8f2;border-radius:8px;background:#f7fbff;margin-bottom:18px;padding:16px}.preview-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}.preview-title{font-size:18px;font-weight:900}.preview-meta{color:#667085;font-size:13px;margin-top:4px}.preview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.preview-item{background:#fff;border:1px solid #d9e5f8;border-radius:8px;padding:12px}.preview-item strong{display:block;font-size:22px;margin-top:4px}.preview-item .label{font-size:12px;color:#667085}.preview-warn{margin-top:12px;color:#8a5200;background:#fff8e6;border:1px solid #f5d48a;border-radius:8px;padding:10px;font-size:13px}.preview-actions{display:flex;gap:8px;flex-wrap:wrap}.preview-detail{margin-top:14px;border:1px solid #d9e5f8;border-radius:8px;overflow:hidden;background:#fff}.preview-detail summary{cursor:pointer;font-weight:900;padding:12px 14px;background:#eef5ff}.preview-tools{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-top:1px solid #d9e5f8}.preview-tools form{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.preview-pages{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.preview-page{padding:6px 9px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;font-weight:800}.preview-page.active{background:#1769c2;color:#fff;border-color:#1769c2}.preview-detail table{margin:0}.preview-detail th{background:#5f7393}.preview-detail td,.preview-detail th{font-size:13px;padding:8px}.bulk-bar{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}.bulk-bar label{font-weight:800;color:#344054}.table-scroll{overflow-x:auto;border:1px solid #d8dee9;border-radius:8px}.payment-table{min-width:1260px;border:0}.payment-table th,.payment-table td{line-height:1.35;padding:8px 7px}.payment-table th:first-child,.payment-table td:first-child{width:48px}.payment-table th:nth-child(2),.payment-table td:nth-child(2){width:94px}.payment-table th:nth-child(3),.payment-table td:nth-child(3){width:140px;white-space:nowrap}.payment-table th:nth-child(4),.payment-table td:nth-child(4){width:92px}.payment-table th:nth-child(5),.payment-table td:nth-child(5),.payment-table th:nth-child(6),.payment-table td:nth-child(6){width:128px}.payment-table th:nth-child(7),.payment-table td:nth-child(7){width:92px;white-space:nowrap}.payment-table th:nth-child(8),.payment-table td:nth-child(8){width:82px;white-space:nowrap}.payment-table th:nth-child(9),.payment-table td:nth-child(9){width:86px;white-space:nowrap}.payment-table th:nth-child(10),.payment-table td:nth-child(10){width:84px}.payment-table th:nth-child(11),.payment-table td:nth-child(11){width:220px}.payment-table th:nth-child(12),.payment-table td:nth-child(12){width:132px}.payment-table input[type=number]{width:100%;text-align:right}.payment-table input[name=memo]{width:100%}.payment-table .actions{min-width:112px}.payment-table .btn{min-height:34px;padding:6px 10px}.payment-table .sent{white-space:normal;line-height:1.25}.auto-bill{display:inline-flex;align-items:center;gap:4px;font-weight:800;color:#344054}@media(max-width:1100px){.preview-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:980px){.billing-settings{grid-template-columns:1fr 1fr}.billing-settings button{grid-column:1/-1}}@media(max-width:620px){.billing-settings,.preview-grid{grid-template-columns:1fr}}
+.status-partial{color:#a4262c}.billing-settings{display:grid;grid-template-columns:repeat(6,minmax(140px,1fr));gap:10px;align-items:end;margin-bottom:18px;padding:14px;border:1px solid #d9dee7;border-radius:8px;background:#fbfcff}.billing-settings label{font-weight:800;color:#344054}.billing-settings .field{display:grid;gap:6px}.billing-settings .check{display:flex;align-items:center;gap:7px;min-height:38px;border:1px solid #e3e8f0;border-radius:8px;background:#fff;padding:9px 10px}.billing-settings input[type=checkbox]{width:auto}.billing-settings .settings-title{grid-column:1/-1;color:#174a8b;font-size:15px;font-weight:900}.preview-box{border:1px solid #c7d8f2;border-radius:8px;background:#f7fbff;margin-bottom:18px;padding:16px}.preview-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:12px}.preview-title{font-size:18px;font-weight:900}.preview-meta{color:#667085;font-size:13px;margin-top:4px}.preview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.preview-item{background:#fff;border:1px solid #d9e5f8;border-radius:8px;padding:12px}.preview-item strong{display:block;font-size:22px;margin-top:4px}.preview-item .label{font-size:12px;color:#667085}.preview-warn{margin-top:12px;color:#8a5200;background:#fff8e6;border:1px solid #f5d48a;border-radius:8px;padding:10px;font-size:13px}.preview-actions{display:flex;gap:8px;flex-wrap:wrap}.preview-detail{margin-top:14px;border:1px solid #d9e5f8;border-radius:8px;overflow:hidden;background:#fff}.preview-detail summary{cursor:pointer;font-weight:900;padding:12px 14px;background:#eef5ff}.preview-tools{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-top:1px solid #d9e5f8}.preview-tools form{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.preview-pages{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.preview-page{padding:6px 9px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;font-weight:800}.preview-page.active{background:#1769c2;color:#fff;border-color:#1769c2}.preview-detail table{margin:0}.preview-detail th{background:#5f7393}.preview-detail td,.preview-detail th{font-size:13px;padding:8px}.bulk-bar{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}.bulk-bar label{font-weight:800;color:#344054}.table-scroll{overflow-x:auto;border:1px solid #d8dee9;border-radius:8px}.payment-table{min-width:1260px;border:0}.payment-table th,.payment-table td{line-height:1.35;padding:8px 7px}.payment-table th:first-child,.payment-table td:first-child{width:48px}.payment-table th:nth-child(2),.payment-table td:nth-child(2){width:94px}.payment-table th:nth-child(3),.payment-table td:nth-child(3){width:140px;white-space:nowrap}.payment-table th:nth-child(4),.payment-table td:nth-child(4){width:92px}.payment-table th:nth-child(5),.payment-table td:nth-child(5),.payment-table th:nth-child(6),.payment-table td:nth-child(6){width:128px}.payment-table th:nth-child(7),.payment-table td:nth-child(7){width:92px;white-space:nowrap}.payment-table th:nth-child(8),.payment-table td:nth-child(8){width:82px;white-space:nowrap}.payment-table th:nth-child(9),.payment-table td:nth-child(9){width:86px;white-space:nowrap}.payment-table th:nth-child(10),.payment-table td:nth-child(10){width:84px}.payment-table th:nth-child(11),.payment-table td:nth-child(11){width:220px}.payment-table th:nth-child(12),.payment-table td:nth-child(12){width:132px}.payment-table input[type=number]{width:100%;text-align:right}.payment-table input[name=memo]{width:100%}.payment-table .actions{min-width:112px}.payment-table .btn{min-height:34px;padding:6px 10px}.payment-table .sent{white-space:normal;line-height:1.25}.auto-bill{display:inline-flex;align-items:center;gap:4px;font-weight:800;color:#344054}@media(max-width:1100px){.preview-grid{grid-template-columns:repeat(2,1fr)}.billing-settings{grid-template-columns:repeat(3,1fr)}}@media(max-width:980px){.billing-settings{grid-template-columns:1fr 1fr}.billing-settings button{grid-column:1/-1}}@media(max-width:620px){.billing-settings,.preview-grid{grid-template-columns:1fr}}
 </style>
 <style>
 .preview-groups{margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
@@ -322,8 +333,8 @@ $payments = sql_query("
         <article class="card"><div class="label">청구 대상</div><div class="num"><?php echo number_format((int) $summary['total_count']); ?>명</div></article>
         <article class="card"><div class="label">결제완료</div><div class="num"><?php echo number_format((int) $summary['paid_count']); ?>명</div></article>
         <article class="card"><div class="label">미결제</div><div class="num"><?php echo number_format((int) $summary['unpaid_count']); ?>명</div></article>
-        <article class="card"><div class="label">미납 5일 이하</div><div class="num"><?php echo number_format((int) $summary['overdue_5_count']); ?>명</div></article>
-        <article class="card"><div class="label">미납 5일 초과</div><div class="num"><?php echo number_format((int) $summary['overdue_long_count']); ?>명</div></article>
+        <article class="card"><div class="label">미납 <?php echo (int) $overdue_days; ?>일 이하</div><div class="num"><?php echo number_format((int) $summary['overdue_5_count']); ?>명</div></article>
+        <article class="card"><div class="label">미납 <?php echo (int) $overdue_days; ?>일 초과</div><div class="num"><?php echo number_format((int) $summary['overdue_long_count']); ?>명</div></article>
         <article class="card"><div class="label">입금 / 청구</div><div class="num"><?php echo number_format((int) $summary['paid_amount']); ?> / <?php echo number_format((int) $summary['due_amount']); ?></div></article>
         <?php if ($is_admin === 'super') { ?><article class="card"><div class="label">본사 발송 충전금</div><div class="num"><?php echo number_format($hq_wallet_balance); ?>원</div></article><?php } ?>
     </section>
@@ -332,6 +343,7 @@ $payments = sql_query("
         <form method="post" class="billing-settings">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <input type="hidden" name="action" value="billing_settings">
+            <div class="settings-title">수련비 자동화 설정</div>
             <label class="check"><input type="checkbox" name="bill_auto_send_enabled" value="1" <?php echo !empty($settings['bill_auto_send_enabled']) ? 'checked' : ''; ?>> 청구서 자동발송</label>
             <div class="field">
                 <label>자동 발송일</label>
@@ -349,6 +361,16 @@ $payments = sql_query("
                 </select>
             </div>
             <label class="check"><input type="checkbox" name="bill_auto_include_arrears" value="1" <?php echo !isset($settings['bill_auto_include_arrears']) || !empty($settings['bill_auto_include_arrears']) ? 'checked' : ''; ?>> 미납 포함</label>
+            <label class="check"><input type="checkbox" name="due_notice_enabled" value="1" <?php echo !isset($settings['due_notice_enabled']) || !empty($settings['due_notice_enabled']) ? 'checked' : ''; ?>> 납부일 문자</label>
+            <label class="check"><input type="checkbox" name="overdue_notice_enabled" value="1" <?php echo !empty($settings['overdue_notice_enabled']) ? 'checked' : ''; ?>> 미납 문자</label>
+            <div class="field">
+                <label>미납 기준</label>
+                <select name="overdue_after_days">
+                    <?php for ($day = 1; $day <= 30; $day++) { ?>
+                    <option value="<?php echo $day; ?>" <?php echo (int) (isset($settings['overdue_after_days']) ? $settings['overdue_after_days'] : 5) === $day ? 'selected' : ''; ?>><?php echo $day; ?>일 초과</option>
+                    <?php } ?>
+                </select>
+            </div>
             <button type="submit" class="btn primary">자동발송 설정 저장</button>
         </form>
         <section class="preview-box">

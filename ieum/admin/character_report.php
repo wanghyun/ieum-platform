@@ -59,6 +59,23 @@ function ieum_character_report_month_label($month)
     return date('Y년 n월', $time);
 }
 
+function ieum_character_report_primary_phone_count($academy_id, $student_id)
+{
+    $academy_id = (int) $academy_id;
+    $student_id = (int) $student_id;
+    $row = sql_fetch("
+        select count(*) as cnt
+          from " . IEUM_STUDENT_GUARDIAN_TABLE . "
+         where academy_id = '{$academy_id}'
+           and student_id = '{$student_id}'
+           and is_active = 1
+           and is_primary = 1
+           and guardian_phone <> ''
+    ", false);
+
+    return isset($row['cnt']) ? (int) $row['cnt'] : 0;
+}
+
 $month = isset($_GET['month']) ? preg_replace('/[^0-9\-]/', '', trim($_GET['month'])) : date('Y-m');
 if (!preg_match('/^\d{4}\-\d{2}$/', $month)) {
     $month = date('Y-m');
@@ -135,13 +152,26 @@ $level_current = $level_summary ? $level_summary['current']['level'] : null;
 $items = $score ? ieum_character_component_values($score) : array();
 $comment = $student && $score ? ieum_character_parent_comment($student['student_name'], $score) : '';
 $student_summaries = array();
+$report_ready_count = 0;
+$report_no_phone_count = 0;
+$mission_done_count = 0;
 foreach ($student_options as $option) {
     $option_score = ieum_character_month_score($academy_id, $option, $month);
     $option_mission = ieum_character_mission_report($academy_id, (int) $option['student_id'], $month);
+    $primary_phone_count = ieum_character_report_primary_phone_count($academy_id, (int) $option['student_id']);
+    if ($primary_phone_count > 0) {
+        $report_ready_count++;
+    } else {
+        $report_no_phone_count++;
+    }
+    if ($option_mission && $option_mission['is_participated']) {
+        $mission_done_count++;
+    }
     $student_summaries[] = array(
         'student' => $option,
         'score' => $option_score,
         'mission' => $option_mission,
+        'primary_phone_count' => $primary_phone_count,
     );
 }
 
@@ -237,7 +267,7 @@ $csrf_token = ieum_new_csrf_token();
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap}h1{margin:0;font-size:28px}h2{margin:0 0 14px;font-size:20px}.meta{color:#667085;margin-top:6px}.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:900;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}input,select{border:1px solid #cfd6df;border-radius:6px;padding:9px;font-size:14px}.report-card,.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:20px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.report-card{margin-top:18px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.profile{display:flex;gap:14px;align-items:center}.avatar{width:78px;height:78px;border-radius:18px;object-fit:cover;border:1px solid #d9dee7;background:#eef2f7}.avatar-empty{display:flex;align-items:center;justify-content:center;color:#667085;font-weight:900}.stage{display:inline-flex;border-radius:999px;background:#eaf4ff;color:#1769c2;padding:7px 12px;font-weight:900}.first{background:#fff4e6;color:#9a5b00}.radar-wrap{display:grid;place-items:center;min-height:360px}canvas{max-width:100%;width:360px;height:360px}.levels{display:grid;gap:12px}.level-row{display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center}.bar{height:10px;border-radius:999px;background:#eef2f7;overflow:hidden}.fill{height:100%;border-radius:999px;background:#1769c2}.level{font-weight:900;color:#344054;white-space:nowrap}.score-small{color:#667085;font-size:12px;line-height:1.55}.comment{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;line-height:1.75;white-space:pre-wrap}.admin-score{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.score-box{border:1px solid #d9dee7;border-radius:8px;padding:12px;background:#fff}.score-box span{color:#667085;font-size:13px}.score-box strong{display:block;font-size:22px;margin-top:4px}.empty{padding:40px;text-align:center;color:#667085}.note{background:#fffbeb;border:1px solid #f6d58e;border-radius:8px;color:#7a4d00;padding:12px;margin-top:12px;line-height:1.6}.copy-box{width:100%;min-height:160px;border:1px solid #d9dee7;border-radius:8px;padding:14px;line-height:1.7;resize:vertical}.summary-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.kpi{border:1px solid #d9dee7;border-radius:8px;padding:12px;background:#fbfcfe}.kpi strong{display:block;font-size:21px;margin-top:4px;color:#1769c2}.level-panel{margin-top:18px;display:grid;grid-template-columns:130px 1fr;gap:16px;align-items:center;border:1px solid #d9dee7;border-radius:12px;padding:16px;background:linear-gradient(135deg,#f2f6ff,#fff)}.level-emblem{height:110px;border-radius:24px;color:#fff;display:grid;place-items:center;text-align:center;font-weight:900;box-shadow:inset 0 0 0 5px rgba(255,255,255,.2)}.level-emblem strong{display:block;font-size:22px}.level-emblem span{display:block;font-size:12px;margin-top:4px}.level-info h2{margin:0 0 6px}.level-track{height:12px;background:#e7edf5;border-radius:999px;overflow:hidden;margin-top:10px}.level-track i{display:block;height:100%;border-radius:999px}.level-meta{display:flex;justify-content:space-between;margin-top:8px;color:#667085;font-size:12px;font-weight:900}.student-summary{margin-top:18px}.summary-table{width:100%;border-collapse:collapse}.summary-table th,.summary-table td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px}.summary-table th{background:#72829d;color:#fff}.summary-table .left{text-align:left}.summary-table tr.active{background:#eef6ff}.mini{font-size:12px;color:#667085}.pill{display:inline-flex;border-radius:999px;padding:4px 8px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900}.pill.ok{background:#e8f7ee;color:#087f5b}.pill.wait{background:#fff4e6;color:#9a5b00}.table-scroll{overflow-x:auto}@media(max-width:900px){.grid{grid-template-columns:1fr}.admin-score,.summary-kpi{grid-template-columns:repeat(2,1fr)}.ieum-user{margin-left:0}.summary-table{min-width:760px}}@media(max-width:560px){.level-row{grid-template-columns:70px 1fr}.level{grid-column:2}.admin-score,.summary-kpi{grid-template-columns:1fr}.level-panel{grid-template-columns:1fr}.level-emblem{height:84px}}@media print{.top,.filters,.print-hide,.student-summary{display:none}.wrap{max-width:none;margin:0;padding:0}.report-card,.panel{box-shadow:none;border-color:#aaa}.grid{grid-template-columns:1fr 1fr}body{background:#fff}}
 </style>
 <style>
-.notice{margin:14px 0 0;padding:12px 14px;border-radius:8px;font-weight:800;line-height:1.5}.notice.ok{background:#eef9f1;color:#176b2c}.notice.err{background:#fdecec;color:#a4262c}.wrap.is-loading{opacity:.55;pointer-events:none}.report-send-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:14px 0}.check-cell{width:46px}.check-cell input{width:auto}.summary-table th.check-cell,.summary-table td.check-cell{text-align:center}.send-help{color:#667085;font-size:13px;line-height:1.5}
+.notice{margin:14px 0 0;padding:12px 14px;border-radius:8px;font-weight:800;line-height:1.5}.notice.ok{background:#eef9f1;color:#176b2c}.notice.err{background:#fdecec;color:#a4262c}.wrap.is-loading{opacity:.55;pointer-events:none}.report-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.report-kpi{border:1px solid #d9dee7;border-radius:8px;background:#fbfcff;padding:12px}.report-kpi span{display:block;color:#667085;font-size:12px;font-weight:900}.report-kpi strong{display:block;margin-top:4px;font-size:22px}.report-send-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:14px 0}.send-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.check-cell{width:46px}.check-cell input{width:auto}.summary-table th.check-cell,.summary-table td.check-cell{text-align:center}.send-help{color:#667085;font-size:13px;line-height:1.5}.sendable{font-size:12px;color:#087f5b;font-weight:900}.blocked{font-size:12px;color:#a4262c;font-weight:900}@media(max-width:760px){.report-kpis{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.report-kpis{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -294,6 +324,12 @@ $csrf_token = ieum_new_csrf_token();
             </div>
             <span class="stage"><?php echo number_format(count($student_summaries)); ?>명</span>
         </div>
+        <div class="report-kpis">
+            <article class="report-kpi"><span>현재 목록</span><strong><?php echo number_format(count($student_summaries)); ?>명</strong></article>
+            <article class="report-kpi"><span>링크 발송 가능</span><strong><?php echo number_format($report_ready_count); ?>명</strong></article>
+            <article class="report-kpi"><span>대표 보호자 없음</span><strong><?php echo number_format($report_no_phone_count); ?>명</strong></article>
+            <article class="report-kpi"><span>아이잘해 완료</span><strong><?php echo number_format($mission_done_count); ?>명</strong></article>
+        </div>
         <form method="post" onsubmit="return confirm('선택한 학생의 학부모 인성리포트 링크 문자를 문자 큐에 생성할까요?');">
         <input type="hidden" name="csrf_token" value="<?php echo get_text($csrf_token); ?>">
         <input type="hidden" name="action" value="send_parent_report_links">
@@ -302,7 +338,10 @@ $csrf_token = ieum_new_csrf_token();
         <input type="hidden" name="class_time_id" value="<?php echo (int) $class_time_id; ?>">
         <input type="hidden" name="student_id" value="<?php echo (int) $student_id; ?>">
         <div class="report-send-bar">
-            <label class="send-help"><input type="checkbox" id="checkAllReportStudents"> 현재 목록 전체 선택</label>
+            <div class="send-actions">
+                <label class="send-help"><input type="checkbox" id="checkAllReportStudents"> 현재 목록 전체 선택</label>
+                <button type="button" class="btn" id="selectReportReady">발송 가능 학생만 선택</button>
+            </div>
             <button type="submit" class="btn primary">선택 학생 학부모 링크 문자 큐 생성</button>
         </div>
         <div class="table-scroll">
@@ -315,10 +354,11 @@ $csrf_token = ieum_new_csrf_token();
                     $option = $summary['student'];
                     $option_score = $summary['score'];
                     $option_mission = $summary['mission'];
+                    $option_sendable = !empty($summary['primary_phone_count']);
                 ?>
                 <tr class="<?php echo (int) $option['student_id'] === $student_id ? 'active' : ''; ?>">
-                    <td class="check-cell"><input type="checkbox" class="report-student-check" name="student_ids[]" value="<?php echo (int) $option['student_id']; ?>"></td>
-                    <td class="left"><strong><?php echo get_text($option['student_name']); ?></strong><div class="mini"><?php echo get_text($option['student_code'] . ' · ' . ieum_character_report_grade_label($option['grade_group'])); ?></div></td>
+                    <td class="check-cell"><input type="checkbox" class="report-student-check" name="student_ids[]" value="<?php echo (int) $option['student_id']; ?>" data-ready="<?php echo $option_sendable ? '1' : '0'; ?>"></td>
+                    <td class="left"><strong><?php echo get_text($option['student_name']); ?></strong><div class="mini"><?php echo get_text($option['student_code'] . ' · ' . ieum_character_report_grade_label($option['grade_group'])); ?></div><div class="<?php echo $option_sendable ? 'sendable' : 'blocked'; ?>"><?php echo $option_sendable ? '링크 문자 가능' : '대표 보호자 연락처 필요'; ?></div></td>
                     <td><?php echo get_text(ieum_program_label($academy_id, isset($option['program_code']) ? $option['program_code'] : '')); ?></td>
                     <td><?php echo get_text(trim(($option['class_name'] ?: '미지정') . ' ' . ($option['start_time'] ?: ''))); ?></td>
                     <td><strong><?php echo empty($option_score['is_before_admission']) ? number_format((int) $option_score['total_score']) : '-'; ?></strong><div class="mini"><?php echo empty($option_score['is_before_admission']) ? get_text(ieum_character_total_stage($option_score['total_score'])) : '입관 전'; ?></div></td>
@@ -524,6 +564,16 @@ if (canvas && radarLabels.length) {
                 input.checked = checkAll.checked;
             });
         });
+        const selectReady = document.getElementById('selectReportReady');
+        if (selectReady && selectReady.dataset.ajaxBound !== '1') {
+            selectReady.dataset.ajaxBound = '1';
+            selectReady.addEventListener('click', () => {
+                document.querySelectorAll('.report-student-check').forEach((input) => {
+                    input.checked = input.dataset.ready === '1';
+                });
+                checkAll.checked = false;
+            });
+        }
     };
 
     const extractRadar = (html) => {
