@@ -58,18 +58,21 @@ function ieum_admin_nav_items()
             'boarding' => array('label' => '탑승 확인', 'url' => IEUM_URL . '/admin/vehicle_boarding.php'),
         ),
     );
+    $settings_children = array(
+        'programs' => array('label' => '프로그램 설정', 'url' => IEUM_URL . '/admin/programs.php'),
+        'classes' => array('label' => '수업 시간표', 'url' => IEUM_URL . '/admin/class_times.php'),
+        'calendar' => array('label' => '수업일 설정', 'url' => IEUM_URL . '/admin/school_calendar.php'),
+        'tuition' => array('label' => '수련비 정책', 'url' => IEUM_URL . '/admin/tuition.php'),
+        'sms_templates' => array('label' => '문자 템플릿', 'url' => IEUM_URL . '/admin/sms_templates.php'),
+        'contacts' => array('label' => '알림 담당자', 'url' => IEUM_URL . '/admin/contacts.php'),
+    );
+    if ($is_admin === 'super') {
+        $settings_children['map_settings'] = array('label' => '지도 API 설정', 'url' => IEUM_URL . '/admin/map_settings.php');
+    }
     $items['settings'] = array(
         'label' => '학원 설정',
         'url' => IEUM_URL . '/admin/programs.php',
-        'children' => array(
-            'programs' => array('label' => '프로그램 설정', 'url' => IEUM_URL . '/admin/programs.php'),
-            'classes' => array('label' => '수업 시간표', 'url' => IEUM_URL . '/admin/class_times.php'),
-            'calendar' => array('label' => '수업일 설정', 'url' => IEUM_URL . '/admin/school_calendar.php'),
-            'tuition' => array('label' => '수련비 정책', 'url' => IEUM_URL . '/admin/tuition.php'),
-            'sms_templates' => array('label' => '문자 템플릿', 'url' => IEUM_URL . '/admin/sms_templates.php'),
-            'contacts' => array('label' => '알림 담당자', 'url' => IEUM_URL . '/admin/contacts.php'),
-            'map_settings' => array('label' => '지도 API 설정', 'url' => IEUM_URL . '/admin/map_settings.php'),
-        ),
+        'children' => $settings_children,
     );
 
     if ($is_admin === 'super') {

@@ -3,6 +3,8 @@ if (!defined('_GNUBOARD_')) {
     exit;
 }
 
+define('IEUM_MAP_SYSTEM_ACADEMY_ID', 0);
+
 function ieum_map_ensure_table()
 {
     $engine = defined('G5_DB_ENGINE') && G5_DB_ENGINE ? G5_DB_ENGINE : 'InnoDB';
@@ -25,7 +27,7 @@ function ieum_map_ensure_table()
     ", false);
 }
 
-function ieum_map_default_settings($academy_id)
+function ieum_map_default_settings($academy_id = IEUM_MAP_SYSTEM_ACADEMY_ID)
 {
     return array(
         'academy_id' => (int) $academy_id,
@@ -37,10 +39,11 @@ function ieum_map_default_settings($academy_id)
         'naver_client_secret' => '',
         'naver_web_service_url' => '',
         'memo' => '',
+        'updated_at' => null,
     );
 }
 
-function ieum_map_get_settings($academy_id)
+function ieum_map_get_settings($academy_id = IEUM_MAP_SYSTEM_ACADEMY_ID)
 {
     $academy_id = (int) $academy_id;
     ieum_map_ensure_table();
@@ -59,9 +62,19 @@ function ieum_map_get_settings($academy_id)
     return ieum_map_default_settings($academy_id);
 }
 
+function ieum_map_get_system_settings()
+{
+    return ieum_map_get_settings(IEUM_MAP_SYSTEM_ACADEMY_ID);
+}
+
 function ieum_map_has_api_key($settings)
 {
     return trim(isset($settings['naver_client_id']) ? $settings['naver_client_id'] : '') !== '';
+}
+
+function ieum_map_has_secret($settings)
+{
+    return trim(isset($settings['naver_client_secret']) ? $settings['naver_client_secret'] : '') !== '';
 }
 
 function ieum_map_mode_label($settings)

@@ -6,7 +6,7 @@ require_once IEUM_PATH . '/lib/maps.php';
 $g5['title'] = '아이이음 차량 관리';
 $academy = ieum_require_academy_page();
 $academy_id = (int) $academy['academy_id'];
-$map_settings = ieum_map_get_settings($academy_id);
+$map_settings = ieum_map_get_system_settings();
 $message = '';
 $error = '';
 
@@ -366,8 +366,10 @@ table{width:100%;min-width:980px;border-collapse:collapse}th,td{border:1px solid
     <?php if ($error) { ?><p class="notice err"><?php echo get_text($error); ?></p><?php } ?>
 
     <div class="api-hint">
-        <div>현재 지도 방식: <strong><?php echo get_text(ieum_map_mode_label($map_settings)); ?></strong> · API 키가 없어도 지도 검색 링크로 운영할 수 있습니다.</div>
+        <div>현재 지도 방식: <strong><?php echo get_text(ieum_map_mode_label($map_settings)); ?></strong> · 지도 API 키는 본사 공통 설정을 사용합니다.</div>
+        <?php if ($is_admin === 'super') { ?>
         <a class="btn" href="<?php echo IEUM_URL; ?>/admin/map_settings.php">지도 API 설정</a>
+        <?php } ?>
     </div>
 
     <section class="summary-grid">
