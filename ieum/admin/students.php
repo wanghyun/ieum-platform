@@ -12,6 +12,8 @@ $mode = isset($_GET['mode']) ? trim($_GET['mode']) : 'list';
 $student_id = isset($_GET['student_id']) ? (int) $_GET['student_id'] : 0;
 $message = '';
 $error = '';
+$last_saved_student_id = 0;
+$last_saved_student_name = '';
 
 function ieum_student_clean_phone($phone)
 {
@@ -93,6 +95,34 @@ function ieum_grade_label($value)
 {
     $options = ieum_grade_options();
     return isset($options[$value]) ? $options[$value] : $value;
+}
+
+function ieum_student_duplicate_code_rows($academy_id, $student_code, $exclude_student_id = 0)
+{
+    $academy_id = (int) $academy_id;
+    $student_code = trim((string) $student_code);
+    $exclude_student_id = (int) $exclude_student_id;
+    if ($academy_id <= 0 || $student_code === '') {
+        return array();
+    }
+
+    $student_code_sql = sql_escape_string($student_code);
+    $exclude_sql = $exclude_student_id > 0 ? " and student_id <> '{$exclude_student_id}' " : '';
+    $result = sql_query("
+        select student_id, student_code, student_name, birth_date, grade_group, class_time_id, is_active
+          from " . IEUM_STUDENT_TABLE . "
+         where academy_id = '{$academy_id}'
+           and student_code = '{$student_code_sql}'
+           {$exclude_sql}
+      order by is_active desc, student_name asc, student_id asc
+         limit 8
+    ", false);
+
+    $rows = array();
+    while ($row = sql_fetch_array($result)) {
+        $rows[] = $row;
+    }
+    return $rows;
 }
 
 function ieum_grade_from_birth_date($birth_date, $base_time = null)
@@ -678,6 +708,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = '보호자 연락처를 1개 이상 입력하세요.';
             } else {
                 $student_code_sql = sql_escape_string($student_code);
+                    $duplicate_code_rows = ieum_student_duplicate_code_rows($academy_id, $student_code, $post_student_id);
                     $student_name_sql = sql_escape_string($student_name);
                     $student_phone_sql = sql_escape_string($student_phone);
                     $birth_date_sql = sql_escape_string($birth_date);
@@ -736,6 +767,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                and academy_id = '{$academy_id}'
                         ");
                         $saved_student_id = $post_student_id;
+                        $last_saved_student_id = $saved_student_id;
+                        $last_saved_student_name = $student_name;
                         ieum_log_student_status_change($academy_id, $saved_student_id, $before_status, $student_status, '학생 정보 수정');
                         $message = '학생 정보가 수정되었습니다.';
                     } else {
@@ -772,6 +805,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     created_at = '" . G5_TIME_YMDHIS . "'
                         ");
                         $saved_student_id = sql_insert_id();
+                        $last_saved_student_id = $saved_student_id;
+                        $last_saved_student_name = $student_name;
                         ieum_log_student_status_change($academy_id, $saved_student_id, '', $student_status, '학생 신규 등록');
                         $message = '학생이 등록되었습니다.';
                     }
@@ -814,6 +849,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                              where academy_id = '{$academy_id}'
                                and student_id = '{$saved_student_id}'
                         ");
+                    }
+                    if (!empty($duplicate_code_rows)) {
+                        $message .= ' 같은 학생번호를 쓰는 학생이 있어 출석기에서는 이름/생년월일로 선택하게 됩니다.';
                     }
                     $mode = 'list';
                     $student_id = 0;
@@ -1181,12 +1219,12 @@ textarea{min-height:82px;resize:vertical}
 .count{color:#5b6472}
 .summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.summary-label{flex:0 0 100%;font-size:12px;font-weight:900;color:#667085;margin-top:4px}.chip{background:#eef2f7;border:1px solid #d8dee9;border-radius:999px;padding:6px 10px;font-weight:800;color:#344054;text-decoration:none}.chip.active{background:#1769c2;color:#fff;border-color:#1769c2}
 .guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card,.ride-day-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input,.ride-day-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected,.ride-day-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px minmax(160px,1fr) 120px minmax(140px,1fr);gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.money-field{display:grid;grid-template-columns:auto 1fr auto;align-items:center;border:1px solid #cfd6df;border-radius:6px;background:#fff;overflow:hidden}.money-field span,.money-field em{height:40px;display:flex;align-items:center;padding:0 10px;background:#f8fafc;color:#667085;font-style:normal;font-weight:900;white-space:nowrap}.money-field input{border:0;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-radius:0;text-align:right;font-weight:800}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-tools{display:flex;gap:8px;flex-wrap:wrap}.vehicle-tools .btn{min-height:34px;padding:6px 10px;font-size:13px}.vehicle-row{display:grid;grid-template-columns:auto 90px 120px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}.vehicle-memo,.vehicle-days{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-contact{display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-memo span,.vehicle-contact span,.vehicle-days span{font-weight:900;color:#344054}.ride-day-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.ride-day-card{min-height:40px;font-size:15px}
-.student-code-field,.student-phone-field{display:grid;gap:6px}.field-help{font-size:12px;color:#667085;line-height:1.45}.student-phone-action{display:grid;grid-template-columns:1fr auto;gap:8px}.student-phone-action .btn{min-height:42px;white-space:nowrap}.photo-box{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:12px}.photo-preview{width:112px;height:112px;border-radius:12px;object-fit:cover;background:#e5e7eb;border:1px solid #d8dee9}.photo-empty{width:112px;height:112px;border-radius:12px;background:#e5e7eb;color:#667085;display:flex;align-items:center;justify-content:center;font-weight:900}.photo-controls{display:grid;gap:8px}.photo-controls input[type=file]{width:100%;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:10px}.photo-controls label{font-size:13px;color:#344054}
+.student-code-field,.student-phone-field{display:grid;gap:6px}.field-help{font-size:12px;color:#667085;line-height:1.45}.student-phone-action{display:grid;grid-template-columns:1fr auto;gap:8px}.student-phone-action .btn{min-height:42px;white-space:nowrap}.duplicate-alert{display:none;border:1px solid #facc15;background:#fffbeb;color:#7a4b00;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.55}.duplicate-alert.show{display:block}.duplicate-alert strong{display:block;color:#92400e;margin-bottom:4px}.duplicate-alert ul{margin:4px 0 0;padding-left:18px}.next-actions{border:1px solid #b7d4ff;background:#f4f8ff;border-radius:10px;padding:14px;margin:0 0 14px}.next-actions strong{display:block;margin-bottom:4px;font-size:16px}.next-actions p{margin:0 0 10px;color:#667085}.next-action-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.next-action-grid .btn{background:#fff}.photo-box{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:12px}.photo-preview{width:112px;height:112px;border-radius:12px;object-fit:cover;background:#e5e7eb;border:1px solid #d8dee9}.photo-empty{width:112px;height:112px;border-radius:12px;background:#e5e7eb;color:#667085;display:flex;align-items:center;justify-content:center;font-weight:900}.photo-controls{display:grid;gap:8px}.photo-controls input[type=file]{width:100%;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:10px}.photo-controls label{font-size:13px;color:#344054}
 .guardian-row{grid-template-columns:1fr!important;gap:12px!important}.guardian-fields{display:grid;grid-template-columns:1fr .75fr 1.1fr;gap:8px}.guardian-flags{display:flex;gap:8px;flex-wrap:wrap}.guardian-flag{display:inline-flex;align-items:center;gap:6px;border:1px solid #cfd6df;border-radius:999px;background:#fff;padding:8px 10px;font-size:13px;font-weight:900;color:#344054}.guardian-flag input{width:auto}.guardian-flag:has(input:checked){background:#eaf4ff;border-color:#1769c2;color:#1769c2}.guardian-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.guardian-actions .guardian-flag{background:#f8fafc}.guardian-actions .btn{min-height:34px}.guardian-section-title{font-size:12px;font-weight:900;color:#667085;margin:0 0 6px}.guardian-groups{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}.guardian-main{display:flex;gap:8px;flex-wrap:wrap}
 .care-actions{display:grid;gap:8px;min-width:190px}.care-actions summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;border:1px solid #b7c7de;border-radius:8px;background:#f4f8ff;color:#1769c2;padding:6px 10px;font-weight:900}.care-actions summary::-webkit-details-marker{display:none}.care-actions summary:before{content:'+';display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:#1769c2;color:#fff;font-size:13px;line-height:1}.care-actions[open] summary:before{content:'-';background:#344054}.care-actions form{display:grid;gap:6px}.care-actions input[type=text]{height:36px;padding:7px 9px;font-size:13px}.care-actions .btn{min-height:34px;padding:7px 9px;font-size:13px}.care-buttons{display:flex;gap:6px;flex-wrap:wrap}.care-buttons .btn{border-color:#d8dee9;background:#fff}.care-buttons .btn:hover,.care-actions summary:hover{border-color:#1769c2;background:#eaf4ff}.care-note{display:block;margin-top:4px;color:#667085;font-size:12px;line-height:1.35}
 .student-table-wrap{overflow-x:auto}.student-cards{display:none;gap:12px}.student-card{border:1px solid #d9dee7;border-radius:10px;background:#fff;padding:14px;box-shadow:0 8px 18px rgba(15,23,42,.05)}.student-card.inactive{background:#fafafa;color:#667085}.student-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.student-card-name{font-size:19px;font-weight:1000;color:#111827}.student-card-code{color:#667085;font-size:13px;margin-top:2px}.student-card-status{border-radius:999px;background:#eef2f7;color:#344054;padding:5px 9px;font-size:12px;font-weight:900;white-space:nowrap}.student-card-status.active{background:#eaf4ff;color:#1769c2}.student-card-badges{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.student-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f7;color:#344054;padding:5px 8px;font-size:12px;font-weight:900}.student-badge.good{background:#eef9f1;color:#176b2c}.student-badge.warn{background:#fff6df;color:#9a5b00}.student-badge.danger{background:#fff1f1;color:#a4262c}.student-badge.info{background:#eaf4ff;color:#1769c2}.student-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}.student-card-field{border:1px solid #edf1f7;border-radius:8px;background:#f8fafc;padding:9px}.student-card-field strong{display:block;color:#667085;font-size:12px;margin-bottom:3px}.student-card-field span{font-weight:800;color:#111827}.student-card-more{border-top:1px solid #edf1f7;margin-top:10px;padding-top:10px}.student-card-more summary{cursor:pointer;display:flex;justify-content:center;border:1px solid #d8dee9;border-radius:8px;background:#f8fafc;padding:9px;font-weight:1000;color:#1769c2}.student-card-more summary::-webkit-details-marker{display:none}.student-card-section{border-top:1px solid #edf1f7;padding-top:10px;margin-top:10px}.student-card-more .student-card-section:first-of-type{border-top:0}.student-card-section strong{display:block;color:#344054;margin-bottom:5px}.student-card-empty{color:#98a2b3}.student-card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}.student-card-actions .care-actions{flex:1 1 220px}.empty-card{border:1px dashed #cfd6df;border-radius:10px;background:#fff;padding:24px;text-align:center;color:#667085;font-weight:900}
 @media (max-width:980px){.student-table-wrap{display:none}.student-cards{display:grid}.panel{padding:16px}.search{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}.search input{grid-column:1 / -1;min-width:0}.search .btn{width:100%}}
-@media (max-width:720px){.form-grid,.guide-grid{grid-template-columns:1fr}.search{grid-template-columns:1fr}.search input{min-width:0;width:100%}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.guardian-fields,.guardian-groups,.photo-box,.student-phone-action{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}.student-card-grid{grid-template-columns:1fr}.student-card-head{align-items:flex-start}.student-card-actions{display:grid}.student-card-actions .btn{width:100%}}
+@media (max-width:720px){.form-grid,.guide-grid,.next-action-grid{grid-template-columns:1fr}.search{grid-template-columns:1fr}.search input{min-width:0;width:100%}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.guardian-fields,.guardian-groups,.photo-box,.student-phone-action{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}.student-card-grid{grid-template-columns:1fr}.student-card-head{align-items:flex-start}.student-card-actions{display:grid}.student-card-actions .btn{width:100%}}
 </style>
 </head>
 <body>
@@ -1238,6 +1276,18 @@ textarea{min-height:82px;resize:vertical}
     </div>
 
     <?php if ($message) { ?><p class="notice ok"><?php echo get_text($message); ?></p><?php } ?>
+    <?php if ($last_saved_student_id > 0) { ?>
+    <section class="next-actions">
+        <strong><?php echo get_text($last_saved_student_name); ?> 학생 등록 다음 단계</strong>
+        <p>바로 출석 테스트를 하거나, 사진/차량/수련비처럼 운영에 필요한 정보를 이어서 보강할 수 있습니다.</p>
+        <div class="next-action-grid">
+            <a class="btn primary" href="<?php echo IEUM_URL; ?>/kiosk.php?tablet=1" target="_blank" rel="noopener">출석 테스트</a>
+            <a class="btn" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form&amp;student_id=<?php echo (int) $last_saved_student_id; ?>">사진/정보 보강</a>
+            <a class="btn" href="<?php echo IEUM_URL; ?>/admin/vehicle_assignments.php?assignment=none">차량 배정 확인</a>
+            <a class="btn" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php">수련비 확인</a>
+        </div>
+    </section>
+    <?php } ?>
     <?php if ($error) { ?><p class="notice err"><?php echo get_text($error); ?></p><?php } ?>
 
     <?php if ($mode === 'form') {
@@ -1331,6 +1381,27 @@ textarea{min-height:82px;resize:vertical}
         } elseif (!isset($form['vehicle_dropoff_stop_id'])) {
             $form['vehicle_dropoff_stop_id'] = 0;
         }
+        $student_code_index = array();
+        $code_result = sql_query("
+            select student_id, student_code, student_name, birth_date, grade_group, is_active
+              from " . IEUM_STUDENT_TABLE . "
+             where academy_id = '{$academy_id}'
+               and student_code <> ''
+          order by student_code asc, is_active desc, student_name asc
+        ", false);
+        while ($code_row = sql_fetch_array($code_result)) {
+            $code = (string) $code_row['student_code'];
+            if (!isset($student_code_index[$code])) {
+                $student_code_index[$code] = array();
+            }
+            $student_code_index[$code][] = array(
+                'student_id' => (int) $code_row['student_id'],
+                'name' => $code_row['student_name'],
+                'birth_date' => $code_row['birth_date'],
+                'grade' => ieum_grade_label($code_row['grade_group']),
+                'active' => (int) $code_row['is_active'],
+            );
+        }
     ?>
     <section class="panel">
         <form method="post" autocomplete="off" enctype="multipart/form-data">
@@ -1353,6 +1424,7 @@ textarea{min-height:82px;resize:vertical}
                 <div class="student-code-field">
                     <input type="text" name="student_code" id="student_code" value="<?php echo get_text($form['student_code']); ?>" maxlength="20" required>
                     <div class="field-help">보통 보호자 또는 학생 휴대폰 번호 뒷자리 4개를 사용합니다. 아래에서 선택하면 자동 입력됩니다.</div>
+                    <div class="duplicate-alert" id="studentCodeDuplicateAlert" role="status" aria-live="polite"></div>
                 </div>
 
                 <label for="student_name">학생명 <span class="required-hint">필수</span></label>
@@ -1915,9 +1987,12 @@ foreach ($tuition_plan_options as $plan) {
 }
 echo json_encode($plan_js);
 ?>;
+const studentCodeIndex = <?php echo json_encode(isset($student_code_index) ? $student_code_index : array(), JSON_UNESCAPED_UNICODE); ?>;
+const editingStudentId = <?php echo isset($form['student_id']) ? (int) $form['student_id'] : 0; ?>;
 const addGuardian = document.getElementById('addGuardian');
 const guardianList = document.getElementById('guardianList');
 const studentCodeInput = document.getElementById('student_code');
+const studentCodeDuplicateAlert = document.getElementById('studentCodeDuplicateAlert');
 const studentPhoneInput = document.getElementById('student_phone');
 const useStudentPhoneCode = document.getElementById('useStudentPhoneCode');
 const weekTypeInput = document.getElementById('attendance_week_type');
@@ -2154,6 +2229,7 @@ function applyStudentCodeFromDigits(digits, source) {
     if (!studentCodeInput || digits.length < 4 || !canAutoUpdateStudentCode(source)) return;
     studentCodeInput.value = digits.slice(-4);
     setStudentCodeAutoSource(source);
+    updateStudentCodeDuplicateAlert();
 }
 function applyStudentCodeFromRow(row) {
     const phone = row.querySelector('input[name="guardian_phone[]"]');
@@ -2163,6 +2239,32 @@ function applyStudentCodeFromRow(row) {
 function applyStudentCodeFromStudentPhone() {
     const digits = digitsOnly(studentPhoneInput ? studentPhoneInput.value : '');
     applyStudentCodeFromDigits(digits, 'student');
+}
+function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;',
+    }[char]));
+}
+function updateStudentCodeDuplicateAlert() {
+    if (!studentCodeInput || !studentCodeDuplicateAlert) return;
+    const code = studentCodeInput.value.trim();
+    const rows = (studentCodeIndex[code] || []).filter((row) => Number(row.student_id) !== Number(editingStudentId));
+    if (!code || rows.length === 0) {
+        studentCodeDuplicateAlert.className = 'duplicate-alert';
+        studentCodeDuplicateAlert.innerHTML = '';
+        return;
+    }
+    const items = rows.slice(0, 5).map((row) => {
+        const birth = row.birth_date && row.birth_date !== '0000-00-00' ? row.birth_date : '생년월일 미입력';
+        const status = Number(row.active) === 1 ? '사용' : '중지';
+        return `<li>${escapeHtml(row.name)} · ${escapeHtml(birth)} · ${escapeHtml(row.grade)} · ${status}</li>`;
+    }).join('');
+    studentCodeDuplicateAlert.className = 'duplicate-alert show';
+    studentCodeDuplicateAlert.innerHTML = `<strong>같은 학생번호를 사용하는 학생이 있습니다.</strong><div>저장은 가능하며, 출석기에서는 이름과 생년월일로 학생을 선택하게 됩니다.</div><ul>${items}</ul>`;
 }
 function bindGuardianRow(row) {
     const remove = row.querySelector('.remove-guardian');
@@ -2212,7 +2314,9 @@ if (studentCodeInput) {
         if (document.activeElement === studentCodeInput) {
             setStudentCodeAutoSource('');
         }
+        updateStudentCodeDuplicateAlert();
     });
+    updateStudentCodeDuplicateAlert();
 }
 if (addGuardian) {
     addGuardian.addEventListener('click', () => {
