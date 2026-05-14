@@ -172,7 +172,7 @@ public class MainActivity extends Activity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 openPairingQrScanner();
             } else {
-                showMessage("카메라 권한 필요", "QR 연결을 사용하려면 카메라 권한을 허용해 주세요.", true);
+                showMessage("카메라 권한이 필요합니다", "도장 연결 QR을 읽으려면 태블릿 설정에서 카메라 권한을 허용해 주세요.", true);
             }
         }
     }
@@ -232,6 +232,22 @@ public class MainActivity extends Activity {
         guide.setPadding(0, dp(4), 0, dp(landscape ? (phone ? 7 : 10) : 6));
         inputPanel.addView(guide);
 
+        baseUrlInput = smallInput("http://192.168.0.81");
+        academyCodeInput = smallInput("IEUMTKD001");
+        tabletPinInput = smallInput("110022");
+        tabletPinInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+        pairingInput = smallInput("");
+        pairingInput.setInputType(InputType.TYPE_CLASS_NUMBER);
+        deviceInput = smallInput("입구 태블릿");
+        loadPrefs();
+
+        if (deviceToken.length() == 0) {
+            addUnpairedStartPanel(inputPanel, landscape, phone);
+            setContentView(root);
+            restoreResultPanel();
+            return;
+        }
+
         codeInput = new EditText(this);
         codeInput.setSingleLine(true);
         codeInput.setTextSize(landscape ? (phone ? 25 : 30) : 26);
@@ -249,17 +265,55 @@ public class MainActivity extends Activity {
         inputPanel.addView(keypad, keypadParams);
         addKeyRows(landscape, phone);
 
-        baseUrlInput = smallInput("http://192.168.0.81");
-        academyCodeInput = smallInput("IEUMTKD001");
-        tabletPinInput = smallInput("110022");
-        tabletPinInput.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
-        pairingInput = smallInput("");
-        pairingInput.setInputType(InputType.TYPE_CLASS_NUMBER);
-        deviceInput = smallInput("입구 태블릿");
-        loadPrefs();
-
         setContentView(root);
         restoreResultPanel();
+    }
+
+    private void addUnpairedStartPanel(LinearLayout inputPanel, boolean landscape, boolean phone) {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setGravity(Gravity.CENTER);
+        box.setPadding(dp(phone ? 4 : 8), dp(landscape ? 12 : 20), dp(phone ? 4 : 8), dp(8));
+        inputPanel.addView(box, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1));
+
+        TextView status = text("도장 연결이 필요합니다", landscape ? (phone ? 22 : 28) : 26, Color.rgb(16, 24, 40), true);
+        status.setGravity(Gravity.CENTER);
+        box.addView(status);
+
+        TextView help = text("관리자 화면에서 만든 QR을 스캔하면 이 태블릿이 해당 도장 전용 출석기로 연결됩니다.", landscape ? 14 : 15, Color.rgb(71, 84, 103), false);
+        help.setGravity(Gravity.CENTER);
+        help.setPadding(0, dp(8), 0, dp(18));
+        box.addView(help);
+
+        Button connect = primaryButton("도장 연결하기");
+        LinearLayout.LayoutParams connectParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(phone ? 50 : 58));
+        connectParams.leftMargin = dp(phone ? 4 : 20);
+        connectParams.rightMargin = dp(phone ? 4 : 20);
+        box.addView(connect, connectParams);
+        connect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startPairingQrScan();
+            }
+        });
+
+        Button settings = outlineButton("수동 연결 / 관리자 설정");
+        LinearLayout.LayoutParams settingsParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(phone ? 46 : 52));
+        settingsParams.leftMargin = dp(phone ? 4 : 20);
+        settingsParams.rightMargin = dp(phone ? 4 : 20);
+        settingsParams.topMargin = dp(10);
+        box.addView(settings, settingsParams);
+        settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                requestAdminPin();
+            }
+        });
+
+        TextView note = text("연결 후에는 이 화면이 숫자 입력 출석 화면으로 바뀝니다.", 12, Color.rgb(102, 112, 133), false);
+        note.setGravity(Gravity.CENTER);
+        note.setPadding(0, dp(12), 0, 0);
+        box.addView(note);
     }
 
     private void addKeyRows(boolean landscape, boolean phone) {
@@ -346,7 +400,7 @@ public class MainActivity extends Activity {
         pin.setHint("관리자 PIN");
         new AlertDialog.Builder(this)
                 .setTitle("관리자 설정")
-                .setMessage("출석기 설정을 변경하려면 PIN을 입력하세요.")
+                .setMessage("수동 연결이나 설정 변경은 관리자 PIN이 필요합니다.")
                 .setView(pin)
                 .setNegativeButton("취소", null)
                 .setPositiveButton("확인", (dialog, which) -> {
@@ -404,8 +458,8 @@ public class MainActivity extends Activity {
         final AlertDialog[] dialogRef = new AlertDialog[1];
 
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("출석기 설정")
-                .setMessage("QR 재연결은 도장 관리자 화면의 출석기 관리에서 연결 코드를 만든 뒤 진행하세요.")
+                .setTitle("앱 출석기 설정")
+                .setMessage("QR 재연결은 도장 관리자 화면의 앱 출석기에서 연결 코드를 만든 뒤 진행하세요.")
                 .setView(scroll)
                 .setNeutralButton("QR 스캔", (settingDialog, which) -> {
                     baseUrlInput.setText(normalizeBaseUrl(server.getText().toString().trim()));
@@ -503,7 +557,7 @@ public class MainActivity extends Activity {
     private void openPairingQrScanner() {
         IntentIntegrator integrator = new IntentIntegrator(this);
         integrator.setCaptureActivity(QrScanActivity.class);
-        integrator.setPrompt("관리자 화면의 출석기 연결 QR을 스캔하세요.");
+        integrator.setPrompt("관리자 화면의 앱 출석기 연결 QR을 스캔하세요.");
         integrator.setBeepEnabled(false);
         integrator.setOrientationLocked(false);
         integrator.initiateScan();
@@ -513,7 +567,7 @@ public class MainActivity extends Activity {
         try {
             Uri uri = Uri.parse(contents);
             if (!"ieum-attendance".equals(uri.getScheme()) || !"pair".equals(uri.getHost())) {
-                showMessage("QR 확인 필요", "아이이음 출석기 연결 QR이 아닙니다.", true);
+                showMessage("QR을 다시 확인해 주세요", "아이이음 앱 출석기 연결 QR이 아닙니다.", true);
                 return;
             }
             String server = uri.getQueryParameter("server");
@@ -521,7 +575,7 @@ public class MainActivity extends Activity {
             String pin = uri.getQueryParameter("tablet_pin");
             String pairing = uri.getQueryParameter("pairing_code");
             if (server == null || code == null || pin == null || pairing == null) {
-                showMessage("QR 확인 필요", "연결 정보가 부족합니다. 관리자 화면에서 QR을 다시 생성해 주세요.", true);
+                showMessage("QR을 다시 생성해 주세요", "연결 정보가 부족합니다. 관리자 화면에서 새 QR을 만든 뒤 다시 스캔해 주세요.", true);
                 return;
             }
             baseUrlInput.setText(normalizeBaseUrl(server.trim()));
@@ -531,7 +585,7 @@ public class MainActivity extends Activity {
             saveBasePrefs();
             registerDevice();
         } catch (Exception e) {
-            showMessage("QR 확인 필요", "QR 정보를 읽을 수 없습니다.", true);
+            showMessage("QR을 다시 확인해 주세요", "QR 정보를 읽을 수 없습니다. 화면 밝기와 카메라 초점을 확인해 주세요.", true);
         }
     }
 
@@ -554,20 +608,20 @@ public class MainActivity extends Activity {
         final String code = academyCodeInput.getText().toString().trim();
         final String pin = tabletPinInput.getText().toString().trim();
         if (code.length() == 0) {
-            showMessage("도장 코드 필요", "관리자 화면의 도장 코드를 입력해 주세요.", true);
+            showMessage("도장 코드가 필요합니다", "관리자 화면의 도장 코드를 입력해 주세요.", true);
             return;
         }
         if (pin.length() < 4) {
-            showMessage("출석기 PIN 필요", "관리자 화면의 출석기 PIN을 입력해 주세요.", true);
+            showMessage("앱 출석기 PIN이 필요합니다", "관리자 화면의 앱 출석기 PIN을 입력해 주세요.", true);
             return;
         }
         if (pairing.length() != 6) {
-            showMessage("연결 코드 필요", "관리자 화면에서 만든 6자리 코드를 입력해 주세요.", true);
+            showMessage("연결 코드가 필요합니다", "관리자 화면에서 만든 6자리 코드를 입력해 주세요.", true);
             return;
         }
         saveBasePrefs();
         busy = true;
-        showMessage("출석기 연결 중", "도장 정보를 확인하고 있습니다.", false);
+        showMessage("도장 연결 중", "앱 출석기 정보를 확인하고 있습니다.", false);
 
         new Thread(new Runnable() {
             @Override
@@ -604,7 +658,7 @@ public class MainActivity extends Activity {
     private void handleRegisterResponse(JSONObject json) {
         try {
             if (!json.optBoolean("ok")) {
-                showMessage("출석기 연결 실패", json.optString("message"), true);
+                showMessage("도장 연결 실패", json.optString("message"), true);
                 return;
             }
             JSONObject data = json.optJSONObject("data");
@@ -621,7 +675,7 @@ public class MainActivity extends Activity {
             buildUi();
             uiHandler.removeCallbacks(returnToIdleRunnable);
             uiHandler.postDelayed(returnToIdleRunnable, 2500);
-            showMessage("연결 완료", academyName + " 출석기로 사용할 수 있습니다.", false);
+            showMessage("연결 완료", academyName + " 앱 출석기로 사용할 수 있습니다.", false);
         } catch (Exception e) {
             showMessage("응답 오류", e.getMessage(), true);
         }
@@ -909,16 +963,29 @@ public class MainActivity extends Activity {
         box.setOrientation(LinearLayout.VERTICAL);
         box.setGravity(Gravity.CENTER);
         resultPanel.addView(box, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-        TextView title = text("출석기 연결 대기", 25, Color.rgb(71, 84, 103), true);
+        TextView title = text("앱 출석기 연결 대기", 25, Color.rgb(71, 84, 103), true);
         title.setGravity(Gravity.CENTER);
         box.addView(title);
-        TextView body = text("관리자 화면의 6자리 연결 코드가 필요합니다.", 15, Color.rgb(102, 112, 133), false);
+        TextView body = text("관리자 화면에서 연결 코드를 만들고 QR을 스캔해 주세요.", 15, Color.rgb(102, 112, 133), false);
         body.setGravity(Gravity.CENTER);
         body.setPadding(0, dp(8), 0, dp(12));
         box.addView(body);
-        Button open = smallButton("관리자 설정");
-        box.addView(open, new LinearLayout.LayoutParams(dp(150), dp(44)));
-        open.setOnClickListener(new View.OnClickListener() {
+
+        Button connect = primaryButton("QR로 도장 연결");
+        LinearLayout.LayoutParams connectParams = new LinearLayout.LayoutParams(dp(190), dp(48));
+        box.addView(connect, connectParams);
+        connect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startPairingQrScan();
+            }
+        });
+
+        Button settings = outlineButton("관리자 설정");
+        LinearLayout.LayoutParams settingsParams = new LinearLayout.LayoutParams(dp(190), dp(44));
+        settingsParams.topMargin = dp(8);
+        box.addView(settings, settingsParams);
+        settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 requestAdminPin();
@@ -1015,6 +1082,28 @@ public class MainActivity extends Activity {
         button.setTextSize(12);
         button.setTextColor(Color.WHITE);
         button.setBackgroundColor(CHARCOAL);
+        return button;
+    }
+
+    private Button primaryButton(String label) {
+        Button button = new Button(this);
+        button.setAllCaps(false);
+        button.setText(label);
+        button.setTextSize(isPhone() ? 16 : 18);
+        button.setTypeface(null, 1);
+        button.setTextColor(Color.WHITE);
+        button.setBackgroundColor(BLUE);
+        return button;
+    }
+
+    private Button outlineButton(String label) {
+        Button button = new Button(this);
+        button.setAllCaps(false);
+        button.setText(label);
+        button.setTextSize(isPhone() ? 14 : 16);
+        button.setTypeface(null, 1);
+        button.setTextColor(Color.rgb(16, 24, 40));
+        button.setBackgroundColor(Color.rgb(242, 244, 247));
         return button;
     }
 
