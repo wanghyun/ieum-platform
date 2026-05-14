@@ -2142,18 +2142,27 @@ function renumberGuardians() {
         });
     });
 }
+function setStudentCodeAutoSource(source) {
+    if (!studentCodeInput) return;
+    studentCodeInput.dataset.autoSource = source || '';
+}
+function canAutoUpdateStudentCode(source) {
+    if (!studentCodeInput) return false;
+    return studentCodeInput.value === '' || studentCodeInput.dataset.autoSource === source;
+}
+function applyStudentCodeFromDigits(digits, source) {
+    if (!studentCodeInput || digits.length < 4 || !canAutoUpdateStudentCode(source)) return;
+    studentCodeInput.value = digits.slice(-4);
+    setStudentCodeAutoSource(source);
+}
 function applyStudentCodeFromRow(row) {
     const phone = row.querySelector('input[name="guardian_phone[]"]');
     const digits = digitsOnly(phone ? phone.value : '');
-    if (digits.length >= 4 && studentCodeInput) {
-        studentCodeInput.value = digits.slice(-4);
-    }
+    applyStudentCodeFromDigits(digits, 'guardian');
 }
 function applyStudentCodeFromStudentPhone() {
     const digits = digitsOnly(studentPhoneInput ? studentPhoneInput.value : '');
-    if (digits.length >= 4 && studentCodeInput) {
-        studentCodeInput.value = digits.slice(-4);
-    }
+    applyStudentCodeFromDigits(digits, 'student');
 }
 function bindGuardianRow(row) {
     const remove = row.querySelector('.remove-guardian');
@@ -2198,6 +2207,13 @@ function bindGuardianRow(row) {
 if (guardianList) {
     guardianList.querySelectorAll('.guardian-row').forEach(bindGuardianRow);
 }
+if (studentCodeInput) {
+    studentCodeInput.addEventListener('input', () => {
+        if (document.activeElement === studentCodeInput) {
+            setStudentCodeAutoSource('');
+        }
+    });
+}
 if (addGuardian) {
     addGuardian.addEventListener('click', () => {
         const list = guardianList;
@@ -2235,11 +2251,14 @@ if (addGuardian) {
 }
 bindPhoneFormatter(studentPhoneInput);
 if (useStudentPhoneCode) {
-    useStudentPhoneCode.addEventListener('click', applyStudentCodeFromStudentPhone);
+    useStudentPhoneCode.addEventListener('click', () => {
+        setStudentCodeAutoSource('student');
+        applyStudentCodeFromStudentPhone();
+    });
 }
 if (studentPhoneInput) {
     studentPhoneInput.addEventListener('input', () => {
-        if (document.activeElement === studentPhoneInput && studentCodeInput && studentCodeInput.value === '') {
+        if (document.activeElement === studentPhoneInput) {
             applyStudentCodeFromStudentPhone();
         }
     });
