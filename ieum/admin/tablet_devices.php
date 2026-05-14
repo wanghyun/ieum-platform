@@ -220,7 +220,7 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
             <div class="setup-list">
                 <div class="setup-item"><span class="setup-dot">1</span><span>태블릿에 <strong>아이이음출석기</strong> 앱을 설치합니다.</span></div>
                 <div class="setup-item"><span class="setup-dot">2</span><span>이 화면에서 <strong>연결 코드 생성</strong>을 누릅니다.</span></div>
-                <div class="setup-item"><span class="setup-dot">3</span><span>앱의 관리자 설정에서 QR을 스캔하면 이 도장 전용 출석기로 연결됩니다.</span></div>
+                <div class="setup-item"><span class="setup-dot">3</span><span>앱 첫 화면의 <strong>도장 연결</strong>에서 QR을 스캔하면 이 도장 전용 출석기로 연결됩니다.</span></div>
             </div>
         </div>
         <div class="manual-card">
@@ -256,7 +256,7 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
                 </div>
                 <div class="step">
                     <span class="step-no">2</span>
-                    <div><strong>태블릿 앱에서 관리자 설정 열기</strong><span class="muted">앱 첫 화면에서 도장명을 길게 누르고 관리자 PIN을 입력합니다.</span></div>
+                    <div><strong>태블릿 앱에서 도장 연결 열기</strong><span class="muted">처음 설치한 앱 첫 화면에서 도장 연결 또는 QR 스캔 버튼을 누릅니다.</span></div>
                 </div>
                 <div class="step">
                     <span class="step-no">3</span>
