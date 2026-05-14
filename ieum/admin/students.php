@@ -600,7 +600,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $post_student_id = isset($_POST['student_id']) ? (int) $_POST['student_id'] : 0;
 
         if ($action === 'save') {
-            $student_code = isset($_POST['student_code']) ? preg_replace('/[^0-9A-Za-z_-]/', '', trim($_POST['student_code'])) : '';
+            $student_code = isset($_POST['student_code']) ? preg_replace('/[^0-9]/', '', trim($_POST['student_code'])) : '';
             $student_name = isset($_POST['student_name']) ? trim($_POST['student_name']) : '';
             $student_phone = isset($_POST['student_phone']) ? ieum_student_clean_phone($_POST['student_phone']) : '';
             $birth_date = isset($_POST['birth_date']) ? preg_replace('/[^0-9-]/', '', trim($_POST['birth_date'])) : '';
@@ -1422,8 +1422,8 @@ textarea{min-height:82px;resize:vertical}
 
                 <label for="student_code">학생번호 <span class="required-hint">필수</span></label>
                 <div class="student-code-field">
-                    <input type="text" name="student_code" id="student_code" value="<?php echo get_text($form['student_code']); ?>" maxlength="20" required>
-                    <div class="field-help">보통 보호자 또는 학생 휴대폰 번호 뒷자리 4개를 사용합니다. 아래에서 선택하면 자동 입력됩니다.</div>
+                    <input type="text" name="student_code" id="student_code" value="<?php echo get_text($form['student_code']); ?>" maxlength="8" inputmode="numeric" required>
+                    <div class="field-help">보호자 또는 학생 휴대폰 번호 뒷자리 4개를 주로 사용합니다. 아래에서 선택하면 자동 입력되고, 숫자만 저장됩니다.</div>
                     <div class="duplicate-alert" id="studentCodeDuplicateAlert" role="status" aria-live="polite"></div>
                 </div>
 
@@ -1436,7 +1436,7 @@ textarea{min-height:82px;resize:vertical}
                         <input type="text" name="student_phone" id="student_phone" value="<?php echo get_text(isset($form['student_phone']) ? $form['student_phone'] : ''); ?>" maxlength="13" inputmode="numeric" placeholder="학생 휴대폰이 있으면 입력">
                         <button type="button" class="btn muted" id="useStudentPhoneCode">학생번호로 사용</button>
                     </div>
-                    <div class="field-help">학생 휴대폰이 있는 경우 이 번호 뒷자리로 학생번호를 만들 수 있습니다.</div>
+                    <div class="field-help">입력 중 자동으로 하이픈이 붙습니다. 수동으로 하이픈을 넣지 않아도 됩니다.</div>
                 </div>
 
                 <label>보호자 <span class="required-hint">필수</span></label>
@@ -1458,7 +1458,7 @@ textarea{min-height:82px;resize:vertical}
                                 </div>
                             </div>
                             <div>
-                                <div class="guardian-section-title">학생번호 선택 (핸드폰 뒷자리)</div>
+                                <div class="guardian-section-title">학생번호 선택 (연락처 뒷자리)</div>
                                 <div class="guardian-main">
                                     <label class="guardian-flag"><input type="checkbox" class="use-code" name="guardian_use_code[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['use_for_student_code']) ? 'checked' : ''; ?>> 학생번호로 사용</label>
                                     <label class="guardian-flag"><input type="checkbox" class="primary-guardian" name="guardian_primary[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['is_primary']) ? 'checked' : ''; ?>> 대표</label>
@@ -1477,7 +1477,7 @@ textarea{min-height:82px;resize:vertical}
 
                 <label for="student_photo_file">학생 사진</label>
                 <details class="optional-details" open>
-                    <summary>등록된 사진은 출석기 등원 완료 화면에 보입니다.</summary>
+                    <summary>등록된 사진은 앱 출석기 등원 완료 화면에 보입니다.</summary>
                     <div class="optional-details-inner photo-box">
                         <?php $student_photo_url = ieum_student_photo_url(isset($form['student_photo']) ? $form['student_photo'] : ''); ?>
                         <?php if ($student_photo_url !== '') { ?>
@@ -2057,6 +2057,33 @@ function bindPhoneFormatter(input) {
         input.value = formatKoreanPhone(input.value);
     });
 }
+function bindDigitsOnlyInput(input, maxLength) {
+    if (!input || input.dataset.digitsBound === '1') return;
+    input.dataset.digitsBound = '1';
+    input.setAttribute('inputmode', 'numeric');
+    input.value = digitsOnly(input.value).slice(0, maxLength || 20);
+    input.addEventListener('keydown', (event) => {
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        const allowedKeys = [
+            'Backspace', 'Delete', 'Tab', 'Enter', 'Escape',
+            'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+            'Home', 'End',
+        ];
+        if (allowedKeys.includes(event.key)) return;
+        if (event.key.length === 1 && !/[0-9]/.test(event.key)) {
+            event.preventDefault();
+        }
+    });
+    input.addEventListener('paste', (event) => {
+        event.preventDefault();
+        const text = (event.clipboardData || window.clipboardData).getData('text') || '';
+        input.value = digitsOnly(text).slice(0, maxLength || 20);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    input.addEventListener('input', () => {
+        input.value = digitsOnly(input.value).slice(0, maxLength || 20);
+    });
+}
 function syncWeekdayCards() {
     weekdayCards.forEach((card) => {
         const input = card.querySelector('input[type="checkbox"]');
@@ -2310,6 +2337,7 @@ if (guardianList) {
     guardianList.querySelectorAll('.guardian-row').forEach(bindGuardianRow);
 }
 if (studentCodeInput) {
+    bindDigitsOnlyInput(studentCodeInput, 8);
     studentCodeInput.addEventListener('input', () => {
         if (document.activeElement === studentCodeInput) {
             setStudentCodeAutoSource('');

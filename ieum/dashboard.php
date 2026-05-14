@@ -198,8 +198,8 @@ $onboarding_steps = array(
     ),
     array(
         'done' => (int) $tablet_devices['cnt'] > 0,
-        'label' => '출석기 연결',
-        'desc' => '도장 코드와 PIN으로 태블릿 앱을 연결합니다.',
+        'label' => '앱 출석기 연결',
+        'desc' => '태블릿 앱에서 도장 연결 QR을 스캔합니다.',
         'url' => IEUM_URL . '/admin/tablet_devices.php',
     ),
     array(
@@ -496,6 +496,10 @@ $birthday_students = sql_query("
                 <a class="focus-action <?php echo (int) $vehicle_note_count['cnt'] ? 'warn' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php">
                     <div><strong>차량 메모</strong><span>기사님 탑승확인 특이사항</span></div>
                     <span class="focus-count"><?php echo number_format((int) $vehicle_note_count['cnt']); ?>건</span>
+                </a>
+                <a class="focus-action <?php echo (int) $tablet_devices['cnt'] ? '' : 'warn'; ?>" href="<?php echo IEUM_URL; ?>/admin/tablet_devices.php">
+                    <div><strong>앱 출석기</strong><span>연결된 태블릿 상태와 QR 연결 관리</span></div>
+                    <span class="focus-count"><?php echo number_format((int) $tablet_devices['cnt']); ?>대</span>
                 </a>
             </div>
         </article>

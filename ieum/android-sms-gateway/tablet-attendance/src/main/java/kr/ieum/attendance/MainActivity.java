@@ -1239,8 +1239,8 @@ public class MainActivity extends Activity {
         if (lower.contains("failed to connect") || lower.contains("timed out") || lower.contains("timeout")) {
             return "서버에 연결하지 못했습니다. 태블릿 와이파이와 관리자 화면의 서버 주소를 확인해 주세요. 로컬 테스트는 http://192.168.0.81/ieum 형식으로 입력합니다.";
         }
-        if (lower.contains("unexpected end") || lower.contains("json")) {
-            return "서버 응답을 읽지 못했습니다. 관리자 화면의 서버 주소와 와이파이 연결을 확인해 주세요.";
+        if (lower.contains("doctype") || lower.contains("<html") || lower.contains("unexpected end") || lower.contains("json")) {
+            return "출석기 API가 아닌 웹페이지 응답을 받았습니다. 서버 주소가 /ieum까지 맞게 들어갔는지, 도장 연결 QR을 새로 만들었는지 확인해 주세요.";
         }
         return message;
     }
