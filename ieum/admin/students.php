@@ -1181,12 +1181,12 @@ textarea{min-height:82px;resize:vertical}
 .count{color:#5b6472}
 .summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.summary-label{flex:0 0 100%;font-size:12px;font-weight:900;color:#667085;margin-top:4px}.chip{background:#eef2f7;border:1px solid #d8dee9;border-radius:999px;padding:6px 10px;font-weight:800;color:#344054;text-decoration:none}.chip.active{background:#1769c2;color:#fff;border-color:#1769c2}
 .guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card,.ride-day-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input,.ride-day-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected,.ride-day-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px minmax(160px,1fr) 120px minmax(140px,1fr);gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.money-field{display:grid;grid-template-columns:auto 1fr auto;align-items:center;border:1px solid #cfd6df;border-radius:6px;background:#fff;overflow:hidden}.money-field span,.money-field em{height:40px;display:flex;align-items:center;padding:0 10px;background:#f8fafc;color:#667085;font-style:normal;font-weight:900;white-space:nowrap}.money-field input{border:0;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-radius:0;text-align:right;font-weight:800}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-tools{display:flex;gap:8px;flex-wrap:wrap}.vehicle-tools .btn{min-height:34px;padding:6px 10px;font-size:13px}.vehicle-row{display:grid;grid-template-columns:auto 90px 120px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}.vehicle-memo,.vehicle-days{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-contact{display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-memo span,.vehicle-contact span,.vehicle-days span{font-weight:900;color:#344054}.ride-day-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.ride-day-card{min-height:40px;font-size:15px}
-.photo-box{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:12px}.photo-preview{width:112px;height:112px;border-radius:12px;object-fit:cover;background:#e5e7eb;border:1px solid #d8dee9}.photo-empty{width:112px;height:112px;border-radius:12px;background:#e5e7eb;color:#667085;display:flex;align-items:center;justify-content:center;font-weight:900}.photo-controls{display:grid;gap:8px}.photo-controls input[type=file]{width:100%;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:10px}.photo-controls label{font-size:13px;color:#344054}
+.student-code-field,.student-phone-field{display:grid;gap:6px}.field-help{font-size:12px;color:#667085;line-height:1.45}.student-phone-action{display:grid;grid-template-columns:1fr auto;gap:8px}.student-phone-action .btn{min-height:42px;white-space:nowrap}.photo-box{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:12px}.photo-preview{width:112px;height:112px;border-radius:12px;object-fit:cover;background:#e5e7eb;border:1px solid #d8dee9}.photo-empty{width:112px;height:112px;border-radius:12px;background:#e5e7eb;color:#667085;display:flex;align-items:center;justify-content:center;font-weight:900}.photo-controls{display:grid;gap:8px}.photo-controls input[type=file]{width:100%;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:10px}.photo-controls label{font-size:13px;color:#344054}
 .guardian-row{grid-template-columns:1fr!important;gap:12px!important}.guardian-fields{display:grid;grid-template-columns:1fr .75fr 1.1fr;gap:8px}.guardian-flags{display:flex;gap:8px;flex-wrap:wrap}.guardian-flag{display:inline-flex;align-items:center;gap:6px;border:1px solid #cfd6df;border-radius:999px;background:#fff;padding:8px 10px;font-size:13px;font-weight:900;color:#344054}.guardian-flag input{width:auto}.guardian-flag:has(input:checked){background:#eaf4ff;border-color:#1769c2;color:#1769c2}.guardian-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.guardian-actions .guardian-flag{background:#f8fafc}.guardian-actions .btn{min-height:34px}.guardian-section-title{font-size:12px;font-weight:900;color:#667085;margin:0 0 6px}.guardian-groups{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}.guardian-main{display:flex;gap:8px;flex-wrap:wrap}
 .care-actions{display:grid;gap:8px;min-width:190px}.care-actions summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;border:1px solid #b7c7de;border-radius:8px;background:#f4f8ff;color:#1769c2;padding:6px 10px;font-weight:900}.care-actions summary::-webkit-details-marker{display:none}.care-actions summary:before{content:'+';display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:#1769c2;color:#fff;font-size:13px;line-height:1}.care-actions[open] summary:before{content:'-';background:#344054}.care-actions form{display:grid;gap:6px}.care-actions input[type=text]{height:36px;padding:7px 9px;font-size:13px}.care-actions .btn{min-height:34px;padding:7px 9px;font-size:13px}.care-buttons{display:flex;gap:6px;flex-wrap:wrap}.care-buttons .btn{border-color:#d8dee9;background:#fff}.care-buttons .btn:hover,.care-actions summary:hover{border-color:#1769c2;background:#eaf4ff}.care-note{display:block;margin-top:4px;color:#667085;font-size:12px;line-height:1.35}
 .student-table-wrap{overflow-x:auto}.student-cards{display:none;gap:12px}.student-card{border:1px solid #d9dee7;border-radius:10px;background:#fff;padding:14px;box-shadow:0 8px 18px rgba(15,23,42,.05)}.student-card.inactive{background:#fafafa;color:#667085}.student-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.student-card-name{font-size:19px;font-weight:1000;color:#111827}.student-card-code{color:#667085;font-size:13px;margin-top:2px}.student-card-status{border-radius:999px;background:#eef2f7;color:#344054;padding:5px 9px;font-size:12px;font-weight:900;white-space:nowrap}.student-card-status.active{background:#eaf4ff;color:#1769c2}.student-card-badges{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.student-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f7;color:#344054;padding:5px 8px;font-size:12px;font-weight:900}.student-badge.good{background:#eef9f1;color:#176b2c}.student-badge.warn{background:#fff6df;color:#9a5b00}.student-badge.danger{background:#fff1f1;color:#a4262c}.student-badge.info{background:#eaf4ff;color:#1769c2}.student-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}.student-card-field{border:1px solid #edf1f7;border-radius:8px;background:#f8fafc;padding:9px}.student-card-field strong{display:block;color:#667085;font-size:12px;margin-bottom:3px}.student-card-field span{font-weight:800;color:#111827}.student-card-more{border-top:1px solid #edf1f7;margin-top:10px;padding-top:10px}.student-card-more summary{cursor:pointer;display:flex;justify-content:center;border:1px solid #d8dee9;border-radius:8px;background:#f8fafc;padding:9px;font-weight:1000;color:#1769c2}.student-card-more summary::-webkit-details-marker{display:none}.student-card-section{border-top:1px solid #edf1f7;padding-top:10px;margin-top:10px}.student-card-more .student-card-section:first-of-type{border-top:0}.student-card-section strong{display:block;color:#344054;margin-bottom:5px}.student-card-empty{color:#98a2b3}.student-card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}.student-card-actions .care-actions{flex:1 1 220px}.empty-card{border:1px dashed #cfd6df;border-radius:10px;background:#fff;padding:24px;text-align:center;color:#667085;font-weight:900}
 @media (max-width:980px){.student-table-wrap{display:none}.student-cards{display:grid}.panel{padding:16px}.search{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}.search input{grid-column:1 / -1;min-width:0}.search .btn{width:100%}}
-@media (max-width:720px){.form-grid,.guide-grid{grid-template-columns:1fr}.search{grid-template-columns:1fr}.search input{min-width:0;width:100%}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.guardian-fields,.guardian-groups,.photo-box{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}.student-card-grid{grid-template-columns:1fr}.student-card-head{align-items:flex-start}.student-card-actions{display:grid}.student-card-actions .btn{width:100%}}
+@media (max-width:720px){.form-grid,.guide-grid{grid-template-columns:1fr}.search{grid-template-columns:1fr}.search input{min-width:0;width:100%}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.guardian-fields,.guardian-groups,.photo-box,.student-phone-action{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}.student-card-grid{grid-template-columns:1fr}.student-card-head{align-items:flex-start}.student-card-actions{display:grid}.student-card-actions .btn{width:100%}}
 </style>
 </head>
 <body>
@@ -1339,9 +1339,9 @@ textarea{min-height:82px;resize:vertical}
             <input type="hidden" name="student_id" value="<?php echo (int) $form['student_id']; ?>">
             <div class="form-guide">
                 <strong><?php echo $form['student_id'] ? '학생 정보를 수정합니다.' : '처음 등록은 필수 정보만 넣고 저장해도 됩니다.'; ?></strong>
-                <p>학생번호, 학생명, 보호자 연락처가 있으면 출석과 문자가 바로 연결됩니다. 차량, 사진, 세부 메모는 나중에 천천히 보강해도 됩니다.</p>
+                <p>학생명과 보호자 연락처를 넣고, 학생번호는 연락처 뒷자리로 자동 지정하면 출석과 문자가 바로 연결됩니다. 차량, 사진, 세부 메모는 나중에 천천히 보강해도 됩니다.</p>
                 <div class="guide-grid">
-                    <div class="guide-card"><b>1. 필수</b><span>학생번호 · 학생명 · 보호자 연락처</span></div>
+                    <div class="guide-card"><b>1. 필수</b><span>학생명 · 보호자 연락처 · 학생번호 선택</span></div>
                     <div class="guide-card"><b>2. 운영</b><span>수업 부 · 출석 요일 · 수련비</span></div>
                     <div class="guide-card"><b>3. 선택</b><span>사진 · 차량 · 상담 메모</span></div>
                 </div>
@@ -1350,13 +1350,22 @@ textarea{min-height:82px;resize:vertical}
                 <div class="form-section-title">필수 정보</div>
 
                 <label for="student_code">학생번호 <span class="required-hint">필수</span></label>
-                <input type="text" name="student_code" id="student_code" value="<?php echo get_text($form['student_code']); ?>" maxlength="20" required>
+                <div class="student-code-field">
+                    <input type="text" name="student_code" id="student_code" value="<?php echo get_text($form['student_code']); ?>" maxlength="20" required>
+                    <div class="field-help">보통 보호자 또는 학생 휴대폰 번호 뒷자리 4개를 사용합니다. 아래에서 선택하면 자동 입력됩니다.</div>
+                </div>
 
                 <label for="student_name">학생명 <span class="required-hint">필수</span></label>
                 <input type="text" name="student_name" id="student_name" value="<?php echo get_text($form['student_name']); ?>" maxlength="50" required>
 
                 <label for="student_phone">학생 연락처</label>
-                <input type="text" name="student_phone" id="student_phone" value="<?php echo get_text(isset($form['student_phone']) ? $form['student_phone'] : ''); ?>" maxlength="30" placeholder="학생 휴대폰이 있으면 입력">
+                <div class="student-phone-field">
+                    <div class="student-phone-action">
+                        <input type="text" name="student_phone" id="student_phone" value="<?php echo get_text(isset($form['student_phone']) ? $form['student_phone'] : ''); ?>" maxlength="30" placeholder="학생 휴대폰이 있으면 입력">
+                        <button type="button" class="btn muted" id="useStudentPhoneCode">학생번호로 사용</button>
+                    </div>
+                    <div class="field-help">학생 휴대폰이 있는 경우 이 번호 뒷자리로 학생번호를 만들 수 있습니다.</div>
+                </div>
 
                 <label>보호자 <span class="required-hint">필수</span></label>
                 <div class="guardian-list" id="guardianList">
@@ -1377,9 +1386,9 @@ textarea{min-height:82px;resize:vertical}
                                 </div>
                             </div>
                             <div>
-                                <div class="guardian-section-title">관리</div>
+                                <div class="guardian-section-title">학생번호 선택 (핸드폰 뒷자리)</div>
                                 <div class="guardian-main">
-                                    <label class="guardian-flag"><input type="checkbox" class="use-code" name="guardian_use_code[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['use_for_student_code']) ? 'checked' : ''; ?>> 학생번호</label>
+                                    <label class="guardian-flag"><input type="checkbox" class="use-code" name="guardian_use_code[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['use_for_student_code']) ? 'checked' : ''; ?>> 학생번호로 사용</label>
                                     <label class="guardian-flag"><input type="checkbox" class="primary-guardian" name="guardian_primary[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['is_primary']) ? 'checked' : ''; ?>> 대표</label>
                                     <button type="button" class="btn muted remove-guardian">삭제</button>
                                 </div>
@@ -1395,8 +1404,8 @@ textarea{min-height:82px;resize:vertical}
                 <div class="form-section-title">학생 기본 설정</div>
 
                 <label for="student_photo_file">학생 사진</label>
-                <details class="optional-details" <?php echo ieum_student_photo_url(isset($form['student_photo']) ? $form['student_photo'] : '') !== '' ? 'open' : ''; ?>>
-                    <summary>사진 등록은 선택입니다.</summary>
+                <details class="optional-details" open>
+                    <summary>등록된 사진은 출석기 등원 완료 화면에 보입니다.</summary>
                     <div class="optional-details-inner photo-box">
                         <?php $student_photo_url = ieum_student_photo_url(isset($form['student_photo']) ? $form['student_photo'] : ''); ?>
                         <?php if ($student_photo_url !== '') { ?>
@@ -1909,6 +1918,8 @@ echo json_encode($plan_js);
 const addGuardian = document.getElementById('addGuardian');
 const guardianList = document.getElementById('guardianList');
 const studentCodeInput = document.getElementById('student_code');
+const studentPhoneInput = document.getElementById('student_phone');
+const useStudentPhoneCode = document.getElementById('useStudentPhoneCode');
 const weekTypeInput = document.getElementById('attendance_week_type');
 const tuitionWeekType = document.getElementById('tuition_week_type');
 const tuitionAmount = document.getElementById('tuition_amount');
@@ -2119,11 +2130,25 @@ function applyStudentCodeFromRow(row) {
         studentCodeInput.value = digits.slice(-4);
     }
 }
+function applyStudentCodeFromStudentPhone() {
+    const digits = digitsOnly(studentPhoneInput ? studentPhoneInput.value : '');
+    if (digits.length >= 4 && studentCodeInput) {
+        studentCodeInput.value = digits.slice(-4);
+    }
+}
 function bindGuardianRow(row) {
     const remove = row.querySelector('.remove-guardian');
     const useCode = row.querySelector('.use-code');
     const primary = row.querySelector('.primary-guardian');
-    bindPhoneFormatter(row.querySelector('input[name="guardian_phone[]"]'));
+    const guardianPhoneInput = row.querySelector('input[name="guardian_phone[]"]');
+    bindPhoneFormatter(guardianPhoneInput);
+    if (guardianPhoneInput) {
+        guardianPhoneInput.addEventListener('input', () => {
+            if (useCode && useCode.checked) {
+                applyStudentCodeFromRow(row);
+            }
+        });
+    }
     if (remove) {
         remove.addEventListener('click', () => {
             if (!guardianList || guardianList.querySelectorAll('.guardian-row').length <= 1) return;
@@ -2176,9 +2201,9 @@ if (addGuardian) {
                     </div>
                 </div>
                 <div>
-                    <div class="guardian-section-title">관리</div>
+                    <div class="guardian-section-title">학생번호 선택 (핸드폰 뒷자리)</div>
                     <div class="guardian-main">
-                        <label class="guardian-flag"><input type="checkbox" class="use-code" name="guardian_use_code[${index}]" value="1"> 학생번호</label>
+                        <label class="guardian-flag"><input type="checkbox" class="use-code" name="guardian_use_code[${index}]" value="1"> 학생번호로 사용</label>
                         <label class="guardian-flag"><input type="checkbox" class="primary-guardian" name="guardian_primary[${index}]" value="1"> 대표</label>
                         <button type="button" class="btn muted remove-guardian">삭제</button>
                     </div>
@@ -2187,6 +2212,17 @@ if (addGuardian) {
         `;
         list.appendChild(row);
         bindGuardianRow(row);
+    });
+}
+bindPhoneFormatter(studentPhoneInput);
+if (useStudentPhoneCode) {
+    useStudentPhoneCode.addEventListener('click', applyStudentCodeFromStudentPhone);
+}
+if (studentPhoneInput) {
+    studentPhoneInput.addEventListener('input', () => {
+        if (document.activeElement === studentPhoneInput && studentCodeInput && studentCodeInput.value === '') {
+            applyStudentCodeFromStudentPhone();
+        }
     });
 }
 function syncVehicleFilter(filter) {
