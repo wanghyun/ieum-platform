@@ -1361,7 +1361,7 @@ textarea{min-height:82px;resize:vertical}
                 <label for="student_phone">학생 연락처</label>
                 <div class="student-phone-field">
                     <div class="student-phone-action">
-                        <input type="text" name="student_phone" id="student_phone" value="<?php echo get_text(isset($form['student_phone']) ? $form['student_phone'] : ''); ?>" maxlength="30" placeholder="학생 휴대폰이 있으면 입력">
+                        <input type="text" name="student_phone" id="student_phone" value="<?php echo get_text(isset($form['student_phone']) ? $form['student_phone'] : ''); ?>" maxlength="13" inputmode="numeric" placeholder="학생 휴대폰이 있으면 입력">
                         <button type="button" class="btn muted" id="useStudentPhoneCode">학생번호로 사용</button>
                     </div>
                     <div class="field-help">학생 휴대폰이 있는 경우 이 번호 뒷자리로 학생번호를 만들 수 있습니다.</div>
@@ -1374,7 +1374,7 @@ textarea{min-height:82px;resize:vertical}
                         <div class="guardian-fields">
                             <input type="text" name="guardian_name[]" value="<?php echo get_text($guardian['guardian_name']); ?>" maxlength="50" placeholder="보호자명">
                             <input type="text" name="guardian_relation[]" value="<?php echo get_text(isset($guardian['guardian_relation']) ? $guardian['guardian_relation'] : ''); ?>" maxlength="30" placeholder="관계">
-                            <input type="text" name="guardian_phone[]" value="<?php echo get_text($guardian['guardian_phone']); ?>" maxlength="30" placeholder="010-0000-0000">
+                            <input type="text" name="guardian_phone[]" value="<?php echo get_text($guardian['guardian_phone']); ?>" maxlength="13" inputmode="numeric" placeholder="010-0000-0000">
                         </div>
                         <div class="guardian-groups">
                             <div>
@@ -1958,7 +1958,26 @@ function formatKoreanPhone(value) {
 function bindPhoneFormatter(input) {
     if (!input || input.dataset.phoneBound === '1') return;
     input.dataset.phoneBound = '1';
+    input.setAttribute('inputmode', 'numeric');
     input.value = formatKoreanPhone(input.value);
+    input.addEventListener('keydown', (event) => {
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        const allowedKeys = [
+            'Backspace', 'Delete', 'Tab', 'Enter', 'Escape',
+            'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+            'Home', 'End',
+        ];
+        if (allowedKeys.includes(event.key)) return;
+        if (event.key.length === 1 && !/[0-9]/.test(event.key)) {
+            event.preventDefault();
+        }
+    });
+    input.addEventListener('paste', (event) => {
+        event.preventDefault();
+        const text = (event.clipboardData || window.clipboardData).getData('text') || '';
+        input.value = formatKoreanPhone(text);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
     input.addEventListener('input', () => {
         input.value = formatKoreanPhone(input.value);
     });
@@ -2189,7 +2208,7 @@ if (addGuardian) {
             <div class="guardian-fields">
                 <input type="text" name="guardian_name[]" maxlength="50" placeholder="보호자명">
                 <input type="text" name="guardian_relation[]" maxlength="30" placeholder="관계">
-                <input type="text" name="guardian_phone[]" maxlength="30" placeholder="010-0000-0000">
+                <input type="text" name="guardian_phone[]" maxlength="13" inputmode="numeric" placeholder="010-0000-0000">
             </div>
             <div class="guardian-groups">
                 <div>
