@@ -3,7 +3,7 @@ $sub_menu = '950125';
 require_once './_common.php';
 require_once IEUM_PATH . '/lib/tablet_device.php';
 
-$g5['title'] = '아이이음 출석기 관리';
+$g5['title'] = '아이이음 앱 출석기 관리';
 $academy = ieum_require_academy_page();
 $academy_id = (int) $academy['academy_id'];
 $message = '';
@@ -205,10 +205,9 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
 <main class="wrap">
     <div class="bar">
         <div>
-            <h1>출석기 관리</h1>
-            <p class="muted"><?php echo get_text($academy['academy_name']); ?> 전용 태블릿 출석기를 연결하고 관리합니다.</p>
+            <h1>앱 출석기 관리</h1>
+            <p class="muted"><?php echo get_text($academy['academy_name']); ?> 전용 출석 앱을 연결하고 관리합니다.</p>
         </div>
-        <a class="btn" href="<?php echo IEUM_URL; ?>/kiosk.php?tablet=1" target="_blank" rel="noopener">웹 출석기 열기</a>
     </div>
 
     <?php if ($message) { ?><p class="notice ok"><?php echo get_text($message); ?></p><?php } ?>
@@ -231,7 +230,7 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
 
     <section class="panel connect-grid">
         <div>
-            <h2>새 출석기 연결</h2>
+            <h2>새 앱 출석기 연결</h2>
             <p class="muted">플레이스토어에서 설치한 <strong>아이이음출석기</strong> 앱을 이 도장 전용 출석기로 등록합니다.</p>
 
             <div class="summary">
@@ -240,7 +239,7 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
                     <strong><?php echo get_text($academy['academy_code']); ?></strong>
                 </div>
                 <div class="summary-card">
-                    <span>출석기 PIN</span>
+                    <span>앱 관리자 PIN</span>
                     <strong><?php echo get_text($tablet_pin); ?></strong>
                 </div>
                 <div class="summary-card">
@@ -256,7 +255,7 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
                 </div>
                 <div class="step">
                     <span class="step-no">2</span>
-                    <div><strong>태블릿 앱에서 도장 연결 열기</strong><span class="muted">처음 설치한 앱 첫 화면에서 도장 연결 또는 QR 스캔 버튼을 누릅니다.</span></div>
+                    <div><strong>앱에서 도장 연결 열기</strong><span class="muted">처음 설치한 앱 첫 화면에서 도장 연결 또는 QR 스캔 버튼을 누릅니다.</span></div>
                 </div>
                 <div class="step">
                     <span class="step-no">3</span>
@@ -338,8 +337,8 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
     <section class="panel">
         <div class="device-head">
             <div>
-                <h2>등록된 출석기</h2>
-                <p class="muted" style="margin:4px 0 0">현재 사용하는 태블릿과 연결 대기 코드를 관리합니다.</p>
+                <h2>등록된 앱 출석기</h2>
+                <p class="muted" style="margin:4px 0 0">현재 사용하는 태블릿 앱과 연결 대기 코드를 관리합니다.</p>
             </div>
             <div class="chips">
                 <span class="chip good">연결됨 <?php echo (int) $device_counts['active']; ?>대</span>

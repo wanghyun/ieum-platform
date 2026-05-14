@@ -37,7 +37,7 @@ function ieum_dashboard_shortcut_catalog()
         'operations' => array('label' => '운영 지표', 'desc' => '신규, 휴관, 상담 신호', 'url' => IEUM_URL . '/admin/operations.php'),
         'growth_report' => array('label' => '원생 리포트', 'desc' => '월별 원생 흐름', 'url' => IEUM_URL . '/admin/growth_report.php'),
         'vehicle_assignments' => array('label' => '차량 배정', 'desc' => '호차별 등원/하원 배정', 'url' => IEUM_URL . '/admin/vehicle_assignments.php'),
-        'tablet_devices' => array('label' => '출석기 관리', 'desc' => '앱 연결, 기기명, 해제', 'url' => IEUM_URL . '/admin/tablet_devices.php'),
+        'tablet_devices' => array('label' => '앱 출석기', 'desc' => '앱 연결, 기기명, 해제', 'url' => IEUM_URL . '/admin/tablet_devices.php'),
     );
 }
 

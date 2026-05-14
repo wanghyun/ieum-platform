@@ -469,7 +469,7 @@ $birthday_students = sql_query("
             <div class="meta"><?php echo get_text($academy['academy_code']); ?> · <?php echo get_text($member['mb_name'] ?: $member['mb_id']); ?> · <?php echo get_text($today . ' ' . $today_label . '요일'); ?></div>
         </div>
         <div class="actions">
-            <a class="btn tablet" href="<?php echo IEUM_URL; ?>/kiosk.php?tablet=1">태블릿 모드</a>
+            <a class="btn tablet" href="<?php echo IEUM_URL; ?>/admin/tablet_devices.php">앱 출석기</a>
             <a class="btn primary" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form">학생 등록</a>
         </div>
     </section>
@@ -775,7 +775,7 @@ $birthday_students = sql_query("
                     <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/students.php"><strong>학생 관리</strong><span>등록/수정/중지</span></a>
                     <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/student_groups.php"><strong>부별 학생</strong><span>수업 부별 확인</span></a>
                     <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/attendance_today.php"><strong>오늘 출석</strong><span>등원 현황 확인</span></a>
-                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/tablet_devices.php"><strong>출석기 관리</strong><span>앱 연결/해제</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/tablet_devices.php"><strong>앱 출석기</strong><span>앱 연결/해제</span></a>
                 </div>
             </section>
             <section class="link-section">

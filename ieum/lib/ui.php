@@ -28,7 +28,7 @@ function ieum_admin_nav_items()
             'students' => array('label' => '학생 관리', 'url' => IEUM_URL . '/admin/students.php'),
             'groups' => array('label' => '부별 학생', 'url' => IEUM_URL . '/admin/student_groups.php'),
             'attendance' => array('label' => '오늘 출석', 'url' => IEUM_URL . '/admin/attendance_today.php'),
-            'tablet_devices' => array('label' => '출석기 관리', 'url' => IEUM_URL . '/admin/tablet_devices.php'),
+            'tablet_devices' => array('label' => '앱 출석기', 'url' => IEUM_URL . '/admin/tablet_devices.php'),
         ),
     );
     $items['billing_group'] = array(
@@ -76,8 +76,6 @@ function ieum_admin_nav_items()
         $items['billing_wallet'] = array('label' => '청구 발송비', 'url' => IEUM_URL . '/admin/billing_wallet.php');
         $items['project'] = array('label' => '진행 현황', 'url' => IEUM_URL . '/project_status.php');
     }
-
-    $items['kiosk'] = array('label' => '웹 출석기', 'url' => IEUM_URL . '/kiosk.php?tablet=1', 'target' => '_blank');
 
     return $items;
 }

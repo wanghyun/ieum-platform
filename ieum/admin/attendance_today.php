@@ -99,7 +99,7 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid
             <h1>오늘 출석 현황</h1>
             <div class="meta"><?php echo get_text($academy['academy_name']); ?> · <?php echo get_text($today); ?></div>
         </div>
-        <a href="<?php echo IEUM_URL; ?>/kiosk.php?tablet=1" class="btn primary" target="_blank" rel="noopener">태블릿 모드</a>
+        <a href="<?php echo IEUM_URL; ?>/admin/tablet_devices.php" class="btn primary">앱 출석기 관리</a>
     </div>
 
     <?php if ($message) { ?><p class="notice ok"><?php echo get_text($message); ?></p><?php } ?>

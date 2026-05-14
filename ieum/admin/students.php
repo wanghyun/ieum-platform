@@ -1279,9 +1279,9 @@ textarea{min-height:82px;resize:vertical}
     <?php if ($last_saved_student_id > 0) { ?>
     <section class="next-actions">
         <strong><?php echo get_text($last_saved_student_name); ?> 학생 등록 다음 단계</strong>
-        <p>바로 출석 테스트를 하거나, 사진/차량/수련비처럼 운영에 필요한 정보를 이어서 보강할 수 있습니다.</p>
+        <p>앱 출석기에서 바로 사용할 수 있도록 사진/차량/수련비처럼 운영에 필요한 정보를 이어서 보강할 수 있습니다.</p>
         <div class="next-action-grid">
-            <a class="btn primary" href="<?php echo IEUM_URL; ?>/kiosk.php?tablet=1" target="_blank" rel="noopener">출석 테스트</a>
+            <a class="btn primary" href="<?php echo IEUM_URL; ?>/admin/tablet_devices.php">앱 출석기 확인</a>
             <a class="btn" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form&amp;student_id=<?php echo (int) $last_saved_student_id; ?>">사진/정보 보강</a>
             <a class="btn" href="<?php echo IEUM_URL; ?>/admin/vehicle_assignments.php?assignment=none">차량 배정 확인</a>
             <a class="btn" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php">수련비 확인</a>
