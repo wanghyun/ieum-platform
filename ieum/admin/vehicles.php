@@ -333,6 +333,24 @@ foreach ($stop_rows as $stop) {
         $route_summary[$rid][$stop['stop_type']]++;
     }
 }
+$map_markers = array();
+foreach ($stop_rows as $stop) {
+    if (empty($stop['is_active']) || $stop['map_lat'] === null || $stop['map_lng'] === null || $stop['map_lat'] === '' || $stop['map_lng'] === '') {
+        continue;
+    }
+    $map_markers[] = array(
+        'stop_id' => (int) $stop['stop_id'],
+        'name' => $stop['stop_name'],
+        'address' => isset($stop['stop_address']) ? $stop['stop_address'] : '',
+        'lat' => (float) $stop['map_lat'],
+        'lng' => (float) $stop['map_lng'],
+        'time' => $stop['stop_time'],
+        'type' => $stop['stop_type'],
+        'route' => isset($stop['route_name']) ? $stop['route_name'] : '',
+    );
+}
+$can_use_dynamic_map = !empty($map_settings['use_dynamic_map']) && ieum_map_has_api_key($map_settings);
+$can_use_geocoding = !empty($map_settings['use_geocoding']) && ieum_map_has_api_key($map_settings) && ieum_map_has_secret($map_settings);
 ?>
 <!doctype html>
 <html lang="ko">
@@ -340,20 +358,24 @@ foreach ($stop_rows as $stop) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
+<?php if ($can_use_dynamic_map) { ?>
+<script src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=<?php echo get_text($map_settings['naver_client_id']); ?>"></script>
+<?php } ?>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}
 .wrap{max-width:1240px;margin:28px auto;padding:0 20px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px;overflow:hidden}
+.vehicle-setup-grid{display:grid;grid-template-columns:minmax(360px,.95fr) minmax(420px,1.25fr);gap:18px;align-items:start}.vehicle-setup-grid .panel{margin-bottom:0}.map-panel{min-height:100%}.map-stage{height:430px;border:1px solid #d9e2f1;border-radius:10px;background:#eef2f7;overflow:hidden;position:relative}.map-stage.empty{display:flex;align-items:center;justify-content:center;padding:22px;text-align:center;color:#667085;font-weight:900;line-height:1.6}.map-stage .map-empty-inner{max-width:420px}.map-tools{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:10px}.map-tools small{color:#667085}.map-results{display:none;margin-top:10px;border:1px solid #bfdbfe;background:#eff6ff;border-radius:8px;padding:10px;color:#344054;font-weight:800}.map-results.show{display:block}.map-results button{margin-top:8px}.map-pin-count{display:inline-flex;align-items:center;border-radius:999px;background:#eef5ff;color:#1769c2;padding:6px 10px;font-size:12px;font-weight:900}
 h1{margin:0 0 8px;font-size:26px}.meta{color:#667085;margin-bottom:16px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}
-input,select{width:100%;max-width:100%;min-width:0;border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid.route,.grid.stop{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:center}.grid.route input[name="route_name"],.grid.stop select[name="route_id"],.grid.stop input[name="stop_name"],.grid.stop input[name="stop_address"],.grid.stop input[name="map_url"],.grid.stop .coord-grid{grid-column:span 2}.grid.route label,.grid.stop label{display:flex;align-items:center;gap:6px;min-height:40px;white-space:nowrap}.grid.route label input,.grid.stop label input{width:auto;flex:0 0 auto}.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:0}.map-link{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:999px;background:#eef5ff;color:#1769c2;text-decoration:none;font-size:12px;font-weight:900}.map-search{background:#eef5ff;border-color:#bfdbfe;color:#1769c2}
+input,select{width:100%;max-width:100%;min-width:0;border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid.route,.grid.stop{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-items:center}.grid.route input[name="route_name"],.grid.stop select[name="route_id"],.grid.stop input[name="stop_name"],.grid.stop input[name="stop_address"],.grid.stop input[name="map_url"],.grid.stop .coord-grid,.grid.stop .map-results{grid-column:1/-1}.grid.route label,.grid.stop label{display:flex;align-items:center;gap:6px;min-height:40px;white-space:nowrap}.grid.route label input,.grid.stop label input{width:auto;flex:0 0 auto}.coord-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:0}.map-link{display:inline-flex;align-items:center;justify-content:center;min-height:32px;border-radius:999px;background:#eef5ff;color:#1769c2;text-decoration:none;font-size:12px;font-weight:900}.map-search{background:#eef5ff;border-color:#bfdbfe;color:#1769c2}.map-search.loading{opacity:.65;pointer-events:none}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.print{background:#111827;border-color:#111827;color:#fff}
 table{width:100%;min-width:980px;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}td input,td select{min-width:110px}td.left input{margin-bottom:6px}th{background:#72829d;color:#fff}.panel>table{display:block;overflow-x:auto;white-space:nowrap}.left{text-align:left}.muted{color:#667085;font-size:12px;line-height:1.45}.inactive{background:#fafafa;color:#8a94a6}.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 0 14px;flex-wrap:wrap}
 .flow-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.flow-card{border:1px solid #d9e2f1;border-radius:10px;overflow:hidden;background:#fff}.flow-head{display:flex;justify-content:space-between;gap:10px;padding:12px 14px;background:#15204a;color:#fff;font-weight:900}.flow-head small{color:#cbd5e1}.flow-list{list-style:none;margin:0;padding:0}.flow-list li{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;padding:11px 14px;border-top:1px solid #edf1f7}.flow-time{font-weight:900;color:#1769c2}.flow-name{font-weight:900}.flow-meta{display:block;margin-top:3px;color:#667085;font-size:12px}.flow-empty{padding:18px;color:#667085;text-align:center;background:#f8fafc}.flow-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef5ff;color:#1769c2;padding:4px 8px;font-size:12px;font-weight:900;text-decoration:none}
 .api-hint{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #bfdbfe;background:#eff6ff;border-radius:8px;padding:12px 14px;margin-bottom:18px;color:#344054}.api-hint strong{color:#1769c2}.api-hint a{flex:0 0 auto}
 .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:18px}.summary-card{border:1px solid #d9e2f1;border-radius:10px;background:#fff;padding:14px;min-width:0}.summary-card .label{color:#667085;font-size:13px;font-weight:800}.summary-card strong{display:block;margin-top:6px;font-size:22px;line-height:1.25;word-break:keep-all;overflow-wrap:anywhere}.summary-card small{display:block;margin-top:4px;color:#667085}.order-actions{display:flex;gap:4px;justify-content:center}.order-actions form{display:inline}.mini{min-height:30px;padding:4px 8px;font-size:13px}.section-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.table-wrap{width:100%;overflow-x:auto}
-@media(max-width:980px){.grid.route,.grid.stop{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}.grid.route input[name="route_name"],.grid.stop select[name="route_id"],.grid.stop input[name="stop_name"],.grid.stop input[name="stop_address"],.grid.stop input[name="map_url"],.grid.stop .coord-grid{grid-column:auto}table{white-space:nowrap}.section-title{align-items:flex-start;flex-direction:column}}
+@media(max-width:980px){.vehicle-setup-grid{grid-template-columns:1fr}.grid.route,.grid.stop{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}.grid.route input[name="route_name"],.grid.stop select[name="route_id"],.grid.stop input[name="stop_name"],.grid.stop input[name="stop_address"],.grid.stop input[name="map_url"],.grid.stop .coord-grid,.grid.stop .map-results{grid-column:1/-1}table{white-space:nowrap}.section-title{align-items:flex-start;flex-direction:column}.map-stage{height:340px}}
 @media(max-width:1100px){.panel>table.vehicle-stop-table,.panel>table.vehicle-route-table{display:block;min-width:0;overflow:visible;white-space:normal}.vehicle-stop-table thead,.vehicle-route-table thead{display:none}.vehicle-stop-table tbody,.vehicle-route-table tbody{display:block}.vehicle-stop-table tr,.vehicle-route-table tr{display:block;border:1px solid #d8dee9;border-radius:10px;margin-bottom:12px;padding:10px;background:#fff}.vehicle-stop-table tr.inactive,.vehicle-route-table tr.inactive{background:#fafafa}.vehicle-stop-table td,.vehicle-route-table td{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;align-items:center;border:0;border-top:1px solid #edf1f7;text-align:left;padding:10px 0}.vehicle-stop-table td:first-child,.vehicle-route-table td:first-child{border-top:0}.vehicle-stop-table td:before,.vehicle-route-table td:before{content:attr(data-label);font-size:13px;font-weight:900;color:#667085}.vehicle-stop-table td input,.vehicle-stop-table td select,.vehicle-route-table td input,.vehicle-route-table td select{min-width:0}.vehicle-stop-table .order-actions,.vehicle-route-table .order-actions{justify-content:flex-start}}
-@media(max-width:760px){.flow-grid,.summary-grid{grid-template-columns:1fr}.flow-list li{grid-template-columns:60px 1fr}.api-hint{align-items:flex-start;flex-direction:column}.api-hint a{width:100%}}
+@media(max-width:760px){.flow-grid,.summary-grid{grid-template-columns:1fr}.flow-list li{grid-template-columns:60px 1fr}.api-hint{align-items:flex-start;flex-direction:column}.api-hint a{width:100%}.grid.route,.grid.stop,.coord-grid{grid-template-columns:1fr}.map-stage{height:300px}}
 </style>
 </head>
 <body>
@@ -389,6 +411,8 @@ table{width:100%;min-width:980px;border-collapse:collapse}th,td{border:1px solid
         <?php } ?>
     </section>
 
+    <section class="vehicle-setup-grid">
+    <div>
     <section class="panel">
         <div class="section-title">
             <h2>노선 등록</h2>
@@ -424,7 +448,7 @@ table{width:100%;min-width:980px;border-collapse:collapse}th,td{border:1px solid
                 <button type="submit" class="btn">시간순 정렬</button>
             </form>
         </div>
-        <form method="post" class="grid stop">
+        <form method="post" class="grid stop" id="newStopForm">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <input type="hidden" name="action" value="save_stop">
             <select name="stop_type">
@@ -440,17 +464,41 @@ table{width:100%;min-width:980px;border-collapse:collapse}th,td{border:1px solid
             </select>
             <input type="text" name="stop_name" placeholder="장소 예: 아이이음초등학교" maxlength="100" required>
             <input type="text" name="stop_address" placeholder="주소 또는 기사님 참고 위치" maxlength="160">
+            <button type="button" class="btn map-search">주소 검색</button>
             <input type="time" name="stop_time" value="14:10" required>
             <input type="number" name="sort_order" placeholder="순서" min="0">
             <input type="text" name="map_url" placeholder="지도 링크 선택" maxlength="255">
-            <button type="button" class="btn map-search">지도 검색</button>
             <div class="coord-grid">
                 <input type="text" name="map_lat" placeholder="위도">
                 <input type="text" name="map_lng" placeholder="경도">
             </div>
+            <div class="map-results" aria-live="polite"></div>
             <label><input type="checkbox" name="is_active" value="1" checked> 사용</label>
             <button type="submit" class="btn primary">추가</button>
         </form>
+    </section>
+    </div>
+
+    <section class="panel map-panel">
+        <div class="section-title">
+            <h2>정류장 지도</h2>
+            <span class="map-pin-count">좌표 등록 <?php echo number_format(count($map_markers)); ?>곳</span>
+        </div>
+        <?php if ($can_use_dynamic_map) { ?>
+        <div id="vehicleMap" class="map-stage"></div>
+        <?php } else { ?>
+        <div class="map-stage empty">
+            <div class="map-empty-inner">
+                지도 API 설정이 완료되면 이 영역에 정류장 위치가 표시됩니다.<br>
+                지금은 주소 검색 링크와 수동 좌표 입력으로 운영할 수 있습니다.
+            </div>
+        </div>
+        <?php } ?>
+        <div class="map-tools">
+            <small>주소 검색 후 선택하면 위도/경도와 지도 링크가 자동 입력됩니다.</small>
+            <?php if ($is_admin === 'super') { ?><a class="btn" href="<?php echo IEUM_URL; ?>/admin/map_settings.php">지도 API 설정</a><?php } ?>
+        </div>
+    </section>
     </section>
 
     <section class="panel">
@@ -610,29 +658,138 @@ table{width:100%;min-width:980px;border-collapse:collapse}th,td{border:1px solid
     </section>
 </main>
 <script>
+const ieumVehicleMapConfig = {
+    canUseDynamicMap: <?php echo $can_use_dynamic_map ? 'true' : 'false'; ?>,
+    canUseGeocoding: <?php echo $can_use_geocoding ? 'true' : 'false'; ?>,
+    geocodeUrl: '<?php echo IEUM_URL; ?>/admin/map_geocode.php',
+    markers: <?php echo json_encode($map_markers, JSON_UNESCAPED_UNICODE); ?>
+};
+
 (function () {
-    const buildMapSearchUrl = (form) => {
-        const name = form.querySelector('[name="stop_name"]');
-        const address = form.querySelector('[name="stop_address"]');
-        const query = ((address && address.value.trim()) || (name && name.value.trim()) || '').trim();
+    let vehicleMap = null;
+    let markerObjects = [];
+
+    const buildMapSearchUrl = (value) => {
+        const query = (value || '').trim();
         return query ? 'https://map.naver.com/v5/search/' + encodeURIComponent(query) : '';
     };
+
+    const getFormQuery = (form) => {
+        const name = form.querySelector('[name="stop_name"]');
+        const address = form.querySelector('[name="stop_address"]');
+        return ((address && address.value.trim()) || (name && name.value.trim()) || '').trim();
+    };
+
+    const setField = (form, name, value) => {
+        const input = form.querySelector(`[name="${name}"]`);
+        if (input) input.value = value || '';
+    };
+
+    const showResult = (form, html) => {
+        let box = form.querySelector('.map-results');
+        if (!box) {
+            box = document.createElement('div');
+            box.className = 'map-results';
+            form.appendChild(box);
+        }
+        box.innerHTML = html;
+        box.classList.add('show');
+    };
+
+    const focusMap = (lat, lng, title) => {
+        if (!vehicleMap || !window.naver || !naver.maps || !lat || !lng) return;
+        const position = new naver.maps.LatLng(Number(lat), Number(lng));
+        vehicleMap.setCenter(position);
+        vehicleMap.setZoom(16);
+        new naver.maps.Marker({
+            position,
+            map: vehicleMap,
+            title: title || '선택 위치'
+        });
+    };
+
+    const initMap = () => {
+        if (!ieumVehicleMapConfig.canUseDynamicMap || !window.naver || !naver.maps) return;
+        const mapEl = document.getElementById('vehicleMap');
+        if (!mapEl) return;
+        const first = ieumVehicleMapConfig.markers[0] || { lat: 37.5665, lng: 126.9780 };
+        vehicleMap = new naver.maps.Map(mapEl, {
+            center: new naver.maps.LatLng(Number(first.lat), Number(first.lng)),
+            zoom: ieumVehicleMapConfig.markers.length ? 14 : 11,
+            zoomControl: true,
+            zoomControlOptions: { position: naver.maps.Position.TOP_RIGHT }
+        });
+        markerObjects = ieumVehicleMapConfig.markers.map((item) => {
+            const marker = new naver.maps.Marker({
+                position: new naver.maps.LatLng(Number(item.lat), Number(item.lng)),
+                map: vehicleMap,
+                title: item.name
+            });
+            const info = new naver.maps.InfoWindow({
+                content: `<div style="padding:10px 12px;font-size:13px;line-height:1.45"><strong>${item.name}</strong><br>${item.time || ''} · ${item.type === 'pickup' ? '픽업' : '하차'}<br>${item.address || item.route || ''}</div>`
+            });
+            naver.maps.Event.addListener(marker, 'click', () => info.open(vehicleMap, marker));
+            return marker;
+        });
+    };
+
+    const searchAddress = async (form, button) => {
+        const query = getFormQuery(form);
+        if (!query) {
+            alert('장소명 또는 주소를 먼저 입력하세요.');
+            return;
+        }
+        const fallbackUrl = buildMapSearchUrl(query);
+        const mapInput = form.querySelector('[name="map_url"]');
+        if (mapInput && !mapInput.value.trim()) {
+            mapInput.value = fallbackUrl;
+        }
+        if (!ieumVehicleMapConfig.canUseGeocoding) {
+            window.open(fallbackUrl, '_blank', 'noopener');
+            return;
+        }
+        button.classList.add('loading');
+        button.textContent = '검색 중';
+        try {
+            const response = await fetch(ieumVehicleMapConfig.geocodeUrl + '?query=' + encodeURIComponent(query), {
+                credentials: 'same-origin'
+            });
+            const data = await response.json();
+            if (!data.success) {
+                showResult(form, `${data.message || '검색에 실패했습니다.'}<br><button type="button" class="btn mini open-map-link">네이버 지도에서 열기</button>`);
+                return;
+            }
+            setField(form, 'stop_address', data.address || query);
+            setField(form, 'map_lat', data.lat || '');
+            setField(form, 'map_lng', data.lng || '');
+            setField(form, 'map_url', data.mapUrl || fallbackUrl);
+            focusMap(data.lat, data.lng, data.address || query);
+            showResult(form, `주소 확인: <strong>${data.address || query}</strong><br>좌표가 입력되었습니다.`);
+        } catch (error) {
+            showResult(form, `주소 검색 중 오류가 발생했습니다.<br><button type="button" class="btn mini open-map-link">네이버 지도에서 열기</button>`);
+        } finally {
+            button.classList.remove('loading');
+            button.textContent = '주소 검색';
+        }
+    };
+
     document.addEventListener('click', (event) => {
+        const mapLink = event.target.closest('.open-map-link');
+        if (mapLink) {
+            const form = mapLink.closest('form');
+            const query = form ? getFormQuery(form) : '';
+            const url = buildMapSearchUrl(query);
+            if (url) window.open(url, '_blank', 'noopener');
+            return;
+        }
         const button = event.target.closest('.map-search');
         if (!button) return;
         const form = button.closest('form');
         if (!form) return;
-        const url = buildMapSearchUrl(form);
-        if (!url) {
-            alert('장소명 또는 주소를 먼저 입력하세요.');
-            return;
-        }
-        const mapInput = form.querySelector('[name="map_url"]');
-        if (mapInput && !mapInput.value.trim()) {
-            mapInput.value = url;
-        }
-        window.open(url, '_blank', 'noopener');
+        searchAddress(form, button);
     });
+
+    initMap();
 })();
 </script>
 </body>
