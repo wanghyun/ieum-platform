@@ -976,9 +976,15 @@ $filter_class_time_id = ctype_digit($filter_class_time_raw) ? (int) $filter_clas
 $filter_insight = isset($_GET['insight']) ? preg_replace('/[^0-9a-z_]/', '', trim($_GET['insight'])) : '';
 $insight_options = array(
     '' => '전체 신호',
+    'today_class' => '오늘 수업',
+    'missing_today' => '오늘 미등원',
     'birthday_month' => '이번 달 생일자',
     'birthday_week' => '7일 이내 생일',
     'long_absent' => '장기 미등원',
+    'no_guardian' => '연락처 누락',
+    'vehicle_unassigned' => '차량 미배정',
+    'tuition_unpaid' => '수련비 미납',
+    'report_blocked' => '리포트 발송 불가',
 );
 if (!isset($insight_options[$filter_insight])) {
     $filter_insight = '';
@@ -1016,6 +1022,30 @@ function ieum_student_insight_where($alias, $insight, $today)
         $alias = 's';
     }
     $today_sql = sql_escape_string($today);
+    $weekday_key = strtolower(date('D', strtotime($today)));
+    $weekday_map = array('mon' => 'mon', 'tue' => 'tue', 'wed' => 'wed', 'thu' => 'thu', 'fri' => 'fri');
+    $today_day = isset($weekday_map[$weekday_key]) ? $weekday_map[$weekday_key] : '';
+    $today_day_sql = sql_escape_string($today_day);
+    if ($insight === 'today_class') {
+        if ($today_day === '') {
+            return " and 1 = 0 ";
+        }
+        return " and {$alias}.is_active = 1 and find_in_set('{$today_day_sql}', {$alias}.attendance_days) > 0 ";
+    }
+    if ($insight === 'missing_today') {
+        if ($today_day === '') {
+            return " and 1 = 0 ";
+        }
+        return " and {$alias}.is_active = 1
+                 and find_in_set('{$today_day_sql}', {$alias}.attendance_days) > 0
+                 and not exists (
+                     select 1
+                       from " . IEUM_ATTENDANCE_TABLE . " ia
+                      where ia.academy_id = {$alias}.academy_id
+                        and ia.student_id = {$alias}.student_id
+                        and ia.attendance_date = '{$today_sql}'
+                 ) ";
+    }
     if ($insight === 'birthday_month') {
         return " and {$alias}.is_active = 1 and {$alias}.birth_date is not null and {$alias}.birth_date <> '0000-00-00' and month({$alias}.birth_date) = month('{$today_sql}') ";
     }
@@ -1031,6 +1061,67 @@ function ieum_student_insight_where($alias, $insight, $today)
                       where ia.academy_id = {$alias}.academy_id
                         and ia.student_id = {$alias}.student_id
                         and ia.attendance_date >= date_sub('{$today_sql}', interval 13 day)
+                 ) ";
+    }
+    if ($insight === 'no_guardian') {
+        return " and {$alias}.is_active = 1
+                 and not exists (
+                     select 1
+                       from " . IEUM_STUDENT_GUARDIAN_TABLE . " ig
+                      where ig.academy_id = {$alias}.academy_id
+                        and ig.student_id = {$alias}.student_id
+                        and ig.is_active = 1
+                        and ig.guardian_phone <> ''
+                 ) ";
+    }
+    if ($insight === 'vehicle_unassigned') {
+        return " and {$alias}.is_active = 1
+                 and not exists (
+                     select 1
+                       from " . IEUM_STUDENT_VEHICLE_TABLE . " iv
+                      where iv.academy_id = {$alias}.academy_id
+                        and iv.student_id = {$alias}.student_id
+                        and iv.is_active = 1
+                 ) ";
+    }
+    if ($insight === 'tuition_unpaid') {
+        $billing_month = sql_escape_string(date('Y-m', strtotime($today)));
+        return " and {$alias}.is_active = 1
+                 and (
+                     exists (
+                         select 1
+                           from " . IEUM_TUITION_PAYMENT_TABLE . " itp
+                          where itp.academy_id = {$alias}.academy_id
+                            and itp.student_id = {$alias}.student_id
+                            and itp.billing_month = '{$billing_month}'
+                            and itp.status <> 'paid'
+                            and coalesce(itp.amount_due, 0) > coalesce(itp.amount_paid, 0)
+                     )
+                     or (
+                         coalesce({$alias}.tuition_amount, 0) > 0
+                         and not exists (
+                             select 1
+                               from " . IEUM_TUITION_PAYMENT_TABLE . " itp2
+                              where itp2.academy_id = {$alias}.academy_id
+                                and itp2.student_id = {$alias}.student_id
+                                and itp2.billing_month = '{$billing_month}'
+                         )
+                     )
+                 ) ";
+    }
+    if ($insight === 'report_blocked') {
+        return " and {$alias}.is_active = 1
+                 and (
+                     {$alias}.birth_date is null
+                     or {$alias}.birth_date = '0000-00-00'
+                     or not exists (
+                         select 1
+                           from " . IEUM_STUDENT_GUARDIAN_TABLE . " ig
+                          where ig.academy_id = {$alias}.academy_id
+                            and ig.student_id = {$alias}.student_id
+                            and ig.is_active = 1
+                            and ig.guardian_phone <> ''
+                     )
                  ) ";
     }
 
@@ -1175,6 +1266,36 @@ $total_all = sql_fetch("
        and is_active = 1
 ", false);
 
+$side_filter_where = " where s.academy_id = '{$academy_id}' and s.is_active = 1 ";
+if ($q !== '') {
+    $side_filter_where .= " and (s.student_code like '%{$q_sql}%' or s.student_name like '%{$q_sql}%' or s.student_phone like '%{$q_sql}%' or exists (select 1 from " . IEUM_STUDENT_GUARDIAN_TABLE . " g where g.student_id = s.student_id and g.is_active = 1 and (g.guardian_name like '%{$q_sql}%' or g.guardian_phone like '%{$q_sql}%'))) ";
+}
+if ($filter_program !== '') {
+    $side_filter_where .= " and s.program_code = '{$filter_program_sql}' ";
+}
+if ($filter_grade !== '') {
+    $side_filter_where .= " and s.grade_group = '{$filter_grade_sql}' ";
+}
+if ($filter_class_time_raw === 'unassigned') {
+    $side_filter_where .= " and s.class_time_id = 0 ";
+} elseif ($filter_class_time_id) {
+    $side_filter_where .= " and s.class_time_id = '{$filter_class_time_id}' ";
+}
+
+$insight_counts = array();
+foreach ($insight_options as $insight_value => $insight_label) {
+    if ($insight_value === '') {
+        continue;
+    }
+    $insight_count_where = $side_filter_where . ieum_student_insight_where('s', $insight_value, G5_TIME_YMD);
+    $insight_count_row = sql_fetch("
+        select count(*) as cnt
+          from " . IEUM_STUDENT_TABLE . " s
+          {$insight_count_where}
+    ", false);
+    $insight_counts[$insight_value] = isset($insight_count_row['cnt']) ? (int) $insight_count_row['cnt'] : 0;
+}
+
 $unassigned_count = sql_fetch("
     select count(*) as cnt
       from " . IEUM_STUDENT_TABLE . " s
@@ -1211,6 +1332,10 @@ $class_counts_result = sql_query("
   group by c.class_time_id
   order by c.sort_order asc, c.start_time asc
 ", false);
+$class_counts = array();
+while ($class_count = sql_fetch_array($class_counts_result)) {
+    $class_counts[] = $class_count;
+}
 ?>
 <!doctype html>
 <html lang="ko">
@@ -1249,12 +1374,13 @@ textarea{min-height:82px;resize:vertical}
 .actions{margin-top:18px;display:flex;gap:8px}
 .count{color:#5b6472}
 .summary{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}.summary-label{flex:0 0 100%;font-size:12px;font-weight:900;color:#667085;margin-top:4px}.chip{background:#eef2f7;border:1px solid #d8dee9;border-radius:999px;padding:6px 10px;font-weight:800;color:#344054;text-decoration:none}.chip.active{background:#1769c2;color:#fff;border-color:#1769c2}
+.student-workspace{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;align-items:start}.student-side{position:sticky;top:16px;padding:16px}.student-side-title{font-size:18px;font-weight:1000;margin:0 0 4px}.student-side-help{margin:0 0 14px;color:#667085;font-size:13px;line-height:1.45}.side-group{border-top:1px solid #edf1f7;padding-top:12px;margin-top:12px}.side-group:first-of-type{border-top:0;padding-top:0;margin-top:0}.side-group-title{font-size:12px;font-weight:1000;color:#1769c2;margin:0 0 8px}.side-links{display:grid;gap:6px}.side-link{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #d8dee9;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:9px 10px;font-weight:900}.side-link span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.side-link b{flex:0 0 auto;border-radius:999px;background:#eef2f7;color:#344054;padding:3px 8px;font-size:12px}.side-link:hover{border-color:#1769c2;background:#f4f8ff}.side-link.active{background:#1769c2;border-color:#1769c2;color:#fff}.side-link.active b{background:rgba(255,255,255,.2);color:#fff}.side-link.warn b{background:#fff6df;color:#9a5b00}.side-link.danger b{background:#fff1f1;color:#a4262c}.side-link.good b{background:#eef9f1;color:#176b2c}.side-link.active.warn b,.side-link.active.danger b,.side-link.active.good b{background:rgba(255,255,255,.2);color:#fff}.student-list-panel{min-width:0}
 .guardian-list{display:grid;gap:10px}.guardian-row{display:grid;grid-template-columns:1fr .9fr 1.35fr repeat(4,auto);gap:8px;align-items:center;padding:10px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc}.guardian-row label{white-space:nowrap;font-weight:700;font-size:13px}.guardian-row .remove-guardian{min-width:42px}.weekday-control{display:grid;gap:10px}.weekday-presets{display:flex;gap:8px;flex-wrap:wrap}.preset-btn{min-height:36px;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:7px 12px;font-weight:800;cursor:pointer}.preset-btn.active{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.weekday-card,.ride-day-card{position:relative;display:flex;align-items:center;justify-content:center;min-height:48px;border:1px solid #cfd6df;border-radius:8px;background:#fff;font-size:18px;font-weight:900;cursor:pointer}.weekday-card input,.ride-day-card input{position:absolute;opacity:0;pointer-events:none}.weekday-card.selected,.ride-day-card.selected{background:#1769c2;border-color:#1769c2;color:#fff}.weekday-help{color:#667085;font-size:13px}.date-selects{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tuition-box,.vehicle-box{display:grid;gap:8px}.tuition-row{display:grid;grid-template-columns:130px minmax(160px,1fr) 120px minmax(140px,1fr);gap:8px;align-items:center}.tuition-row.second{grid-template-columns:130px 150px 1fr}.money-field{display:grid;grid-template-columns:auto 1fr auto;align-items:center;border:1px solid #cfd6df;border-radius:6px;background:#fff;overflow:hidden}.money-field span,.money-field em{height:40px;display:flex;align-items:center;padding:0 10px;background:#f8fafc;color:#667085;font-style:normal;font-weight:900;white-space:nowrap}.money-field input{border:0;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;border-radius:0;text-align:right;font-weight:800}.inline-check{display:flex;align-items:center;gap:6px;white-space:nowrap}.inline-check input{width:auto}.due-label{font-size:14px;color:#344054}.tuition-total{display:flex;align-items:center;justify-content:flex-end;border:1px solid #d9dee7;border-radius:8px;background:#f8fafc;padding:10px 12px;font-weight:900;color:#1769c2}.vehicle-tools{display:flex;gap:8px;flex-wrap:wrap}.vehicle-tools .btn{min-height:34px;padding:6px 10px;font-size:13px}.vehicle-row{display:grid;grid-template-columns:auto 90px 120px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:10px}.vehicle-row input[type=checkbox]{width:auto}.vehicle-row span{font-weight:900}.vehicle-memo,.vehicle-days{display:grid;grid-template-columns:90px 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-contact{display:grid;grid-template-columns:90px 1fr 1fr;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#fff;padding:10px 12px}.vehicle-memo span,.vehicle-contact span,.vehicle-days span{font-weight:900;color:#344054}.ride-day-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.ride-day-card{min-height:40px;font-size:15px}
 .student-code-field,.student-phone-field{display:grid;gap:6px}.field-help{font-size:12px;color:#667085;line-height:1.45}.student-phone-action{display:grid;grid-template-columns:1fr auto;gap:8px}.student-phone-action .btn{min-height:42px;white-space:nowrap}.duplicate-alert{display:none;border:1px solid #facc15;background:#fffbeb;color:#7a4b00;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.55}.duplicate-alert.show{display:block}.duplicate-alert strong{display:block;color:#92400e;margin-bottom:4px}.duplicate-alert ul{margin:4px 0 0;padding-left:18px}.next-actions{border:1px solid #b7d4ff;background:#f4f8ff;border-radius:10px;padding:14px;margin:0 0 14px}.next-actions strong{display:block;margin-bottom:4px;font-size:16px}.next-actions p{margin:0 0 10px;color:#667085}.next-action-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}.next-action-grid .btn{background:#fff}.photo-box{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;padding:12px}.photo-preview{width:112px;height:112px;border-radius:12px;object-fit:cover;background:#e5e7eb;border:1px solid #d8dee9}.photo-empty{width:112px;height:112px;border-radius:12px;background:#e5e7eb;color:#667085;display:flex;align-items:center;justify-content:center;font-weight:900}.photo-controls{display:grid;gap:8px}.photo-controls input[type=file]{width:100%;border:1px solid #cfd6df;border-radius:6px;background:#fff;padding:10px}.photo-controls label{font-size:13px;color:#344054}
 .guardian-row{grid-template-columns:1fr!important;gap:12px!important}.guardian-fields{display:grid;grid-template-columns:1fr .75fr 1.1fr;gap:8px}.guardian-flags{display:flex;gap:8px;flex-wrap:wrap}.guardian-flag{display:inline-flex;align-items:center;gap:6px;border:1px solid #cfd6df;border-radius:999px;background:#fff;padding:8px 10px;font-size:13px;font-weight:900;color:#344054}.guardian-flag input{width:auto}.guardian-flag:has(input:checked){background:#eaf4ff;border-color:#1769c2;color:#1769c2}.guardian-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}.guardian-actions .guardian-flag{background:#f8fafc}.guardian-actions .btn{min-height:34px}.guardian-section-title{font-size:12px;font-weight:900;color:#667085;margin:0 0 6px}.guardian-groups{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}.guardian-main{display:flex;gap:8px;flex-wrap:wrap}
 .care-actions{display:grid;gap:8px;min-width:190px}.care-actions summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;border:1px solid #b7c7de;border-radius:8px;background:#f4f8ff;color:#1769c2;padding:6px 10px;font-weight:900}.care-actions summary::-webkit-details-marker{display:none}.care-actions summary:before{content:'+';display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:#1769c2;color:#fff;font-size:13px;line-height:1}.care-actions[open] summary:before{content:'-';background:#344054}.care-actions form{display:grid;gap:6px}.care-actions input[type=text]{height:36px;padding:7px 9px;font-size:13px}.care-actions .btn{min-height:34px;padding:7px 9px;font-size:13px}.care-buttons{display:flex;gap:6px;flex-wrap:wrap}.care-buttons .btn{border-color:#d8dee9;background:#fff}.care-buttons .btn:hover,.care-actions summary:hover{border-color:#1769c2;background:#eaf4ff}.care-note{display:block;margin-top:4px;color:#667085;font-size:12px;line-height:1.35}
-.student-table-wrap{overflow-x:auto}.student-cards{display:none;gap:12px}.student-card{border:1px solid #d9dee7;border-radius:10px;background:#fff;padding:14px;box-shadow:0 8px 18px rgba(15,23,42,.05)}.student-card.inactive{background:#fafafa;color:#667085}.student-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.student-card-name{font-size:19px;font-weight:1000;color:#111827}.student-card-code{color:#667085;font-size:13px;margin-top:2px}.student-card-status{border-radius:999px;background:#eef2f7;color:#344054;padding:5px 9px;font-size:12px;font-weight:900;white-space:nowrap}.student-card-status.active{background:#eaf4ff;color:#1769c2}.student-card-badges{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.student-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f7;color:#344054;padding:5px 8px;font-size:12px;font-weight:900}.student-badge.good{background:#eef9f1;color:#176b2c}.student-badge.warn{background:#fff6df;color:#9a5b00}.student-badge.danger{background:#fff1f1;color:#a4262c}.student-badge.info{background:#eaf4ff;color:#1769c2}.student-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}.student-card-field{border:1px solid #edf1f7;border-radius:8px;background:#f8fafc;padding:9px}.student-card-field strong{display:block;color:#667085;font-size:12px;margin-bottom:3px}.student-card-field span{font-weight:800;color:#111827}.student-card-more{border-top:1px solid #edf1f7;margin-top:10px;padding-top:10px}.student-card-more summary{cursor:pointer;display:flex;justify-content:center;border:1px solid #d8dee9;border-radius:8px;background:#f8fafc;padding:9px;font-weight:1000;color:#1769c2}.student-card-more summary::-webkit-details-marker{display:none}.student-card-section{border-top:1px solid #edf1f7;padding-top:10px;margin-top:10px}.student-card-more .student-card-section:first-of-type{border-top:0}.student-card-section strong{display:block;color:#344054;margin-bottom:5px}.student-card-empty{color:#98a2b3}.student-card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}.student-card-actions .care-actions{flex:1 1 220px}.empty-card{border:1px dashed #cfd6df;border-radius:10px;background:#fff;padding:24px;text-align:center;color:#667085;font-weight:900}
-@media (max-width:980px){.student-table-wrap{display:none}.student-cards{display:grid}.panel{padding:16px}.search{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}.search input{grid-column:1 / -1;min-width:0}.search .btn{width:100%}}
+.student-table-wrap{overflow-x:auto}.student-table-wrap table{min-width:1120px}.student-cards{display:none;gap:12px}.student-card{border:1px solid #d9dee7;border-radius:10px;background:#fff;padding:14px;box-shadow:0 8px 18px rgba(15,23,42,.05)}.student-card.inactive{background:#fafafa;color:#667085}.student-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.student-card-name{font-size:19px;font-weight:1000;color:#111827}.student-card-code{color:#667085;font-size:13px;margin-top:2px}.student-card-status{border-radius:999px;background:#eef2f7;color:#344054;padding:5px 9px;font-size:12px;font-weight:900;white-space:nowrap}.student-card-status.active{background:#eaf4ff;color:#1769c2}.student-card-badges{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.student-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f7;color:#344054;padding:5px 8px;font-size:12px;font-weight:900}.student-badge.good{background:#eef9f1;color:#176b2c}.student-badge.warn{background:#fff6df;color:#9a5b00}.student-badge.danger{background:#fff1f1;color:#a4262c}.student-badge.info{background:#eaf4ff;color:#1769c2}.student-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}.student-card-field{border:1px solid #edf1f7;border-radius:8px;background:#f8fafc;padding:9px}.student-card-field strong{display:block;color:#667085;font-size:12px;margin-bottom:3px}.student-card-field span{font-weight:800;color:#111827}.student-card-more{border-top:1px solid #edf1f7;margin-top:10px;padding-top:10px}.student-card-more summary{cursor:pointer;display:flex;justify-content:center;border:1px solid #d8dee9;border-radius:8px;background:#f8fafc;padding:9px;font-weight:1000;color:#1769c2}.student-card-more summary::-webkit-details-marker{display:none}.student-card-section{border-top:1px solid #edf1f7;padding-top:10px;margin-top:10px}.student-card-more .student-card-section:first-of-type{border-top:0}.student-card-section strong{display:block;color:#344054;margin-bottom:5px}.student-card-empty{color:#98a2b3}.student-card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}.student-card-actions .care-actions{flex:1 1 220px}.empty-card{border:1px dashed #cfd6df;border-radius:10px;background:#fff;padding:24px;text-align:center;color:#667085;font-weight:900}
+@media (max-width:820px){.student-workspace{grid-template-columns:1fr}.student-side{position:static}.student-table-wrap{display:none}.student-cards{display:grid}.panel{padding:16px}.search{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}.search input{grid-column:1 / -1;min-width:0}.search .btn{width:100%}}
 @media (max-width:720px){.form-grid,.guide-grid,.next-action-grid{grid-template-columns:1fr}.search{grid-template-columns:1fr}.search input{min-width:0;width:100%}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.guardian-fields,.guardian-groups,.photo-box,.student-phone-action{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}.student-card-grid{grid-template-columns:1fr}.student-card-head{align-items:flex-start}.student-card-actions{display:grid}.student-card-actions .btn{width:100%}}
 </style>
 </head>
@@ -1280,7 +1406,7 @@ textarea{min-height:82px;resize:vertical}
                 <?php } ?>
                 <span class="summary-label">수업 부</span>
                 <a class="chip <?php echo $filter_class_time_raw === 'unassigned' ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('class_time_id' => 'unassigned'))); ?>">미지정 <?php echo number_format((int) $unassigned_count['cnt']); ?>명</a>
-                <?php while ($class_count = sql_fetch_array($class_counts_result)) { ?>
+                <?php foreach ($class_counts as $class_count) { ?>
                 <a class="chip <?php echo $filter_class_time_id === (int) $class_count['class_time_id'] ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('class_time_id' => (int) $class_count['class_time_id']))); ?>">
                     <?php echo get_text($class_count['class_name'] . ' ' . $class_count['start_time']); ?> <?php echo number_format((int) $class_count['cnt']); ?>명
                 </a>
@@ -1797,7 +1923,52 @@ textarea{min-height:82px;resize:vertical}
         </form>
     </section>
     <?php } else { ?>
-    <section class="panel">
+    <section class="student-workspace">
+        <aside class="panel student-side" aria-label="원생 정리">
+            <h2 class="student-side-title">원생 정리</h2>
+            <p class="student-side-help">오늘 먼저 볼 학생과 운영 누락을 빠르게 좁혀봅니다.</p>
+            <div class="side-group">
+                <div class="side-group-title">오늘 볼 학생</div>
+                <div class="side-links">
+                    <a class="side-link <?php echo ($filter_insight === '' && $filter_program === '' && $filter_class_time_raw === '' && $filter_grade === '' && $q === '') ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/students.php"><span>전체 학생</span><b><?php echo number_format((int) $total_all['cnt']); ?>명</b></a>
+                    <a class="side-link good <?php echo $filter_insight === 'today_class' ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('insight' => 'today_class'))); ?>"><span>오늘 수업</span><b><?php echo number_format(isset($insight_counts['today_class']) ? $insight_counts['today_class'] : 0); ?>명</b></a>
+                    <a class="side-link danger <?php echo $filter_insight === 'missing_today' ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('insight' => 'missing_today'))); ?>"><span>오늘 미등원</span><b><?php echo number_format(isset($insight_counts['missing_today']) ? $insight_counts['missing_today'] : 0); ?>명</b></a>
+                    <a class="side-link warn <?php echo $filter_insight === 'long_absent' ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('insight' => 'long_absent'))); ?>"><span>장기 미등원</span><b><?php echo number_format(isset($insight_counts['long_absent']) ? $insight_counts['long_absent'] : 0); ?>명</b></a>
+                </div>
+            </div>
+            <div class="side-group">
+                <div class="side-group-title">자동 체크</div>
+                <div class="side-links">
+                    <a class="side-link <?php echo $filter_insight === 'birthday_month' ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('insight' => 'birthday_month'))); ?>"><span>이번 달 생일자</span><b><?php echo number_format(isset($insight_counts['birthday_month']) ? $insight_counts['birthday_month'] : 0); ?>명</b></a>
+                    <a class="side-link <?php echo $filter_insight === 'birthday_week' ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('insight' => 'birthday_week'))); ?>"><span>7일 이내 생일</span><b><?php echo number_format(isset($insight_counts['birthday_week']) ? $insight_counts['birthday_week'] : 0); ?>명</b></a>
+                    <a class="side-link warn <?php echo $filter_insight === 'no_guardian' ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('insight' => 'no_guardian'))); ?>"><span>연락처 누락</span><b><?php echo number_format(isset($insight_counts['no_guardian']) ? $insight_counts['no_guardian'] : 0); ?>명</b></a>
+                    <a class="side-link warn <?php echo $filter_insight === 'vehicle_unassigned' ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('insight' => 'vehicle_unassigned'))); ?>"><span>차량 미배정</span><b><?php echo number_format(isset($insight_counts['vehicle_unassigned']) ? $insight_counts['vehicle_unassigned'] : 0); ?>명</b></a>
+                    <a class="side-link danger <?php echo $filter_insight === 'tuition_unpaid' ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('insight' => 'tuition_unpaid'))); ?>"><span>수련비 미납</span><b><?php echo number_format(isset($insight_counts['tuition_unpaid']) ? $insight_counts['tuition_unpaid'] : 0); ?>명</b></a>
+                    <a class="side-link danger <?php echo $filter_insight === 'report_blocked' ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('insight' => 'report_blocked'))); ?>"><span>리포트 발송 불가</span><b><?php echo number_format(isset($insight_counts['report_blocked']) ? $insight_counts['report_blocked'] : 0); ?>명</b></a>
+                </div>
+            </div>
+            <div class="side-group">
+                <div class="side-group-title">프로그램</div>
+                <div class="side-links">
+                    <?php foreach ($program_options as $program_option) {
+                        $program_code = $program_option['program_code'];
+                        $program_count = isset($program_counts[$program_code]) ? (int) $program_counts[$program_code] : 0;
+                    ?>
+                    <a class="side-link <?php echo $filter_program === $program_code ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('program_code' => $program_code))); ?>"><span><?php echo get_text($program_option['program_name']); ?></span><b><?php echo number_format($program_count); ?>명</b></a>
+                    <?php } ?>
+                </div>
+            </div>
+            <div class="side-group">
+                <div class="side-group-title">수업 부</div>
+                <div class="side-links">
+                    <a class="side-link <?php echo $filter_class_time_raw === 'unassigned' ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('class_time_id' => 'unassigned'))); ?>"><span>미지정</span><b><?php echo number_format((int) $unassigned_count['cnt']); ?>명</b></a>
+                    <?php foreach ($class_counts as $class_count) { ?>
+                    <a class="side-link <?php echo $filter_class_time_id === (int) $class_count['class_time_id'] ? 'active' : ''; ?>" href="<?php echo get_text(ieum_student_list_url(array('class_time_id' => (int) $class_count['class_time_id']))); ?>"><span><?php echo get_text($class_count['class_name'] . ' ' . $class_count['start_time']); ?></span><b><?php echo number_format((int) $class_count['cnt']); ?>명</b></a>
+                    <?php } ?>
+                </div>
+            </div>
+        </aside>
+    <section class="panel student-list-panel">
         <div class="bar">
             <form method="get" class="search">
                 <input type="text" name="q" value="<?php echo get_text($q); ?>" placeholder="학생번호, 학생명, 보호자, 연락처 검색">
@@ -2007,6 +2178,7 @@ textarea{min-height:82px;resize:vertical}
             <div class="empty-card">등록된 학생이 없습니다.</div>
             <?php } ?>
         </div>
+    </section>
     </section>
     <?php } ?>
 </main>
@@ -2608,7 +2780,7 @@ function initStudentAjaxList() {
     main.addEventListener('click', (event) => {
         const link = event.target.closest('a');
         if (!link) return;
-        if (!link.classList.contains('chip') && !link.classList.contains('muted')) return;
+        if (!link.classList.contains('chip') && !link.classList.contains('muted') && !link.classList.contains('side-link')) return;
         if (!sameStudentListUrl(link.href)) return;
         event.preventDefault();
         loadStudentList(link.href, true);
