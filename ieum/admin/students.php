@@ -1173,7 +1173,7 @@ th,td{border:1px solid #d8dee9;padding:10px;text-align:center;font-size:14px}
 th{background:#72829d;color:#fff}
 td.left{text-align:left}
 .inactive{color:#8a94a6;background:#fafafa}
-.form-grid{display:grid;grid-template-columns:160px 1fr;gap:12px 16px;align-items:center;max-width:760px}
+.form-guide{max-width:760px;margin:0 0 16px;border:1px solid #d9dee7;border-radius:10px;background:#f8fbff;padding:14px}.form-guide strong{display:block;font-size:17px;margin-bottom:4px}.form-guide p{margin:0;color:#667085;line-height:1.45}.guide-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.guide-card{border:1px solid #d9dee7;border-radius:8px;background:#fff;padding:10px}.guide-card b{display:block;color:#1769c2;margin-bottom:3px}.guide-card span{color:#667085;font-size:13px;line-height:1.35}.form-grid{display:grid;grid-template-columns:160px 1fr;gap:12px 16px;align-items:center;max-width:760px}.form-section-title{grid-column:1 / -1;border-top:1px solid #e2e8f0;padding-top:14px;margin-top:4px;font-size:15px;font-weight:1000;color:#1769c2}.form-section-title:first-child{border-top:0;padding-top:0}.optional-details{border:1px solid #d9dee7;border-radius:8px;background:#f8fafc}.optional-details summary{cursor:pointer;padding:12px 14px;font-weight:900;color:#1769c2}.optional-details summary::-webkit-details-marker{display:none}.optional-details-inner{padding:0 12px 12px}.required-hint{color:#a4262c;font-size:12px;font-weight:900;margin-left:4px}
 label{font-weight:700}
 input[type=text],select,textarea{width:100%;border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}
 textarea{min-height:82px;resize:vertical}
@@ -1186,7 +1186,7 @@ textarea{min-height:82px;resize:vertical}
 .care-actions{display:grid;gap:8px;min-width:190px}.care-actions summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;border:1px solid #b7c7de;border-radius:8px;background:#f4f8ff;color:#1769c2;padding:6px 10px;font-weight:900}.care-actions summary::-webkit-details-marker{display:none}.care-actions summary:before{content:'+';display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:#1769c2;color:#fff;font-size:13px;line-height:1}.care-actions[open] summary:before{content:'-';background:#344054}.care-actions form{display:grid;gap:6px}.care-actions input[type=text]{height:36px;padding:7px 9px;font-size:13px}.care-actions .btn{min-height:34px;padding:7px 9px;font-size:13px}.care-buttons{display:flex;gap:6px;flex-wrap:wrap}.care-buttons .btn{border-color:#d8dee9;background:#fff}.care-buttons .btn:hover,.care-actions summary:hover{border-color:#1769c2;background:#eaf4ff}.care-note{display:block;margin-top:4px;color:#667085;font-size:12px;line-height:1.35}
 .student-table-wrap{overflow-x:auto}.student-cards{display:none;gap:12px}.student-card{border:1px solid #d9dee7;border-radius:10px;background:#fff;padding:14px;box-shadow:0 8px 18px rgba(15,23,42,.05)}.student-card.inactive{background:#fafafa;color:#667085}.student-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.student-card-name{font-size:19px;font-weight:1000;color:#111827}.student-card-code{color:#667085;font-size:13px;margin-top:2px}.student-card-status{border-radius:999px;background:#eef2f7;color:#344054;padding:5px 9px;font-size:12px;font-weight:900;white-space:nowrap}.student-card-status.active{background:#eaf4ff;color:#1769c2}.student-card-badges{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}.student-badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f7;color:#344054;padding:5px 8px;font-size:12px;font-weight:900}.student-badge.good{background:#eef9f1;color:#176b2c}.student-badge.warn{background:#fff6df;color:#9a5b00}.student-badge.danger{background:#fff1f1;color:#a4262c}.student-badge.info{background:#eaf4ff;color:#1769c2}.student-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}.student-card-field{border:1px solid #edf1f7;border-radius:8px;background:#f8fafc;padding:9px}.student-card-field strong{display:block;color:#667085;font-size:12px;margin-bottom:3px}.student-card-field span{font-weight:800;color:#111827}.student-card-more{border-top:1px solid #edf1f7;margin-top:10px;padding-top:10px}.student-card-more summary{cursor:pointer;display:flex;justify-content:center;border:1px solid #d8dee9;border-radius:8px;background:#f8fafc;padding:9px;font-weight:1000;color:#1769c2}.student-card-more summary::-webkit-details-marker{display:none}.student-card-section{border-top:1px solid #edf1f7;padding-top:10px;margin-top:10px}.student-card-more .student-card-section:first-of-type{border-top:0}.student-card-section strong{display:block;color:#344054;margin-bottom:5px}.student-card-empty{color:#98a2b3}.student-card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}.student-card-actions .care-actions{flex:1 1 220px}.empty-card{border:1px dashed #cfd6df;border-radius:10px;background:#fff;padding:24px;text-align:center;color:#667085;font-weight:900}
 @media (max-width:980px){.student-table-wrap{display:none}.student-cards{display:grid}.panel{padding:16px}.search{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}.search input{grid-column:1 / -1;min-width:0}.search .btn{width:100%}}
-@media (max-width:720px){.form-grid{grid-template-columns:1fr}.search{grid-template-columns:1fr}.search input{min-width:0;width:100%}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.guardian-fields,.guardian-groups,.photo-box{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}.student-card-grid{grid-template-columns:1fr}.student-card-head{align-items:flex-start}.student-card-actions{display:grid}.student-card-actions .btn{width:100%}}
+@media (max-width:720px){.form-grid,.guide-grid{grid-template-columns:1fr}.search{grid-template-columns:1fr}.search input{min-width:0;width:100%}.bar{align-items:stretch}.btn{width:auto}table{font-size:13px}.tuition-row,.tuition-row.second,.vehicle-row,.vehicle-memo,.vehicle-contact,.vehicle-days,.guardian-row,.guardian-fields,.guardian-groups,.photo-box{grid-template-columns:1fr}.weekday-cards,.ride-day-cards{grid-template-columns:repeat(5,minmax(56px,1fr))}.money-field input{text-align:left}.student-card-grid{grid-template-columns:1fr}.student-card-head{align-items:flex-start}.student-card-actions{display:grid}.student-card-actions .btn{width:100%}}
 </style>
 </head>
 <body>
@@ -1337,32 +1337,82 @@ textarea{min-height:82px;resize:vertical}
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <input type="hidden" name="action" value="save">
             <input type="hidden" name="student_id" value="<?php echo (int) $form['student_id']; ?>">
+            <div class="form-guide">
+                <strong><?php echo $form['student_id'] ? '학생 정보를 수정합니다.' : '처음 등록은 필수 정보만 넣고 저장해도 됩니다.'; ?></strong>
+                <p>학생번호, 학생명, 보호자 연락처가 있으면 출석과 문자가 바로 연결됩니다. 차량, 사진, 세부 메모는 나중에 천천히 보강해도 됩니다.</p>
+                <div class="guide-grid">
+                    <div class="guide-card"><b>1. 필수</b><span>학생번호 · 학생명 · 보호자 연락처</span></div>
+                    <div class="guide-card"><b>2. 운영</b><span>수업 부 · 출석 요일 · 수련비</span></div>
+                    <div class="guide-card"><b>3. 선택</b><span>사진 · 차량 · 상담 메모</span></div>
+                </div>
+            </div>
             <div class="form-grid">
-                <label for="student_code">학생번호</label>
+                <div class="form-section-title">필수 정보</div>
+
+                <label for="student_code">학생번호 <span class="required-hint">필수</span></label>
                 <input type="text" name="student_code" id="student_code" value="<?php echo get_text($form['student_code']); ?>" maxlength="20" required>
 
-                <label for="student_name">학생명</label>
+                <label for="student_name">학생명 <span class="required-hint">필수</span></label>
                 <input type="text" name="student_name" id="student_name" value="<?php echo get_text($form['student_name']); ?>" maxlength="50" required>
 
                 <label for="student_phone">학생 연락처</label>
                 <input type="text" name="student_phone" id="student_phone" value="<?php echo get_text(isset($form['student_phone']) ? $form['student_phone'] : ''); ?>" maxlength="30" placeholder="학생 휴대폰이 있으면 입력">
 
-                <label for="student_photo_file">학생 사진</label>
-                <div class="photo-box">
-                    <?php $student_photo_url = ieum_student_photo_url(isset($form['student_photo']) ? $form['student_photo'] : ''); ?>
-                    <?php if ($student_photo_url !== '') { ?>
-                    <img class="photo-preview" src="<?php echo get_text($student_photo_url); ?>" alt="">
-                    <?php } else { ?>
-                    <div class="photo-empty">사진 없음</div>
-                    <?php } ?>
-                    <div class="photo-controls">
-                        <input type="file" name="student_photo_file" id="student_photo_file" accept="image/*">
-                        <?php if ($student_photo_url !== '') { ?>
-                        <label><input type="checkbox" name="delete_student_photo" value="1"> 현재 사진 삭제</label>
-                        <?php } ?>
-                        <div class="weekday-help">태블릿 등원 완료 화면에 표시됩니다. 정면 얼굴이 보이는 사진이 가장 좋습니다.</div>
+                <label>보호자 <span class="required-hint">필수</span></label>
+                <div class="guardian-list" id="guardianList">
+                    <?php foreach ($guardians as $idx => $guardian) { ?>
+                    <div class="guardian-row">
+                        <div class="guardian-fields">
+                            <input type="text" name="guardian_name[]" value="<?php echo get_text($guardian['guardian_name']); ?>" maxlength="50" placeholder="보호자명">
+                            <input type="text" name="guardian_relation[]" value="<?php echo get_text(isset($guardian['guardian_relation']) ? $guardian['guardian_relation'] : ''); ?>" maxlength="30" placeholder="관계">
+                            <input type="text" name="guardian_phone[]" value="<?php echo get_text($guardian['guardian_phone']); ?>" maxlength="30" placeholder="010-0000-0000">
+                        </div>
+                        <div class="guardian-groups">
+                            <div>
+                                <div class="guardian-section-title">문자 수신</div>
+                                <div class="guardian-flags">
+                                    <label class="guardian-flag"><input type="checkbox" name="guardian_sms_attendance[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['sms_attendance']) ? 'checked' : ''; ?>> 등원</label>
+                                    <label class="guardian-flag"><input type="checkbox" name="guardian_sms_checkout[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['sms_checkout']) ? 'checked' : ''; ?>> 하원</label>
+                                    <label class="guardian-flag"><input type="checkbox" name="guardian_sms_tuition[<?php echo (int) $idx; ?>]" value="1" <?php echo !isset($guardian['sms_tuition']) || !empty($guardian['sms_tuition']) ? 'checked' : ''; ?>> 수련비</label>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="guardian-section-title">관리</div>
+                                <div class="guardian-main">
+                                    <label class="guardian-flag"><input type="checkbox" class="use-code" name="guardian_use_code[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['use_for_student_code']) ? 'checked' : ''; ?>> 학생번호</label>
+                                    <label class="guardian-flag"><input type="checkbox" class="primary-guardian" name="guardian_primary[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['is_primary']) ? 'checked' : ''; ?>> 대표</label>
+                                    <button type="button" class="btn muted remove-guardian">삭제</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    <?php } ?>
                 </div>
+
+                <label></label>
+                <button type="button" class="btn muted" id="addGuardian">+ 보호자 추가</button>
+
+                <div class="form-section-title">학생 기본 설정</div>
+
+                <label for="student_photo_file">학생 사진</label>
+                <details class="optional-details" <?php echo ieum_student_photo_url(isset($form['student_photo']) ? $form['student_photo'] : '') !== '' ? 'open' : ''; ?>>
+                    <summary>사진 등록은 선택입니다.</summary>
+                    <div class="optional-details-inner photo-box">
+                        <?php $student_photo_url = ieum_student_photo_url(isset($form['student_photo']) ? $form['student_photo'] : ''); ?>
+                        <?php if ($student_photo_url !== '') { ?>
+                        <img class="photo-preview" src="<?php echo get_text($student_photo_url); ?>" alt="">
+                        <?php } else { ?>
+                        <div class="photo-empty">사진 없음</div>
+                        <?php } ?>
+                        <div class="photo-controls">
+                            <input type="file" name="student_photo_file" id="student_photo_file" accept="image/*">
+                            <?php if ($student_photo_url !== '') { ?>
+                            <label><input type="checkbox" name="delete_student_photo" value="1"> 현재 사진 삭제</label>
+                            <?php } ?>
+                            <div class="weekday-help">태블릿 등원 완료 화면에 표시됩니다. 정면 얼굴이 보이는 사진이 가장 좋습니다.</div>
+                        </div>
+                    </div>
+                </details>
                 <label for="birth_year">생년월일</label>
                 <div class="date-selects">
                     <?php
@@ -1489,6 +1539,8 @@ textarea{min-height:82px;resize:vertical}
                     </select>
                 </div>
 
+                <div class="form-section-title">운영 설정</div>
+
                 <label>수련비</label>
                 <div class="tuition-box">
                     <div class="tuition-row">
@@ -1515,7 +1567,9 @@ textarea{min-height:82px;resize:vertical}
                 </div>
 
                 <label>차량 이용</label>
-                <div class="vehicle-box">
+                <details class="optional-details" <?php echo !empty($form['vehicle_pickup_enabled']) || !empty($form['vehicle_dropoff_enabled']) ? 'open' : ''; ?>>
+                    <summary>차량을 이용하는 학생만 설정합니다.</summary>
+                    <div class="optional-details-inner vehicle-box">
                     <div class="vehicle-tools">
                         <button type="button" class="btn muted" id="copyPickupToDropoff">등원 설정을 하원에 복사</button>
                         <button type="button" class="btn muted" id="syncVehicleDays">출석 요일을 차량 요일에 적용</button>
@@ -1606,42 +1660,11 @@ textarea{min-height:82px;resize:vertical}
                             <?php } ?>
                         </div>
                     </div>
-                    <div class="weekday-help">등원/하원 위치를 따로 관리하면 차량표, 미탑승 확인, 하원 알림 문구에 활용할 수 있습니다.</div>
-                </div>
-
-                <label>보호자</label>
-                <div class="guardian-list" id="guardianList">
-                    <?php foreach ($guardians as $idx => $guardian) { ?>
-                    <div class="guardian-row">
-                        <div class="guardian-fields">
-                            <input type="text" name="guardian_name[]" value="<?php echo get_text($guardian['guardian_name']); ?>" maxlength="50" placeholder="보호자명">
-                            <input type="text" name="guardian_relation[]" value="<?php echo get_text(isset($guardian['guardian_relation']) ? $guardian['guardian_relation'] : ''); ?>" maxlength="30" placeholder="관계">
-                            <input type="text" name="guardian_phone[]" value="<?php echo get_text($guardian['guardian_phone']); ?>" maxlength="30" placeholder="010-0000-0000">
-                        </div>
-                        <div class="guardian-groups">
-                            <div>
-                                <div class="guardian-section-title">문자 수신</div>
-                                <div class="guardian-flags">
-                                    <label class="guardian-flag"><input type="checkbox" name="guardian_sms_attendance[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['sms_attendance']) ? 'checked' : ''; ?>> 등원</label>
-                                    <label class="guardian-flag"><input type="checkbox" name="guardian_sms_checkout[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['sms_checkout']) ? 'checked' : ''; ?>> 하원</label>
-                                    <label class="guardian-flag"><input type="checkbox" name="guardian_sms_tuition[<?php echo (int) $idx; ?>]" value="1" <?php echo !isset($guardian['sms_tuition']) || !empty($guardian['sms_tuition']) ? 'checked' : ''; ?>> 수련비</label>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="guardian-section-title">관리</div>
-                                <div class="guardian-main">
-                                    <label class="guardian-flag"><input type="checkbox" class="use-code" name="guardian_use_code[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['use_for_student_code']) ? 'checked' : ''; ?>> 학생번호</label>
-                                    <label class="guardian-flag"><input type="checkbox" class="primary-guardian" name="guardian_primary[<?php echo (int) $idx; ?>]" value="1" <?php echo !empty($guardian['is_primary']) ? 'checked' : ''; ?>> 대표</label>
-                                    <button type="button" class="btn muted remove-guardian">삭제</button>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="weekday-help">등원/하원 위치를 따로 관리하면 차량표, 미탑승 확인, 하원 알림 문구에 활용할 수 있습니다.</div>
                     </div>
-                    <?php } ?>
-                </div>
+                </details>
 
-                <label></label>
-                <button type="button" class="btn muted" id="addGuardian">+ 보호자 추가</button>
+                <div class="form-section-title">기타 관리</div>
 
                 <label for="memo">메모</label>
                 <textarea name="memo" id="memo" maxlength="255"><?php echo get_text($form['memo']); ?></textarea>
