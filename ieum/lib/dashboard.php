@@ -34,6 +34,7 @@ function ieum_dashboard_shortcut_catalog()
         'character' => array('label' => '인성 입력', 'desc' => '부별 주간 인성 체크', 'url' => IEUM_URL . '/admin/character.php'),
         'character_report' => array('label' => '월간 인성', 'desc' => '학부모 리포트 확인', 'url' => IEUM_URL . '/admin/character_report.php'),
         'character_mission' => array('label' => '아이잘해 미션', 'desc' => '가정 실천 참여 체크', 'url' => IEUM_URL . '/admin/character_mission.php'),
+        'monthly_close' => array('label' => '월말 관리', 'desc' => '리포트, 미납, 상담 신호 마감', 'url' => IEUM_URL . '/admin/monthly_close.php'),
         'operations' => array('label' => '운영 지표', 'desc' => '신규, 휴관, 상담 신호', 'url' => IEUM_URL . '/admin/operations.php'),
         'growth_report' => array('label' => '원생 리포트', 'desc' => '월별 원생 흐름', 'url' => IEUM_URL . '/admin/growth_report.php'),
         'vehicle_assignments' => array('label' => '차량 배정', 'desc' => '호차별 등원/하원 배정', 'url' => IEUM_URL . '/admin/vehicle_assignments.php'),
@@ -43,7 +44,7 @@ function ieum_dashboard_shortcut_catalog()
 
 function ieum_dashboard_default_shortcut_keys()
 {
-    return array('attendance_today', 'students', 'tuition_payments', 'vehicle_boarding', 'character', 'operations');
+    return array('attendance_today', 'students', 'tuition_payments', 'vehicle_boarding', 'character', 'monthly_close');
 }
 
 function ieum_dashboard_get_shortcut_keys($academy_id)

@@ -18,6 +18,7 @@ function ieum_admin_nav_items()
         'url' => IEUM_URL . '/admin/operations.php',
         'children' => array(
             'operations' => array('label' => '운영 지표', 'url' => IEUM_URL . '/admin/operations.php'),
+            'monthly_close' => array('label' => '월말 관리', 'url' => IEUM_URL . '/admin/monthly_close.php'),
             'growth' => array('label' => '원생 리포트', 'url' => IEUM_URL . '/admin/growth_report.php'),
         ),
     );
