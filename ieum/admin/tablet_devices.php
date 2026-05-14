@@ -191,12 +191,12 @@ function ieum_tablet_remaining_text($datetime)
 *{box-sizing:border-box}
 body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}
-.wrap{max-width:1120px;margin:28px auto;padding:0 20px}.bar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:22px}.muted{color:#667085}.panel{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:22px;margin-top:18px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.notice{padding:12px 14px;border-radius:8px;margin:0 0 14px}.ok{background:#eaf7ef;color:#0f7a3a}.err{background:#fdecec;color:#a4262c}.btn{border:1px solid #cfd6df;background:#fff;border-radius:8px;padding:10px 14px;font-weight:900;cursor:pointer;text-decoration:none;color:#111827;display:inline-flex;align-items:center;justify-content:center}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.btn.danger{border-color:#fecaca;color:#b42318}input{height:42px;border:1px solid #cfd6df;border-radius:8px;padding:0 12px;width:100%;background:#fff}.connect-grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:18px;align-items:stretch}.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}.summary-card{border:1px solid #d9e1ec;border-radius:10px;padding:14px;background:#f8fafc}.summary-card span{display:block;color:#667085;font-size:13px}.summary-card strong{display:block;margin-top:4px;font-size:18px}.steps{display:grid;gap:10px;margin-top:16px}.step{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:start;border:1px solid #d9e1ec;border-radius:10px;padding:12px;background:#fff}.step-no{width:30px;height:30px;border-radius:50%;background:#1769c2;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center}.step strong{display:block;margin-bottom:3px}.form-inline{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-top:14px}label{font-weight:900;display:grid;gap:6px}.qr-panel{border:2px solid #1769c2;border-radius:14px;background:#eef6ff;padding:20px;text-align:center}.qr-panel.empty{border-color:#d8dee9;background:#f8fafc}.code{font-size:48px;font-weight:1000;letter-spacing:8px;color:#1947ba}.expires{margin-top:2px;color:#667085}.qr-image{width:240px;height:240px;margin:16px auto 0;padding:10px;border-radius:12px;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:center}.qr-image img{display:block}.qr-server{margin-top:12px;text-align:left}.qr-server small{font-weight:400;color:#667085}.hint{font-size:13px;line-height:1.6;color:#667085;margin:10px 0 0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;background:#fff;min-width:760px}th,td{border:1px solid #d8dee9;padding:10px;text-align:left;vertical-align:middle}th{background:#71829f;color:#fff}.status{display:inline-flex;border-radius:999px;background:#eef2f7;padding:5px 9px;font-weight:900}.status.active{background:#eaf7ef;color:#0f7a3a}.status.pending{background:#fff6db;color:#946200}.status.revoked{background:#f2f4f7;color:#667085}.guide-card{background:#fbfcff;border:1px solid #d9e1ec;border-radius:10px;padding:14px;margin-top:14px}.guide-card ul{margin:8px 0 0;padding-left:18px;line-height:1.8;color:#475467}@media(max-width:840px){.connect-grid{grid-template-columns:1fr}.summary{grid-template-columns:1fr}.form-inline{grid-template-columns:1fr}.code{font-size:40px}}
+.wrap{max-width:1120px;margin:28px auto;padding:0 20px}.bar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:22px}.muted{color:#667085}.panel{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:22px;margin-top:18px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.notice{padding:12px 14px;border-radius:8px;margin:0 0 14px}.ok{background:#eaf7ef;color:#0f7a3a}.err{background:#fdecec;color:#a4262c}.btn{border:1px solid #cfd6df;background:#fff;border-radius:8px;padding:10px 14px;font-weight:900;cursor:pointer;text-decoration:none;color:#111827;display:inline-flex;align-items:center;justify-content:center}.btn.primary{background:#2248bf;border-color:#2248bf;color:#fff}.btn.danger{border-color:#fecaca;color:#b42318}input{height:42px;border:1px solid #cfd6df;border-radius:8px;padding:0 12px;width:100%;background:#fff}.connect-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:stretch}.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}.summary-card{border:1px solid #d9e1ec;border-radius:10px;padding:14px;background:#f8fafc}.summary-card span{display:block;color:#667085;font-size:13px}.summary-card strong{display:block;margin-top:4px;font-size:18px}.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}.step{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:start;border:1px solid #d9e1ec;border-radius:10px;padding:12px;background:#fff}.step-no{width:30px;height:30px;border-radius:50%;background:#2248bf;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center}.step strong{display:block;margin-bottom:3px}.form-inline{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-top:14px}label{font-weight:900;display:grid;gap:6px}.qr-panel{border:2px solid #2248bf;border-radius:14px;background:#eef6ff;padding:20px;text-align:center}.qr-panel.empty{border-color:#d8dee9;background:#f8fafc}.code{font-size:48px;font-weight:1000;letter-spacing:8px;color:#2248bf}.expires{margin-top:2px;color:#667085}.qr-image{width:240px;height:240px;margin:16px auto 0;padding:10px;border-radius:12px;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:center}.qr-image img{display:block}.qr-server{margin-top:12px;text-align:left}.qr-server small{font-weight:400;color:#667085}.hint{font-size:13px;line-height:1.6;color:#667085;margin:10px 0 0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;background:#fff;min-width:760px}th,td{border:1px solid #d8dee9;padding:10px;text-align:left;vertical-align:middle}th{background:#71829f;color:#fff}.status{display:inline-flex;border-radius:999px;background:#eef2f7;padding:5px 9px;font-weight:900}.status.active{background:#eaf7ef;color:#0f7a3a}.status.pending{background:#fff6db;color:#946200}.status.revoked{background:#f2f4f7;color:#667085}.guide-card{background:#fbfcff;border:1px solid #d9e1ec;border-radius:10px;padding:14px;margin-top:14px}.guide-card ul{margin:8px 0 0;padding-left:18px;line-height:1.8;color:#475467}@media(max-width:920px){.connect-grid{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.summary{grid-template-columns:1fr}.form-inline{grid-template-columns:1fr}.code{font-size:40px}}
 </style>
 <style>
 .qr-warning{display:none;margin-top:8px;padding:9px 10px;border-radius:8px;background:#fff1f0;color:#b42318;font-size:13px;line-height:1.45}
 .qr-warning.on{display:block}
-.device-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f7;color:#344054;padding:7px 10px;font-weight:900;font-size:13px}.chip.good{background:#eaf7ef;color:#0f7a3a}.chip.warn{background:#fff6db;color:#946200}.chip.expired{background:#fff1f0;color:#b42318}.device-name-form{display:flex;gap:6px;align-items:center}.device-name-form input{min-width:180px}.actions{display:flex;gap:6px;flex-wrap:wrap}.btn.small{height:38px;padding:8px 10px;font-size:13px}.btn.ghost{background:#f8fafc}.status.expired{background:#fff1f0;color:#b42318}.device-meta{display:block;margin-top:4px;color:#667085;font-size:12px}.device-code{font-size:20px;font-weight:1000;letter-spacing:2px;color:#1947ba}.device-help{display:block;margin-top:3px;color:#667085;font-size:12px}.empty-state{padding:28px;text-align:center;color:#667085}.guide-card strong{font-size:18px}
+.device-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f7;color:#344054;padding:7px 10px;font-weight:900;font-size:13px}.chip.good{background:#eaf7ef;color:#0f7a3a}.chip.warn{background:#fff6db;color:#946200}.chip.expired{background:#fff1f0;color:#b42318}.device-name-form{display:flex;gap:6px;align-items:center}.device-name-form input{min-width:180px}.actions{display:flex;gap:6px;flex-wrap:wrap}.btn.small{height:38px;padding:8px 10px;font-size:13px}.btn.ghost{background:#f8fafc}.status.expired{background:#fff1f0;color:#b42318}.device-meta{display:block;margin-top:4px;color:#667085;font-size:12px}.device-code{font-size:20px;font-weight:1000;letter-spacing:2px;color:#1947ba}.device-help{display:block;margin-top:3px;color:#667085;font-size:12px}.empty-state{padding:28px;text-align:center;color:#667085}.guide-card strong{font-size:18px}.setup-banner{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;align-items:stretch;background:#f7f9ff;border:1px solid #dbe5ff;border-radius:12px;padding:16px;margin-top:18px}.setup-banner h2{margin-bottom:8px}.setup-list{display:grid;gap:8px}.setup-item{display:flex;gap:8px;align-items:center;color:#344054}.setup-dot{width:24px;height:24px;border-radius:999px;background:#2248bf;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:1000;flex:0 0 auto}.manual-card{background:#15204a;color:#fff;border-radius:12px;padding:16px}.manual-card strong{display:block;margin-bottom:6px;font-size:18px}.manual-card p{margin:0;color:#d8e2ff;line-height:1.6}.quick-help{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.help-card{border:1px solid #d9e1ec;border-radius:10px;background:#fff;padding:14px}.help-card strong{display:block;margin-bottom:6px}.help-card p{margin:0;color:#667085;font-size:13px;line-height:1.6}.form-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.45fr);gap:10px;align-items:end}@media(max-width:920px){.setup-banner,.quick-help,.form-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -213,6 +213,21 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
 
     <?php if ($message) { ?><p class="notice ok"><?php echo get_text($message); ?></p><?php } ?>
     <?php if ($error) { ?><p class="notice err"><?php echo get_text($error); ?></p><?php } ?>
+
+    <section class="setup-banner">
+        <div>
+            <h2>처음 연결은 이 순서로 하면 됩니다</h2>
+            <div class="setup-list">
+                <div class="setup-item"><span class="setup-dot">1</span><span>태블릿에 <strong>아이이음출석기</strong> 앱을 설치합니다.</span></div>
+                <div class="setup-item"><span class="setup-dot">2</span><span>이 화면에서 <strong>연결 코드 생성</strong>을 누릅니다.</span></div>
+                <div class="setup-item"><span class="setup-dot">3</span><span>앱의 관리자 설정에서 QR을 스캔하면 이 도장 전용 출석기로 연결됩니다.</span></div>
+            </div>
+        </div>
+        <div class="manual-card">
+            <strong>현장 팁</strong>
+            <p>운영 서버에서는 도메인으로 연결하고, 지금 같은 로컬 테스트에서는 태블릿이 접속할 수 있는 PC IP 주소를 QR에 넣어야 합니다.</p>
+        </div>
+    </section>
 
     <section class="panel connect-grid">
         <div>
@@ -249,27 +264,29 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
                 </div>
             </div>
 
-            <form method="post" class="form-inline">
-                <input type="hidden" name="csrf_token" value="<?php echo get_text($csrf_token); ?>">
-                <input type="hidden" name="action" value="create_pairing">
-                <label>태블릿 이름
-                    <input type="text" name="device_name" placeholder="예: 1층 입구 태블릿">
-                </label>
-                <button type="submit" class="btn primary">연결 코드 생성</button>
-            </form>
+            <div class="form-row">
+                <form method="post" class="form-inline">
+                    <input type="hidden" name="csrf_token" value="<?php echo get_text($csrf_token); ?>">
+                    <input type="hidden" name="action" value="create_pairing">
+                    <label>태블릿 이름
+                        <input type="text" name="device_name" placeholder="예: 1층 입구 태블릿">
+                    </label>
+                    <button type="submit" class="btn primary">연결 코드 생성</button>
+                </form>
 
-            <form method="post" class="form-inline">
-                <input type="hidden" name="csrf_token" value="<?php echo get_text($csrf_token); ?>">
-                <input type="hidden" name="action" value="update_pin">
-                <label>출석기 PIN 변경
-                    <input type="text" name="tablet_pin" inputmode="numeric" maxlength="8" value="<?php echo get_text($tablet_pin); ?>" placeholder="숫자 4~8자리">
-                </label>
-                <button type="submit" class="btn">PIN 저장</button>
-            </form>
+                <form method="post" class="form-inline">
+                    <input type="hidden" name="csrf_token" value="<?php echo get_text($csrf_token); ?>">
+                    <input type="hidden" name="action" value="update_pin">
+                    <label>관리자 PIN
+                        <input type="text" name="tablet_pin" inputmode="numeric" maxlength="8" value="<?php echo get_text($tablet_pin); ?>" placeholder="숫자 4~8자리">
+                    </label>
+                    <button type="submit" class="btn">PIN 저장</button>
+                </form>
+            </div>
         </div>
 
         <div class="qr-panel<?php echo $latest_pending ? '' : ' empty'; ?>">
-            <div class="muted">현재 사용 가능한 연결 코드</div>
+            <div class="muted">태블릿 앱에서 스캔할 QR</div>
             <?php if ($latest_pending) { ?>
                 <div class="code"><?php echo get_text($latest_pending['pairing_code']); ?></div>
                 <div class="expires">만료: <?php echo get_text($latest_pending['expires_at']); ?></div>
@@ -279,7 +296,7 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
                     <small>로컬 테스트는 localhost 대신 PC IP를 사용합니다.</small>
                     <span id="qrServerWarning" class="qr-warning">태블릿에서는 localhost로 PC에 접속할 수 없습니다. PC IP 또는 운영 도메인을 입력해 주세요.</span>
                 </label>
-                <p class="hint">QR에는 도장코드, PIN, 연결코드가 들어갑니다. 연결이 끝나면 이 코드는 다시 사용할 수 없습니다.</p>
+                <p class="hint">연결 코드는 30분 동안만 유효합니다. 연결이 끝나면 이 코드는 다시 사용할 수 없습니다.</p>
                 <script>
                 (function () {
                     var serverInput = document.getElementById('qrServerUrl');
@@ -313,7 +330,7 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
                 </script>
             <?php } else { ?>
                 <div class="code">------</div>
-                <p class="hint">왼쪽에서 연결 코드를 생성하면 QR이 표시됩니다.</p>
+                <p class="hint">왼쪽에서 연결 코드를 생성하면 태블릿 앱에서 스캔할 QR이 표시됩니다.</p>
             <?php } ?>
         </div>
     </section>
@@ -407,12 +424,35 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
         </div>
     </section>
 
+    <section class="panel">
+        <div class="device-head">
+            <div>
+                <h2>연결이 안 될 때</h2>
+                <p class="muted" style="margin:4px 0 0">현장에서 가장 자주 막히는 부분만 바로 확인할 수 있게 정리했습니다.</p>
+            </div>
+        </div>
+        <div class="quick-help">
+            <div class="help-card">
+                <strong>QR 스캔 후 연결 오류</strong>
+                <p>로컬 테스트라면 서버 주소가 localhost가 아닌 PC IP인지 확인하세요. 태블릿과 PC는 같은 공유기에 있어야 합니다.</p>
+            </div>
+            <div class="help-card">
+                <strong>카메라가 열리지 않음</strong>
+                <p>태블릿 앱 권한에서 카메라 권한을 허용하고 앱을 완전히 종료한 뒤 다시 실행하세요.</p>
+            </div>
+            <div class="help-card">
+                <strong>연결 코드를 놓침</strong>
+                <p>30분이 지나면 만료됩니다. 만료 코드를 정리하고 새 연결 코드를 생성하면 됩니다.</p>
+            </div>
+        </div>
+    </section>
+
     <section class="guide-card">
         <strong>운영 메모</strong>
         <ul>
             <li>PIN은 아이들이 알 수 없게 관리하고, 필요하면 도장별로 변경하세요.</li>
-            <li>연결 코드는 30분 동안만 유효합니다.</li>
-            <li>운영 서버에서는 서버 주소가 고정 도메인으로 표시됩니다. 로컬 테스트에서만 PC IP를 입력합니다.</li>
+            <li>태블릿을 교체하거나 분실하면 기존 기기는 바로 연결 해제하세요.</li>
+            <li>오픈 후 운영 서버에서는 서버 주소가 고정 도메인으로 자동 표시됩니다. 로컬 테스트에서만 PC IP를 입력합니다.</li>
         </ul>
     </section>
 </main>
