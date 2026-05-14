@@ -40,7 +40,7 @@ if ($result['status'] === 'needs_selection') {
 $student = isset($result['student']) ? $result['student'] : array();
 $photo_url = '';
 if (isset($student['student_photo']) && $student['student_photo'] !== '') {
-    $photo_url = G5_URL . '/' . ltrim($student['student_photo'], '/');
+    $photo_url = ieum_attendance_public_file_url($student['student_photo']);
 }
 
 $character_level = null;

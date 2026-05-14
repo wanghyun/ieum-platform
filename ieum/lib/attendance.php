@@ -207,6 +207,37 @@ function ieum_attendance_count_scheduled_days($days_csv, $start_date, $end_date,
     return count(ieum_attendance_scheduled_dates($days_csv, $start_date, $end_date, $academy_id));
 }
 
+function ieum_attendance_public_file_url($path)
+{
+    $path = trim((string) $path);
+    if ($path === '') {
+        return '';
+    }
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+
+    $scheme = 'http';
+    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] !== '') {
+        $scheme = strtolower(trim(explode(',', $_SERVER['HTTP_X_FORWARDED_PROTO'])[0])) === 'https' ? 'https' : 'http';
+    } elseif (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        $scheme = 'https';
+    }
+
+    $host = '';
+    if (isset($_SERVER['HTTP_X_FORWARDED_HOST']) && $_SERVER['HTTP_X_FORWARDED_HOST'] !== '') {
+        $host = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_HOST'])[0]);
+    } elseif (isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] !== '') {
+        $host = trim($_SERVER['HTTP_HOST']);
+    }
+
+    if ($host === '') {
+        return G5_URL . '/' . ltrim($path, '/');
+    }
+
+    return $scheme . '://' . $host . '/' . ltrim($path, '/');
+}
+
 function ieum_attendance_month_progress($student, $academy_id)
 {
     $student_id = (int) $student['student_id'];
@@ -266,13 +297,28 @@ function ieum_attendance_month_progress($student, $academy_id)
 
 function ieum_attendance_student_choice($student)
 {
+    $class_label = '';
+    if (isset($student['class_time_id']) && (int) $student['class_time_id'] > 0) {
+        $class = sql_fetch("
+            select class_name, start_time
+              from " . IEUM_CLASS_TIME_TABLE . "
+             where academy_id = '" . (int) $student['academy_id'] . "'
+               and class_time_id = '" . (int) $student['class_time_id'] . "'
+             limit 1
+        ", false);
+        if (isset($class['class_name'])) {
+            $class_label = trim($class['class_name'] . ' ' . substr($class['start_time'], 0, 5));
+        }
+    }
+
     return array(
         'student_id' => (int) $student['student_id'],
         'student_name' => $student['student_name'],
         'birth_date' => isset($student['birth_date']) ? $student['birth_date'] : '',
         'grade_group' => isset($student['grade_group']) ? $student['grade_group'] : '',
+        'class_label' => $class_label,
         'school_name' => isset($student['school_name']) ? $student['school_name'] : '',
-        'photo_url' => isset($student['student_photo']) && $student['student_photo'] !== '' ? G5_URL . '/' . ltrim($student['student_photo'], '/') : '',
+        'photo_url' => isset($student['student_photo']) && $student['student_photo'] !== '' ? ieum_attendance_public_file_url($student['student_photo']) : '',
     );
 }
 

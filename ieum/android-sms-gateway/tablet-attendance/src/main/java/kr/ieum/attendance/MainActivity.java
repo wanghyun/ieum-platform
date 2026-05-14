@@ -9,8 +9,9 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -25,6 +26,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -703,15 +705,32 @@ public class MainActivity extends Activity {
     }
 
     private void showChoices(String message, JSONArray students) {
+        cancelIdleTimer();
+        lastResultData = null;
+        lastMessageTitle = "";
+        lastMessageBody = "";
         resultPanel.removeAllViews();
-        resultPanel.setGravity(Gravity.CENTER);
+        resultPanel.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
+        resultPanel.addView(scroll, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
-        box.setGravity(Gravity.CENTER);
-        resultPanel.addView(box, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        TextView title = text(message, 18, Color.rgb(20, 108, 46), true);
+        box.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
+        box.setPadding(dp(8), dp(8), dp(8), dp(8));
+        scroll.addView(box, new ScrollView.LayoutParams(ScrollView.LayoutParams.MATCH_PARENT, ScrollView.LayoutParams.WRAP_CONTENT));
+
+        TextView title = text("학생을 선택하세요", isPhone() ? 19 : 23, Color.rgb(16, 24, 40), true);
         title.setGravity(Gravity.CENTER);
         box.addView(title);
+
+        TextView guide = text(message, isPhone() ? 13 : 15, Color.rgb(20, 108, 46), true);
+        guide.setGravity(Gravity.CENTER);
+        guide.setPadding(0, dp(6), 0, dp(8));
+        box.addView(guide);
+
         if (students == null) {
             return;
         }
@@ -720,14 +739,11 @@ public class MainActivity extends Activity {
             if (student == null) {
                 continue;
             }
-            Button b = new Button(this);
-            b.setAllCaps(false);
-            b.setText(student.optString("student_name") + "\n" + birthLabel(student.optString("birth_date")) + " · " + gradeLabel(student.optString("grade_group")));
-            b.setTextSize(16);
-            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(72));
-            p.topMargin = dp(8);
-            box.addView(b, p);
-            b.setOnClickListener(new View.OnClickListener() {
+            LinearLayout card = studentChoiceCard(student);
+            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, isPhone() ? dp(78) : dp(92));
+            p.topMargin = dp(7);
+            box.addView(card, p);
+            card.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     selectedStudentId = student.optInt("student_id");
@@ -735,6 +751,47 @@ public class MainActivity extends Activity {
                 }
             });
         }
+    }
+
+    private LinearLayout studentChoiceCard(JSONObject student) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setPadding(dp(10), dp(8), dp(10), dp(8));
+        card.setBackground(roundedBg(Color.WHITE, Color.rgb(208, 218, 232), dp(14), dp(1)));
+
+        String name = student.optString("student_name", "학생");
+        int photoSize = isPhone() ? dp(50) : dp(62);
+        View photo = photoView(name, student.optString("photo_url", ""), photoSize);
+        LinearLayout.LayoutParams photoParams = new LinearLayout.LayoutParams(photoSize, photoSize);
+        photoParams.rightMargin = dp(10);
+        card.addView(photo, photoParams);
+
+        LinearLayout info = new LinearLayout(this);
+        info.setOrientation(LinearLayout.VERTICAL);
+        info.setGravity(Gravity.CENTER_VERTICAL);
+        card.addView(info, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1));
+
+        TextView nameText = text(name, isPhone() ? 19 : 22, Color.rgb(16, 24, 40), true);
+        info.addView(nameText);
+
+        String classLabel = student.optString("class_label", "");
+        String detail = birthLabel(student.optString("birth_date")) + " · " + gradeLabel(student.optString("grade_group"));
+        if (classLabel.length() > 0) {
+            detail += " · " + classLabel;
+        }
+        TextView detailText = text(detail, isPhone() ? 12 : 14, Color.rgb(71, 84, 103), true);
+        detailText.setPadding(0, dp(4), 0, 0);
+        info.addView(detailText);
+
+        TextView action = text("선택", isPhone() ? 13 : 15, Color.WHITE, true);
+        action.setGravity(Gravity.CENTER);
+        action.setBackground(roundedBg(BLUE, BLUE, dp(999), 0));
+        LinearLayout.LayoutParams actionParams = new LinearLayout.LayoutParams(dp(isPhone() ? 52 : 64), dp(isPhone() ? 34 : 38));
+        actionParams.leftMargin = dp(8);
+        card.addView(action, actionParams);
+
+        return card;
     }
 
     private void showResult(JSONObject data) {
@@ -959,6 +1016,16 @@ public class MainActivity extends Activity {
         button.setTextColor(Color.WHITE);
         button.setBackgroundColor(CHARCOAL);
         return button;
+    }
+
+    private GradientDrawable roundedBg(int fillColor, int strokeColor, int radius, int strokeWidth) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(fillColor);
+        drawable.setCornerRadius(radius);
+        if (strokeWidth > 0) {
+            drawable.setStroke(strokeWidth, strokeColor);
+        }
+        return drawable;
     }
 
     private void ensureDeviceUid() {
