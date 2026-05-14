@@ -93,6 +93,10 @@ function ieum_monthly_close_percent($value, $total)
 }
 
 $month = isset($_GET['month']) ? ieum_monthly_close_valid_month(trim($_GET['month'])) : date('Y-m');
+$issue = isset($_GET['issue']) ? preg_replace('/[^a-z_]/', '', trim($_GET['issue'])) : 'all';
+if (!in_array($issue, array('all', 'critical', 'character', 'phone', 'mission', 'tuition', 'absent'), true)) {
+    $issue = 'all';
+}
 $month_sql = sql_escape_string($month);
 $month_start = $month . '-01';
 $month_end = date('Y-m-t', strtotime($month_start));
@@ -124,6 +128,7 @@ $total_students = count($students);
 $summary = array(
     'report_ready' => 0,
     'report_send_ready' => 0,
+    'critical' => 0,
     'no_phone' => 0,
     'character_missing' => 0,
     'mission_done' => 0,
@@ -134,6 +139,15 @@ $summary = array(
 );
 $class_summary = array();
 $blockers = array();
+$issue_counts = array(
+    'all' => 0,
+    'critical' => 0,
+    'character' => 0,
+    'phone' => 0,
+    'mission' => 0,
+    'tuition' => 0,
+    'absent' => 0,
+);
 $today = G5_TIME_YMD;
 $long_absent_start = date('Y-m-d', strtotime($today . ' -14 days'));
 
@@ -211,22 +225,36 @@ foreach ($students as $student) {
     }
 
     $reasons = array();
+    $flags = array();
+    $priority = 100;
     if ($character_missing) {
         $reasons[] = '인성 입력 ' . $evaluated_weeks . '/' . $expected_weeks . '주';
+        $flags['character'] = true;
+        $priority = min($priority, 10);
     }
     if ($phone_count <= 0) {
         $reasons[] = '대표 보호자 연락처 없음';
+        $flags['phone'] = true;
+        $priority = min($priority, 5);
     }
     if (!$mission_done) {
         $reasons[] = '아이잘해 미참여';
+        $flags['mission'] = true;
+        $priority = min($priority, 60);
     }
     if ($tuition_overdue) {
         $reasons[] = '수련비 미납 ' . number_format($balance) . '원';
+        $flags['tuition'] = true;
+        $priority = min($priority, 20);
     } elseif ($tuition_unpaid) {
         $reasons[] = '수련비 미결제';
+        $flags['tuition'] = true;
+        $priority = min($priority, 40);
     }
     if ($long_absent) {
         $reasons[] = '14일 이상 출석 없음';
+        $flags['absent'] = true;
+        $priority = min($priority, 15);
     }
 
     $report_ready = $phone_count > 0 && !$character_missing;
@@ -236,11 +264,23 @@ foreach ($students as $student) {
     }
 
     if ($reasons) {
+        $is_critical = isset($flags['phone']) || isset($flags['character']) || ($tuition_overdue ? true : false) || isset($flags['absent']);
+        $flags['all'] = true;
+        if ($is_critical) {
+            $flags['critical'] = true;
+            $summary['critical']++;
+        }
+        foreach ($flags as $flag => $active) {
+            if ($active && isset($issue_counts[$flag])) {
+                $issue_counts[$flag]++;
+            }
+        }
         $blockers[] = array(
             'student' => $student,
             'class_label' => $class_label,
             'reasons' => $reasons,
-            'priority' => ($phone_count <= 0 || $character_missing || $tuition_overdue || $long_absent) ? 1 : 2,
+            'flags' => $flags,
+            'priority' => $priority,
         );
     }
 }
@@ -252,14 +292,20 @@ usort($blockers, function ($a, $b) {
     return $a['priority'] - $b['priority'];
 });
 
+$filtered_blockers = array();
+foreach ($blockers as $blocker) {
+    if ($issue === 'all' || !empty($blocker['flags'][$issue])) {
+        $filtered_blockers[] = $blocker;
+    }
+}
+
 $ready_for_send = (int) $summary['report_send_ready'];
 $close_score = 0;
 if ($total_students > 0) {
-    $close_score = (int) round((
-        ieum_monthly_close_percent($ready_for_send, $total_students) +
-        ieum_monthly_close_percent($total_students - $summary['tuition_overdue'], $total_students) +
-        ieum_monthly_close_percent($summary['mission_done'], $total_students)
-    ) / 3);
+    $report_percent = ieum_monthly_close_percent($ready_for_send, $total_students);
+    $tuition_percent = ieum_monthly_close_percent($total_students - $summary['tuition_overdue'], $total_students);
+    $mission_percent = ieum_monthly_close_percent($summary['mission_done'], $total_students);
+    $close_score = (int) round(($report_percent * 0.5) + ($tuition_percent * 0.3) + ($mission_percent * 0.2));
 }
 
 $status_text = '점검 필요';
@@ -269,7 +315,7 @@ if ($close_score >= 90) {
     $status_text = '마감 진행 중';
 }
 
-$blocker_preview = array_slice($blockers, 0, 40);
+$blocker_preview = array_slice($filtered_blockers, 0, 40);
 ?>
 <!doctype html>
 <html lang="ko">
@@ -278,7 +324,7 @@ $blocker_preview = array_slice($blockers, 0, 40);
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}h1{margin:0;font-size:32px}.meta{color:#667085;margin-top:6px;line-height:1.45}.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:9px 13px;font-weight:900;cursor:pointer}.primary{background:#1947ba;border-color:#1947ba;color:#fff}.dark{background:#111827;border-color:#111827;color:#fff}input,select{border:1px solid #cfd6df;border-radius:8px;padding:9px;font-size:14px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:12px;padding:20px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.close-hero{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:stretch}.score-card{background:linear-gradient(135deg,#1947ba,#2c2a25);color:#fff;border:0}.score-big{font-size:58px;font-weight:1000;line-height:1;margin-top:12px}.score-card p{color:#dbe6ff;line-height:1.6}.routine{display:grid;gap:10px}.routine-item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border:1px solid #e2e8f0;border-radius:10px;padding:12px;background:#fbfcff}.routine-no{width:30px;height:30px;border-radius:999px;background:#1947ba;color:#fff;display:grid;place-items:center;font-weight:1000}.routine-item strong{display:block}.routine-item span{display:block;color:#667085;font-size:13px;margin-top:2px}.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.kpi{background:#fff;border:1px solid #d9dee7;border-radius:12px;padding:16px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.kpi span{display:block;color:#667085;font-size:13px;font-weight:900}.kpi strong{display:block;margin-top:7px;font-size:30px}.good{color:#087f5b}.warn{color:#9a5b00}.danger{color:#c92a2a}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:10px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{display:inline-flex;border-radius:999px;background:#eef2f7;color:#344054;padding:5px 8px;font-size:12px;font-weight:900}.chip.warn{background:#fff4e6;color:#9a5b00}.chip.danger{background:#fdecec;color:#c92a2a}.chip.good{background:#e8f7ee;color:#087f5b}.empty{padding:28px;text-align:center;color:#667085}.progress{height:9px;border-radius:999px;background:#edf2f7;overflow:hidden;margin-top:10px}.progress span{display:block;height:100%;background:#1947ba;border-radius:999px}.note{background:#eef6ff;border:1px solid #cfe0ff;border-radius:12px;padding:14px;color:#173b7a;line-height:1.6;margin-top:18px}@media(max-width:900px){.close-hero,.grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.routine-item{grid-template-columns:auto 1fr}.routine-item .btn{grid-column:2}}@media(max-width:620px){.kpis{grid-template-columns:1fr}h1{font-size:28px}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}h1{margin:0;font-size:32px}.meta{color:#667085;margin-top:6px;line-height:1.45}.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:9px 13px;font-weight:900;cursor:pointer}.primary{background:#1947ba;border-color:#1947ba;color:#fff}.dark{background:#111827;border-color:#111827;color:#fff}input,select{border:1px solid #cfd6df;border-radius:8px;padding:9px;font-size:14px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:12px;padding:20px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.close-hero{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:stretch}.score-card{background:linear-gradient(135deg,#1947ba,#2c2a25);color:#fff;border:0}.score-big{font-size:58px;font-weight:1000;line-height:1;margin-top:12px}.score-card p{color:#dbe6ff;line-height:1.6}.routine{display:grid;gap:10px}.routine-item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;border:1px solid #e2e8f0;border-radius:10px;padding:12px;background:#fbfcff}.routine-no{width:30px;height:30px;border-radius:999px;background:#1947ba;color:#fff;display:grid;place-items:center;font-weight:1000}.routine-item strong{display:block}.routine-item span{display:block;color:#667085;font-size:13px;margin-top:2px}.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.kpi{background:#fff;border:1px solid #d9dee7;border-radius:12px;padding:16px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.kpi span{display:block;color:#667085;font-size:13px;font-weight:900}.kpi strong{display:block;margin-top:7px;font-size:30px}.good{color:#087f5b}.warn{color:#9a5b00}.danger{color:#c92a2a}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:10px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{display:inline-flex;border-radius:999px;background:#eef2f7;color:#344054;padding:5px 8px;font-size:12px;font-weight:900}.chip.warn{background:#fff4e6;color:#9a5b00}.chip.danger{background:#fdecec;color:#c92a2a}.chip.good{background:#e8f7ee;color:#087f5b}.empty{padding:28px;text-align:center;color:#667085}.progress{height:9px;border-radius:999px;background:#edf2f7;overflow:hidden;margin-top:10px}.progress span{display:block;height:100%;background:#1947ba;border-radius:999px}.note{background:#eef6ff;border:1px solid #cfe0ff;border-radius:12px;padding:14px;color:#173b7a;line-height:1.6;margin-top:18px}.issue-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 16px}.issue-tabs a{display:inline-flex;align-items:center;gap:6px;border:1px solid #d8dee9;border-radius:999px;background:#fff;color:#344054;text-decoration:none;padding:8px 11px;font-weight:900}.issue-tabs a.active{background:#1947ba;border-color:#1947ba;color:#fff}.issue-tabs b{font-size:12px;border-radius:999px;background:#eef2f7;color:#344054;padding:2px 7px}.issue-tabs a.active b{background:rgba(255,255,255,.22);color:#fff}.priority-high{background:#fffafa}.priority-mid{background:#fffdf5}@media(max-width:900px){.close-hero,.grid{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.routine-item{grid-template-columns:auto 1fr}.routine-item .btn{grid-column:2}}@media(max-width:620px){.kpis{grid-template-columns:1fr}h1{font-size:28px}}
 </style>
 </head>
 <body>
@@ -326,7 +372,7 @@ $blocker_preview = array_slice($blockers, 0, 40);
         <article class="kpi"><span>수련비 미결제</span><strong class="<?php echo $summary['tuition_unpaid'] ? 'warn' : 'good'; ?>"><?php echo number_format($summary['tuition_unpaid']); ?>명</strong></article>
         <article class="kpi"><span>미납 <?php echo number_format($overdue_days); ?>일 초과</span><strong class="<?php echo $summary['tuition_overdue'] ? 'danger' : 'good'; ?>"><?php echo number_format($summary['tuition_overdue']); ?>명</strong></article>
         <article class="kpi"><span>장기 미등원</span><strong class="<?php echo $summary['long_absent'] ? 'danger' : 'good'; ?>"><?php echo number_format($summary['long_absent']); ?>명</strong></article>
-        <article class="kpi"><span>점검 필요</span><strong class="<?php echo count($blockers) ? 'warn' : 'good'; ?>"><?php echo number_format(count($blockers)); ?>명</strong></article>
+        <article class="kpi"><span>우선 처리</span><strong class="<?php echo $summary['critical'] ? 'danger' : 'good'; ?>"><?php echo number_format($summary['critical']); ?>명</strong></article>
         <article class="kpi"><span>평가 기준</span><strong><?php echo number_format($expected_weeks); ?>주</strong></article>
     </section>
 
@@ -377,6 +423,24 @@ $blocker_preview = array_slice($blockers, 0, 40);
 
     <section class="panel">
         <h2>먼저 정리할 학생</h2>
+        <?php
+        $issue_tabs = array(
+            'all' => '전체',
+            'critical' => '우선 처리',
+            'character' => '인성 입력',
+            'phone' => '연락처',
+            'mission' => '아이잘해',
+            'tuition' => '수련비',
+            'absent' => '장기 미등원',
+        );
+        ?>
+        <div class="issue-tabs" aria-label="점검 유형 필터">
+            <?php foreach ($issue_tabs as $key => $label) { ?>
+                <a class="<?php echo $issue === $key ? 'active' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/monthly_close.php?month=<?php echo get_text($month); ?>&amp;issue=<?php echo get_text($key); ?>">
+                    <?php echo get_text($label); ?> <b><?php echo number_format(isset($issue_counts[$key]) ? (int) $issue_counts[$key] : 0); ?></b>
+                </a>
+            <?php } ?>
+        </div>
         <?php if (!$blocker_preview) { ?>
             <div class="empty">이번 달 월말 관리에서 크게 막힌 항목이 없습니다. 리포트 발송 준비로 넘어가도 좋습니다.</div>
         <?php } else { ?>
@@ -393,7 +457,7 @@ $blocker_preview = array_slice($blockers, 0, 40);
                     </thead>
                     <tbody>
                     <?php foreach ($blocker_preview as $row) { $s = $row['student']; ?>
-                        <tr>
+                        <tr class="<?php echo (int) $row['priority'] <= 20 ? 'priority-high' : 'priority-mid'; ?>">
                             <td class="left"><strong><?php echo get_text($s['student_name']); ?></strong> <span class="meta">(<?php echo get_text($s['student_code']); ?>)</span></td>
                             <td><?php echo get_text($row['class_label']); ?></td>
                             <td><?php echo get_text(ieum_monthly_close_grade_label($s['grade_group'])); ?></td>
