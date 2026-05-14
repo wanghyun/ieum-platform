@@ -691,10 +691,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $is_active = isset($_POST['is_active']) ? 1 : 0;
             $delete_photo = isset($_POST['delete_student_photo']) ? 1 : 0;
             $has_guardian_phone = false;
-            foreach ($guardian_phones as $phone_value) {
-                if (ieum_student_clean_phone($phone_value) !== '') {
+            $fallback_code = '';
+            $fallback_code_index = null;
+            foreach ($guardian_phones as $phone_index => $phone_value) {
+                $phone_digits = preg_replace('/[^0-9]/', '', ieum_student_clean_phone($phone_value));
+                if ($phone_digits !== '') {
                     $has_guardian_phone = true;
-                    break;
+                    if (strlen($phone_digits) >= 4) {
+                        if (isset($guardian_use_code[$phone_index])) {
+                            $fallback_code = substr($phone_digits, -4);
+                            $fallback_code_index = $phone_index;
+                            break;
+                        }
+                        if ($fallback_code === '') {
+                            $fallback_code = substr($phone_digits, -4);
+                            $fallback_code_index = $phone_index;
+                        }
+                    }
+                }
+            }
+            if ($student_code === '' && $fallback_code === '') {
+                $student_phone_digits = preg_replace('/[^0-9]/', '', $student_phone);
+                if (strlen($student_phone_digits) >= 4) {
+                    $fallback_code = substr($student_phone_digits, -4);
+                }
+            }
+            if ($student_code === '' && $fallback_code !== '') {
+                $student_code = $fallback_code;
+                if ($fallback_code_index !== null && !isset($guardian_use_code[$fallback_code_index])) {
+                    $guardian_use_code[$fallback_code_index] = 1;
                 }
             }
 
@@ -1341,7 +1366,7 @@ textarea{min-height:82px;resize:vertical}
                 'sms_attendance' => 1,
                 'sms_checkout' => 0,
                 'sms_tuition' => 1,
-                'use_for_student_code' => 0,
+                'use_for_student_code' => 1,
                 'is_primary' => 1,
             );
         }
@@ -1410,9 +1435,9 @@ textarea{min-height:82px;resize:vertical}
             <input type="hidden" name="student_id" value="<?php echo (int) $form['student_id']; ?>">
             <div class="form-guide">
                 <strong><?php echo $form['student_id'] ? '학생 정보를 수정합니다.' : '처음 등록은 필수 정보만 넣고 저장해도 됩니다.'; ?></strong>
-                <p>학생명과 보호자 연락처를 넣고, 학생번호는 연락처 뒷자리로 자동 지정하면 출석과 문자가 바로 연결됩니다. 차량, 사진, 세부 메모는 나중에 천천히 보강해도 됩니다.</p>
+                <p>학생명과 보호자 연락처만 넣어도 학생번호가 연락처 뒷자리로 자동 확정됩니다. 차량, 사진, 세부 메모는 나중에 천천히 보강해도 됩니다.</p>
                 <div class="guide-grid">
-                    <div class="guide-card"><b>1. 필수</b><span>학생명 · 보호자 연락처 · 학생번호 선택</span></div>
+                    <div class="guide-card"><b>1. 필수</b><span>학생명 · 보호자 연락처</span></div>
                     <div class="guide-card"><b>2. 운영</b><span>수업 부 · 출석 요일 · 수련비</span></div>
                     <div class="guide-card"><b>3. 선택</b><span>사진 · 차량 · 상담 메모</span></div>
                 </div>
@@ -1420,10 +1445,10 @@ textarea{min-height:82px;resize:vertical}
             <div class="form-grid">
                 <div class="form-section-title">필수 정보</div>
 
-                <label for="student_code">학생번호 <span class="required-hint">필수</span></label>
+                <label for="student_code">학생번호 <span class="required-hint">자동</span></label>
                 <div class="student-code-field">
-                    <input type="text" name="student_code" id="student_code" value="<?php echo get_text($form['student_code']); ?>" maxlength="8" inputmode="numeric" required>
-                    <div class="field-help">보호자 또는 학생 휴대폰 번호 뒷자리 4개를 주로 사용합니다. 아래에서 선택하면 자동 입력되고, 숫자만 저장됩니다.</div>
+                    <input type="text" name="student_code" id="student_code" value="<?php echo get_text($form['student_code']); ?>" maxlength="8" inputmode="numeric">
+                    <div class="field-help">보호자 연락처를 입력하면 뒷자리 4개가 자동으로 들어갑니다. 비워져 있어도 저장 시 연락처 뒷자리로 자동 확정됩니다.</div>
                     <div class="duplicate-alert" id="studentCodeDuplicateAlert" role="status" aria-live="polite"></div>
                 </div>
 
@@ -2305,6 +2330,9 @@ function bindGuardianRow(row) {
                 applyStudentCodeFromRow(row);
             }
         });
+        if (useCode && useCode.checked) {
+            applyStudentCodeFromRow(row);
+        }
     }
     if (remove) {
         remove.addEventListener('click', () => {
@@ -2368,7 +2396,7 @@ if (addGuardian) {
                     </div>
                 </div>
                 <div>
-                    <div class="guardian-section-title">학생번호 선택 (핸드폰 뒷자리)</div>
+                    <div class="guardian-section-title">학생번호 선택 (연락처 뒷자리)</div>
                     <div class="guardian-main">
                         <label class="guardian-flag"><input type="checkbox" class="use-code" name="guardian_use_code[${index}]" value="1"> 학생번호로 사용</label>
                         <label class="guardian-flag"><input type="checkbox" class="primary-guardian" name="guardian_primary[${index}]" value="1"> 대표</label>
