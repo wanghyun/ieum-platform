@@ -1074,19 +1074,19 @@ html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-small .ieum-side
 }
 html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-large .ieum-side .side-main-link,
 html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-large .ieum-side .side-menu>summary{
-    min-height:44px!important;
-    font-size:16px!important;
+    min-height:46px!important;
+    font-size:17px!important;
     font-weight:900!important;
 }
 html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-large .ieum-side .side-sub a{
-    min-height:36px!important;
-    font-size:15px!important;
+    min-height:38px!important;
+    font-size:16px!important;
     font-weight:900!important;
 }
 html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-large .ieum-side .ieum-nav-icon{
-    width:19px!important;
-    height:19px!important;
-    flex-basis:19px!important;
+    width:20px!important;
+    height:20px!important;
+    flex-basis:20px!important;
 }
 html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-quick{
     display:none!important;
