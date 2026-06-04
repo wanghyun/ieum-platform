@@ -3718,6 +3718,98 @@ body.ieum-dashboard-page.student-page-tune.ieum-dark .care-sms-actions{
     background:#111827!important;
     border-color:#2c3a4f!important;
 }
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-panel{
+    padding:14px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-head{
+    align-items:center!important;
+    margin-bottom:10px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-head p{
+    max-width:680px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-count{
+    min-width:78px!important;
+    min-height:40px!important;
+    font-size:23px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap{
+    overflow-x:auto!important;
+    scrollbar-gutter:stable!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap table{
+    min-width:1180px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td{
+    box-sizing:border-box!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(1),
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(1){width:12%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(2),
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(2){width:8%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(3),
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(3){width:10%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(4),
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(4){width:18%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(5),
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(5){width:34%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(6),
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(6){width:18%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td{
+    padding:8px 9px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td.student-signal-cell{
+    padding-right:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-signal-list{
+    max-height:44px!important;
+    gap:4px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-badge{
+    max-width:112px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box{
+    grid-template-columns:50px minmax(86px,1fr) 40px!important;
+    gap:4px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box>.btn,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box>form.inline .btn,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .status-change-form select{
+    min-height:30px!important;
+    height:30px!important;
+    border-radius:6px!important;
+    font-size:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .status-change-form{
+    grid-template-columns:minmax(78px,1fr) 40px!important;
+    gap:4px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box .care-actions summary{
+    min-height:29px!important;
+    padding:4px 8px!important;
+    font-size:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box .care-actions summary:before{
+    content:"+"!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:16px!important;
+    height:16px!important;
+    margin-right:5px!important;
+    border-radius:50%!important;
+    background:#1769c2!important;
+    color:#fff!important;
+    font-size:11px!important;
+    font-weight:1000!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-row-action-box .care-actions summary:before{
+    background:#1f7dd9!important;
+}
 @media (max-width:720px){
     body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-card{
         padding:12px!important;
@@ -3760,6 +3852,19 @@ body.ieum-dashboard-page.student-page-tune.ieum-dark .care-sms-actions{
     body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-card-more summary{
         min-height:36px!important;
         padding:7px 9px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-head{
+        display:grid!important;
+        grid-template-columns:1fr auto!important;
+        gap:10px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-head p{
+        display:none!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-count{
+        min-width:66px!important;
+        min-height:36px!important;
+        font-size:20px!important;
     }
 }
 </style>
@@ -4463,7 +4568,7 @@ body.ieum-dashboard-page.student-page-tune.ieum-dark .care-sms-actions{
         <div class="student-list-head">
             <div>
                 <h2>원생 목록</h2>
-                <p>장기 미등원, 수련비 미납, 리포트 불가, 아이들 메모, 생일, 차량 메모 순으로 관리가 필요한 원생을 먼저 보여줍니다.</p>
+                <p>관리 신호가 있는 원생을 먼저 보여줍니다. 이름을 누르면 상세 확인과 수정으로 이어집니다.</p>
             </div>
             <div class="student-list-count"><?php echo number_format((int) $total['cnt']); ?>명</div>
         </div>
