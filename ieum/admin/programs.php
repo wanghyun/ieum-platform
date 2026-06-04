@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $sub_menu = '950145';
 require_once './_common.php';
 require_once IEUM_PATH . '/lib/program.php';
@@ -116,132 +116,6 @@ input[type=text]{width:100%;border:1px solid #cfd6df;border-radius:6px;padding:1
 @media(max-width:720px){table{display:block;overflow-x:auto;white-space:nowrap}.add-row{grid-template-columns:1fr}}
 </style>
 <style>
-/* Dashboard shell alignment: program choices are a small but important setup screen. */
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune{
-    --ieum-side-width:260px;
-    --ieum-top-height:64px;
-    --ieum-rail-width:0px;
-    background:#f5f7fb!important;
-    color:#111827!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .ieum-side{
-    width:260px!important;
-    background:#fff!important;
-    border-right:1px solid #e2e8f0!important;
-    box-shadow:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-brand{
-    display:flex!important;
-    height:144px!important;
-    min-height:144px!important;
-    padding:0 28px!important;
-    background:#fff!important;
-    color:#0f172a!important;
-    font-size:29px!important;
-    letter-spacing:0!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-brand-mark,
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-profile,
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-search{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-nav{
-    padding:0 14px 24px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-main-link,
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-menu>summary{
-    min-height:42px!important;
-    border-radius:6px!important;
-    padding:0 12px!important;
-    color:#0f172a!important;
-    font-size:15px!important;
-    font-weight:900!important;
-    letter-spacing:0!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-main-link:hover,
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-main-link.active,
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-menu[open]>summary,
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-menu>summary:hover{
-    background:#f1f5f9!important;
-    color:#0f172a!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .ieum-nav-label{
-    gap:10px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .ieum-nav-icon{
-    width:18px!important;
-    height:18px!important;
-    color:#334155!important;
-    opacity:1!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-sub{
-    margin:2px 0 8px!important;
-    padding:0 0 0 28px!important;
-    background:transparent!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-sub a{
-    min-height:34px!important;
-    border-radius:6px!important;
-    color:#475569!important;
-    font-size:14px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-sub a:hover,
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .side-sub a.active{
-    background:#f1f5f9!important;
-    color:#0f172a!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .ieum-shell-top{
-    left:260px!important;
-    right:0!important;
-    width:auto!important;
-    height:64px!important;
-    padding:0 40px!important;
-    background:#fff!important;
-    border-bottom:1px solid #e2e8f0!important;
-    box-shadow:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .ieum-shell-link{
-    flex:0 0 auto!important;
-    color:#0f172a!important;
-    font-weight:900!important;
-    text-decoration:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .ieum-shell-link:before{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .ieum-shell-meta{
-    margin-left:auto!important;
-    color:#0f172a!important;
-    font-size:13px!important;
-    font-weight:900!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .dashboard-shell-meta-inner{
-    display:flex!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    gap:8px!important;
-    white-space:nowrap!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .dashboard-shell-divider,
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .dashboard-shell-help-dot{
-    color:#94a3b8!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .dashboard-shell-support-link{
-    color:#0f172a!important;
-    text-decoration:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .dashboard-shell-support-link:hover,
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .ieum-shell-link:hover{
-    color:#1769c2!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .dashboard-shell-help-group{
-    display:inline-flex!important;
-    align-items:center!important;
-    gap:4px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.program-page-tune .ieum-right-rail{
-    display:none!important;
-}
 body.ieum-side-layout.ieum-dashboard-page.program-page-tune .wrap{
     margin:0 0 0 260px!important;
     padding:96px 40px 42px!important;
@@ -292,11 +166,6 @@ body.ieum-side-layout.ieum-dashboard-page.program-page-tune .btn{
     body.ieum-side-layout.ieum-dashboard-page.program-page-tune .wrap{
         margin:0!important;
         padding:86px 14px 34px!important;
-    }
-    body.ieum-side-layout.ieum-dashboard-page.program-page-tune .ieum-shell-top{
-        left:0!important;
-        right:0!important;
-        padding:0 10px!important;
     }
 }
 </style>

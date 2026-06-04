@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $sub_menu = '950150';
 require_once './_common.php';
 
@@ -93,132 +93,6 @@ input{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.gr
 table{width:100%;min-width:980px;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}th{background:#72829d;color:#fff}
 </style>
 <style>
-/* Dashboard shell alignment: class times are the source for today's class card. */
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune{
-    --ieum-side-width:260px;
-    --ieum-top-height:64px;
-    --ieum-rail-width:0px;
-    background:#f5f7fb!important;
-    color:#111827!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .ieum-side{
-    width:260px!important;
-    background:#fff!important;
-    border-right:1px solid #e2e8f0!important;
-    box-shadow:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-brand{
-    display:flex!important;
-    height:144px!important;
-    min-height:144px!important;
-    padding:0 28px!important;
-    background:#fff!important;
-    color:#0f172a!important;
-    font-size:29px!important;
-    letter-spacing:0!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-brand-mark,
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-profile,
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-search{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-nav{
-    padding:0 14px 24px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-main-link,
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-menu>summary{
-    min-height:42px!important;
-    border-radius:6px!important;
-    padding:0 12px!important;
-    color:#0f172a!important;
-    font-size:15px!important;
-    font-weight:900!important;
-    letter-spacing:0!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-main-link:hover,
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-main-link.active,
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-menu[open]>summary,
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-menu>summary:hover{
-    background:#f1f5f9!important;
-    color:#0f172a!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .ieum-nav-label{
-    gap:10px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .ieum-nav-icon{
-    width:18px!important;
-    height:18px!important;
-    color:#334155!important;
-    opacity:1!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-sub{
-    margin:2px 0 8px!important;
-    padding:0 0 0 28px!important;
-    background:transparent!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-sub a{
-    min-height:34px!important;
-    border-radius:6px!important;
-    color:#475569!important;
-    font-size:14px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-sub a:hover,
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .side-sub a.active{
-    background:#f1f5f9!important;
-    color:#0f172a!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .ieum-shell-top{
-    left:260px!important;
-    right:0!important;
-    width:auto!important;
-    height:64px!important;
-    padding:0 40px!important;
-    background:#fff!important;
-    border-bottom:1px solid #e2e8f0!important;
-    box-shadow:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .ieum-shell-link{
-    flex:0 0 auto!important;
-    color:#0f172a!important;
-    font-weight:900!important;
-    text-decoration:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .ieum-shell-link:before{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .ieum-shell-meta{
-    margin-left:auto!important;
-    color:#0f172a!important;
-    font-size:13px!important;
-    font-weight:900!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .dashboard-shell-meta-inner{
-    display:flex!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    gap:8px!important;
-    white-space:nowrap!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .dashboard-shell-divider,
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .dashboard-shell-help-dot{
-    color:#94a3b8!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .dashboard-shell-support-link{
-    color:#0f172a!important;
-    text-decoration:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .dashboard-shell-support-link:hover,
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .ieum-shell-link:hover{
-    color:#1769c2!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .dashboard-shell-help-group{
-    display:inline-flex!important;
-    align-items:center!important;
-    gap:4px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.class-page-tune .ieum-right-rail{
-    display:none!important;
-}
 body.ieum-side-layout.ieum-dashboard-page.class-page-tune .wrap{
     margin:0 0 0 260px!important;
     padding:96px 40px 42px!important;
@@ -283,6 +157,43 @@ body.ieum-side-layout.ieum-dashboard-page.class-page-tune td{
 body.ieum-side-layout.ieum-dashboard-page.class-page-tune table input{
     width:100%!important;
 }
+body.ieum-dashboard-page.class-page-tune.ieum-dark{
+    background:#0f1724!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.class-page-tune.ieum-dark .panel{
+    background:#151f2e!important;
+    border-color:#2c3a4f!important;
+    color:#e5edf7!important;
+    box-shadow:none!important;
+}
+body.ieum-dashboard-page.class-page-tune.ieum-dark .meta{
+    color:#9aa8bb!important;
+}
+body.ieum-dashboard-page.class-page-tune.ieum-dark th{
+    background:#1b2535!important;
+    color:#d9e2ef!important;
+    border-color:#2c3a4f!important;
+}
+body.ieum-dashboard-page.class-page-tune.ieum-dark td{
+    background:#151f2e!important;
+    color:#d9e2ef!important;
+    border-color:#263244!important;
+}
+body.ieum-dashboard-page.class-page-tune.ieum-dark input,
+body.ieum-dashboard-page.class-page-tune.ieum-dark select,
+body.ieum-dashboard-page.class-page-tune.ieum-dark textarea,
+body.ieum-dashboard-page.class-page-tune.ieum-dark .btn{
+    background:#111827!important;
+    border-color:#334155!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.class-page-tune.ieum-dark .primary,
+body.ieum-dashboard-page.class-page-tune.ieum-dark .btn.primary{
+    background:#1f7dd9!important;
+    border-color:#1f7dd9!important;
+    color:#fff!important;
+}
 @media(max-width:980px){
     body.ieum-side-layout.ieum-dashboard-page.class-page-tune .grid{
         grid-template-columns:repeat(3,minmax(0,1fr))!important;
@@ -292,11 +203,6 @@ body.ieum-side-layout.ieum-dashboard-page.class-page-tune table input{
     body.ieum-side-layout.ieum-dashboard-page.class-page-tune .wrap{
         margin:0!important;
         padding:86px 14px 34px!important;
-    }
-    body.ieum-side-layout.ieum-dashboard-page.class-page-tune .ieum-shell-top{
-        left:0!important;
-        right:0!important;
-        padding:0 10px!important;
     }
     body.ieum-side-layout.ieum-dashboard-page.class-page-tune .grid{
         grid-template-columns:1fr!important;
@@ -350,7 +256,7 @@ body.ieum-side-layout.ieum-dashboard-page.class-page-tune table input{
         </table>
     </section>
 </main>
-<script>
+<script type="text/plain" data-deprecated-shell-sync="common-ui-owned">
 (function(){
     var rootSelector = '.class-page-tune.ieum-dashboard-page';
     var brandText = document.querySelector(rootSelector + ' .side-brand span:last-child');

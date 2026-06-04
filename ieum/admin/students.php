@@ -590,11 +590,16 @@ function ieum_students_promotion_rank_display($academy, $status, $rank = null)
         $belt = ieum_promotion_belt_for_grade($academy, $grade_level, $poom_dan);
     }
 
-    $rank_label = ($poom_dan <= 0 && $grade_level <= 0)
-        ? '0품/단 0급'
-        : ieum_promotion_full_rank_label($poom_dan, $grade_level);
+    $rank_label = ieum_students_promotion_level_badge($poom_dan, $grade_level);
 
-    return trim(($belt !== '' ? $belt . ' ' : '') . $rank_label);
+    return trim(($belt !== '' ? $belt . ' · ' : '') . $rank_label);
+}
+
+function ieum_students_promotion_level_badge($poom_dan, $grade_level)
+{
+    $poom_dan = max(0, min(4, (int) $poom_dan));
+    $grade_level = max(0, min(99, (int) $grade_level));
+    return $poom_dan . '품/단 ' . str_pad((string) $grade_level, 2, '0', STR_PAD_LEFT) . '급';
 }
 
 function ieum_save_vehicle_assignment($academy_id, $student_id, $ride_type, $enabled, $stop_id, $place_name, $contact_phone, $ride_days, $vehicle_memo)
@@ -1199,6 +1204,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $csrf_token = ieum_new_csrf_token();
+$student_shortcut_catalog = function_exists('ieum_dashboard_shortcut_catalog') ? ieum_dashboard_shortcut_catalog() : array();
+$student_shortcut_keys = function_exists('ieum_dashboard_get_shortcut_keys') ? ieum_dashboard_get_shortcut_keys($academy_id) : array();
+$student_default_shortcut_keys = function_exists('ieum_dashboard_default_shortcut_keys') ? ieum_dashboard_default_shortcut_keys() : array();
 $editing = null;
 if ($mode === 'form' && $student_id) {
     $editing = ieum_fetch_student($student_id);
@@ -2878,7 +2886,7 @@ textarea{min-height:82px;resize:vertical}
     border-radius:8px!important;
 }
 .student-page-tune .student-table-wrap table{
-    min-width:820px!important;
+    min-width:1040px!important;
 }
 .student-page-tune .student-table-wrap th{
     height:38px!important;
@@ -2886,23 +2894,27 @@ textarea{min-height:82px;resize:vertical}
 }
 .student-page-tune .student-table-wrap th:nth-child(1),
 .student-page-tune .student-table-wrap td:nth-child(1){
-    width:18%!important;
+    width:13%!important;
 }
 .student-page-tune .student-table-wrap th:nth-child(2),
 .student-page-tune .student-table-wrap td:nth-child(2){
-    width:14%!important;
+    width:9%!important;
 }
 .student-page-tune .student-table-wrap th:nth-child(3),
 .student-page-tune .student-table-wrap td:nth-child(3){
-    width:25%!important;
+    width:12%!important;
 }
 .student-page-tune .student-table-wrap th:nth-child(4),
 .student-page-tune .student-table-wrap td:nth-child(4){
-    width:18%!important;
+    width:20%!important;
 }
 .student-page-tune .student-table-wrap th:nth-child(5),
 .student-page-tune .student-table-wrap td:nth-child(5){
-    width:25%!important;
+    width:30%!important;
+}
+.student-page-tune .student-table-wrap th:nth-child(6),
+.student-page-tune .student-table-wrap td:nth-child(6){
+    width:16%!important;
 }
 .student-page-tune .student-table-wrap td{
     height:auto!important;
@@ -2910,7 +2922,11 @@ textarea{min-height:82px;resize:vertical}
     vertical-align:top!important;
     line-height:1.4!important;
 }
+.student-page-tune .student-table-wrap td.student-row-actions{
+    padding:8px!important;
+}
 .student-page-tune .student-table-wrap td.student-name-cell,
+.student-page-tune .student-table-wrap td.student-rank-cell,
 .student-page-tune .student-table-wrap td.student-class-cell,
 .student-page-tune .student-table-wrap td.student-guardian-cell,
 .student-page-tune .student-table-wrap td.student-signal-cell,
@@ -2935,51 +2951,103 @@ textarea{min-height:82px;resize:vertical}
     color:#0f172a!important;
     font-size:14px!important;
 }
+.student-page-tune .student-rank-cell{
+    font-size:12px!important;
+    color:#64748b!important;
+}
+.student-page-tune .student-rank-cell .student-belt-chip{
+    display:inline-flex!important;
+    align-items:center!important;
+    max-width:100%!important;
+    margin:0 0 5px!important;
+    border:1px solid #cfe2f8!important;
+    border-radius:999px!important;
+    background:#eef6ff!important;
+    color:#1769c2!important;
+    padding:3px 8px!important;
+    font-size:11px!important;
+    font-weight:1000!important;
+    line-height:1.35!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+}
+.student-page-tune .student-rank-cell .student-rank-chip{
+    display:block!important;
+    color:#0f172a!important;
+    font-size:13px!important;
+    font-weight:1000!important;
+    line-height:1.35!important;
+    white-space:nowrap!important;
+}
 .student-page-tune .student-guardian-cell{
     color:#334155!important;
     font-size:13px!important;
     white-space:normal!important;
 }
 .student-page-tune .student-signal-list{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    align-content:flex-start!important;
     justify-content:flex-start!important;
+    gap:5px!important;
+    max-height:48px!important;
+    overflow:hidden!important;
 }
 .student-page-tune .student-badge{
     border-radius:6px!important;
-    padding:4px 7px!important;
+    padding:3px 6px!important;
+    font-size:11px!important;
+    line-height:1.35!important;
 }
 .student-page-tune .student-row-actions{
-    min-width:218px!important;
+    min-width:0!important;
     text-align:left!important;
 }
-.student-page-tune .student-row-actions > .btn,
-.student-page-tune .student-row-actions > form.inline .btn{
-    min-height:36px!important;
-    padding:6px 11px!important;
+.student-page-tune .student-row-action-box{
+    display:grid!important;
+    grid-template-columns:52px minmax(78px,1fr) 42px!important;
+    gap:5px 6px!important;
+    align-items:start!important;
+    justify-items:stretch!important;
+    width:100%!important;
+}
+.student-page-tune .student-row-action-box > .btn,
+.student-page-tune .student-row-action-box > form.inline .btn{
+    min-height:34px!important;
+    padding:6px 9px!important;
     margin:0!important;
     font-size:12px!important;
     border-radius:8px!important;
     font-weight:1000!important;
 }
-.student-page-tune .student-row-actions > .student-edit-modal-open{
-    min-width:50px!important;
+.student-page-tune .student-row-action-box > .student-edit-modal-open{
+    min-width:0!important;
+    width:100%!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    white-space:nowrap!important;
     background:#fff!important;
     border-color:#cfd8e3!important;
     color:#0f172a!important;
 }
 .student-page-tune .status-change-form{
-    display:inline-grid!important;
-    grid-template-columns:72px 42px!important;
+    display:grid!important;
+    grid-column:2 / -1!important;
+    grid-template-columns:minmax(72px,1fr) 42px!important;
     gap:4px!important;
     align-items:center!important;
-    margin:0 0 0 4px!important;
-    vertical-align:top!important;
+    margin:0!important;
+    min-width:0!important;
 }
 .student-page-tune .status-change-form select{
-    height:36px!important;
-    min-height:36px!important;
+    width:100%!important;
+    height:34px!important;
+    min-height:34px!important;
     border-radius:8px!important;
     border-color:#cfd8e3!important;
-    padding:4px 20px 4px 8px!important;
+    padding:4px 18px 4px 8px!important;
     font-size:12px!important;
     font-weight:1000!important;
     background:#fff!important;
@@ -2987,73 +3055,78 @@ textarea{min-height:82px;resize:vertical}
 }
 .student-page-tune .status-change-form .btn{
     margin:0!important;
-    min-height:36px!important;
-    padding:6px 7px!important;
+    min-height:34px!important;
+    padding:6px 6px!important;
     background:#f1f5f9!important;
     border-color:#cfd8e3!important;
     color:#0f172a!important;
 }
-.student-page-tune .student-row-actions .care-actions{
-    margin-top:8px!important;
+.student-page-tune .student-row-action-box .care-actions{
+    grid-column:1 / -1!important;
+    margin:0!important;
     min-width:0!important;
     width:100%!important;
 }
-.student-page-tune .student-row-actions .care-actions summary{
+.student-page-tune .student-row-action-box .care-actions summary{
     width:100%!important;
-    min-height:34px!important;
+    justify-content:center!important;
+    min-height:30px!important;
     border-radius:8px!important;
     border:1px solid #cfd8e3!important;
-    background:#fff!important;
-    padding:6px 10px!important;
+    background:#f8fafc!important;
+    padding:4px 8px!important;
     font-size:12px!important;
     color:#1769c2!important;
     box-shadow:none!important;
+    white-space:nowrap!important;
 }
-.student-page-tune .student-row-actions .care-actions[open]{
+.student-page-tune .student-row-action-box .care-actions[open]{
+    grid-column:1 / -1!important;
+    margin-top:2px!important;
     border:1px solid #dfe7f0!important;
     border-radius:10px!important;
     background:#fbfcfe!important;
     padding:7px!important;
 }
-.student-page-tune .student-row-actions .care-actions[open] summary{
+.student-page-tune .student-row-action-box .care-actions[open] summary{
     margin-bottom:7px!important;
     background:#f4f8ff!important;
     border-color:#b7cce8!important;
 }
-.student-page-tune .student-row-actions .care-actions form{
+.student-page-tune .student-row-action-box .care-actions form{
     display:grid!important;
     gap:6px!important;
 }
-.student-page-tune .student-row-actions .care-actions[open] > form:first-of-type{
+.student-page-tune .student-row-action-box .care-actions[open] > form:first-of-type{
     grid-template-columns:minmax(0,1fr) 78px!important;
     gap:4px!important;
     align-items:center!important;
 }
-.student-page-tune .student-row-actions .care-actions input[type=text]{
+.student-page-tune .student-row-action-box .care-actions input[type=text]{
     height:34px!important;
     border-radius:8px!important;
     padding:6px 9px!important;
     font-size:12px!important;
 }
-.student-page-tune .student-row-actions .care-actions .btn{
+.student-page-tune .student-row-action-box .care-actions .btn{
     width:100%!important;
     min-height:32px!important;
     border-radius:8px!important;
     font-size:12px!important;
     font-weight:1000!important;
 }
-.student-page-tune .student-row-actions .care-actions[open] > form:first-of-type .btn{
+.student-page-tune .student-row-action-box .care-actions[open] > form:first-of-type .btn{
     width:auto!important;
     padding-left:8px!important;
     padding-right:8px!important;
     white-space:nowrap!important;
 }
-.student-page-tune .student-row-actions .care-buttons{
+.student-page-tune .student-row-action-box .care-buttons{
     display:grid!important;
     grid-template-columns:1fr 1fr!important;
     gap:6px!important;
 }
-.student-page-tune .student-row-actions .care-buttons form{
+.student-page-tune .student-row-action-box .care-buttons form{
     margin:0!important;
 }
 @media (max-width:1500px){
@@ -3081,176 +3154,609 @@ textarea{min-height:82px;resize:vertical}
         width:100%!important;
     }
 }
-/* Dashboard shell alignment: match the main dashboard frame before expanding to other pages. */
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune{
-    --ieum-side-width:260px!important;
-    --ieum-rail-width:0px!important;
-    --ieum-top-height:64px!important;
-    --ieum-shell-top:#fff!important;
-    --ieum-side-bg:#fff!important;
-    background:#f4f6f9!important;
-    color:#1f2937!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .ieum-side{
-    width:260px!important;
-    background:var(--ieum-side-bg)!important;
-    border-right:1px solid #e7ebf0!important;
-    box-shadow:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-brand{
-    height:144px!important;
-    min-height:144px!important;
-    background:var(--ieum-side-bg)!important;
-    color:#111827!important;
-    padding:0 26px!important;
-    font-size:29px!important;
-    letter-spacing:0!important;
-    border-bottom:0!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-brand-mark,
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-profile,
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-search{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-nav{
-    padding:0 14px 24px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-main-link,
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-menu>summary{
-    min-height:42px!important;
-    padding:0 12px!important;
-    border-left:0!important;
-    border-radius:6px!important;
-    font-size:14px!important;
-    font-weight:700!important;
-    color:#243142!important;
-    letter-spacing:0!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-main-link:hover,
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-main-link.active,
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-menu[open]>summary,
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-menu>summary:hover{
-    background:#f4f7fb!important;
-    color:#111827!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .ieum-nav-label{
-    gap:8px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .ieum-nav-icon{
-    width:17px!important;
-    height:17px!important;
-    flex:0 0 17px!important;
-    color:#334155!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-sub{
-    background:#fff!important;
-    border:0!important;
-    padding:2px 0 8px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-sub a{
-    min-height:32px!important;
-    padding:0 12px 0 34px!important;
-    font-size:13px!important;
-    font-weight:600!important;
-    color:#4b5563!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-sub a:hover,
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-sub a.active{
-    background:#f4f7fb!important;
-    color:#111827!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .ieum-shell-top{
-    left:260px!important;
-    right:0!important;
-    height:64px!important;
-    background:var(--ieum-side-bg)!important;
-    color:#1f2937!important;
-    border-bottom:0!important;
-    box-shadow:none!important;
-    padding:0 38px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .ieum-shell-link{
-    min-height:34px!important;
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-head{
+    margin:0 0 16px!important;
+    padding:0!important;
     border:0!important;
     background:transparent!important;
-    color:#1f2937!important;
-    padding:0 10px!important;
-    border-radius:4px!important;
+    box-shadow:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-head h1{
+    margin:0!important;
+    font-size:30px!important;
+    line-height:1.2!important;
+    letter-spacing:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-head .count{
+    margin-top:6px!important;
+    color:#667085!important;
     font-size:13px!important;
+    font-weight:800!important;
 }
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .ieum-shell-link:before{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .ieum-shell-link:hover{
-    background:#f4f7fb!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .ieum-shell-meta{
-    color:#374151!important;
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-head-note{
+    max-width:920px!important;
+    margin:8px 0 0!important;
+    color:#667085!important;
     font-size:13px!important;
+    line-height:1.55!important;
 }
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .dashboard-shell-meta-inner{
-    display:inline-flex!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    gap:8px!important;
-    white-space:nowrap!important;
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-head-actions .btn{
+    min-height:36px!important;
+    border-radius:6px!important;
+    padding:7px 13px!important;
 }
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .dashboard-shell-divider,
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .dashboard-shell-help-dot{
-    color:#c3cad5!important;
-    font-weight:900!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .dashboard-shell-clock{
-    font-weight:900!important;
-    color:#243142!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .dashboard-shell-support-link{
-    display:inline-flex!important;
-    align-items:center!important;
-    min-height:26px!important;
-    color:#1f2937!important;
-    text-decoration:none!important;
-    font-size:13px!important;
-    font-weight:900!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .dashboard-shell-support-link:hover{
-    color:#1583e9!important;
-    text-decoration:underline!important;
-    text-underline-offset:3px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .dashboard-shell-help-group{
-    display:inline-flex!important;
-    align-items:center!important;
-    gap:6px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .ieum-right-rail{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .wrap{
-    margin:0 0 0 260px!important;
-    padding:96px 40px 42px!important;
-    max-width:none!important;
-    width:auto!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-head,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .panel,
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-hub,
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-workspace{
-    max-width:none!important;
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-panel{
+    border:1px solid #e1e7ef!important;
+    border-radius:8px!important;
+    background:#fff!important;
+    box-shadow:none!important;
 }
-@media(max-width:980px){
-    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .wrap{
-        margin:0!important;
-        padding:86px 14px 34px!important;
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-hub{
+    padding:16px!important;
+    margin-bottom:16px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-head{
+    margin-bottom:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-head h2,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-head h2{
+    font-size:18px!important;
+    letter-spacing:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-head p,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-head p{
+    color:#667085!important;
+    font-size:13px!important;
+    line-height:1.45!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:10px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-card{
+    min-height:92px!important;
+    border-radius:8px!important;
+    box-shadow:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-main{
+    padding:13px 14px 9px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-main strong{
+    font-size:14px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-main b{
+    font-size:24px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-foot{
+    min-height:34px!important;
+    padding:0 12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-side{
+    padding:14px!important;
+    border-radius:8px!important;
+    background:#fff!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-groups{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:8px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-group{
+    border-radius:8px!important;
+    padding:10px!important;
+    box-shadow:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-link{
+    min-height:36px!important;
+    border-radius:6px!important;
+    padding:8px 10px!important;
+    font-size:13px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-panel{
+    padding:16px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-head{
+    margin-bottom:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-count{
+    min-width:86px!important;
+    min-height:44px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    border:1px solid #dfe7f0!important;
+    border-radius:6px!important;
+    background:#fff!important;
+    font-size:24px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-panel>.bar{
+    margin:0 0 10px!important;
+    padding:0!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .search{
+    grid-template-columns:minmax(260px,1.25fr) 170px 150px 150px 104px auto auto!important;
+    gap:7px!important;
+    padding:8px!important;
+    border:1px solid #e2e8f0!important;
+    border-radius:6px!important;
+    background:#f8fafc!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .search input,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .search select,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .search .btn{
+    height:34px!important;
+    min-height:34px!important;
+    border-radius:5px!important;
+    font-size:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .list-page-bar{
+    margin:7px 0!important;
+    font-size:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-filter-note{
+    margin:0 0 8px!important;
+    border-radius:6px!important;
+    padding:8px 10px!important;
+    font-size:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap{
+    width:100%!important;
+    border:1px solid #dfe6ef!important;
+    border-radius:6px!important;
+    background:#fff!important;
+    overflow-x:auto!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap table{
+    width:100%!important;
+    min-width:1120px!important;
+    table-layout:fixed!important;
+    border-collapse:collapse!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th{
+    height:34px!important;
+    border-color:#dfe6ef!important;
+    background:#f3f6fa!important;
+    color:#334155!important;
+    font-size:12px!important;
+    font-weight:900!important;
+    text-align:left!important;
+    padding:7px 10px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td{
+    height:auto!important;
+    min-height:54px!important;
+    border-color:#e7edf4!important;
+    padding:9px 10px!important;
+    background:#fff!important;
+    vertical-align:top!important;
+    line-height:1.38!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap tbody tr:hover td{
+    background:#f8fbff!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(1),
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(1){width:13%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(2),
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(2){width:9%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(3),
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(3){width:12%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(4),
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(4){width:20%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(5),
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(5){width:31%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(6),
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(6){width:15%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td.student-row-actions{
+    padding:7px 8px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .name-link{
+    color:#0f172a!important;
+    font-size:15px!important;
+    font-weight:900!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-subline{
+    margin-top:4px!important;
+    color:#64748b!important;
+    font-size:12px!important;
+    font-weight:800!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-belt-chip{
+    border-radius:999px!important;
+    padding:2px 7px!important;
+    font-size:11px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-rank-chip{
+    margin-top:5px!important;
+    font-size:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-class-cell strong{
+    font-size:13px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-class-cell span,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-guardian-cell{
+    font-size:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-signal-list{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    justify-content:flex-start!important;
+    align-content:flex-start!important;
+    gap:5px!important;
+    max-height:44px!important;
+    overflow:hidden!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-badge{
+    border-radius:5px!important;
+    padding:3px 6px!important;
+    font-size:11px!important;
+    line-height:1.25!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box{
+    display:grid!important;
+    grid-template-columns:48px minmax(80px,1fr) 40px!important;
+    gap:5px!important;
+    align-items:start!important;
+    width:100%!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box>.btn,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box>form.inline .btn{
+    min-height:31px!important;
+    padding:5px 7px!important;
+    border-radius:6px!important;
+    font-size:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .status-change-form{
+    grid-column:2 / -1!important;
+    display:grid!important;
+    grid-template-columns:minmax(70px,1fr) 40px!important;
+    gap:5px!important;
+    margin:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .status-change-form select{
+    height:31px!important;
+    min-height:31px!important;
+    border-radius:6px!important;
+    font-size:12px!important;
+    font-weight:900!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box .care-actions{
+    grid-column:1 / -1!important;
+    width:100%!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box .care-actions summary{
+    min-height:29px!important;
+    border-radius:6px!important;
+    font-size:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .detail-modal,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .edit-modal,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .care-sms-modal{
+    border-radius:8px!important;
+    box-shadow:0 18px 48px rgba(15,23,42,.22)!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .detail-modal{
+    width:min(920px,calc(100vw - 48px))!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .detail-head,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .edit-head,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .care-sms-head{
+    background:#fff!important;
+    padding:16px 18px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .detail-head h2,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .edit-head h2,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .care-sms-head h2{
+    font-size:20px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .detail-body{
+    padding:16px 18px!important;
+    gap:12px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .detail-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:8px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .detail-field,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .detail-section{
+    border-radius:6px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .edit-modal{
+    top:28px!important;
+    left:50%!important;
+    right:auto!important;
+    bottom:auto!important;
+    width:min(1120px,calc(100vw - 80px))!important;
+    height:calc(100vh - 56px)!important;
+    max-width:none!important;
+    transform:translateX(-50%)!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .edit-modal.open{
+    transform:translateX(-50%)!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune.embed-page .form-guide,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune.embed-page .form-jump-bar,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune.embed-page .form-summary-strip,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune.embed-page .form-grid{
+    max-width:1020px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .form-guide,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .form-jump-bar,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .form-summary-strip,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .form-grid{
+    max-width:1120px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .form-guide{
+    border-radius:8px!important;
+    padding:14px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .form-grid{
+    grid-template-columns:132px minmax(0,1fr)!important;
+    gap:10px 14px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .guardian-row,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .tuition-row,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .vehicle-row,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .vehicle-memo,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .vehicle-contact,
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .vehicle-days{
+    border-radius:6px!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark{
+    --ieum-side-bg:#111827!important;
+    background:#0f1724!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .side-sub,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .side-group,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .side-link,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .panel,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-hub,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-side,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-list-panel,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-table-wrap,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-card,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .detail-modal,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .edit-modal,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .care-sms-modal{
+    background:#151f2e!important;
+    border-color:#2c3a4f!important;
+    color:#e5edf7!important;
+    box-shadow:none!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .search,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-filter-note,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .detail-field,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .detail-section,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .form-guide,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .form-jump-bar,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .form-summary-card,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .guardian-row,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .tuition-total{
+    background:#111827!important;
+    border-color:#2c3a4f!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-table-wrap th{
+    background:#1b2535!important;
+    color:#d9e2ef!important;
+    border-color:#2c3a4f!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-table-wrap td{
+    background:#151f2e!important;
+    color:#d9e2ef!important;
+    border-color:#263244!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-table-wrap tbody tr:hover td{
+    background:#192435!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark input,
+body.ieum-dashboard-page.student-page-tune.ieum-dark select,
+body.ieum-dashboard-page.student-page-tune.ieum-dark textarea,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .btn{
+    background:#111827!important;
+    border-color:#334155!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-list-count{
+    background:#111827!important;
+    border-color:#334155!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .side-group summary{
+    background:#111827!important;
+    border-color:#334155!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .side-group-title{
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .side-group summary:after{
+    background:#223047!important;
+    color:#cfe0f5!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .side-group[open] summary:after{
+    background:#1f7dd9!important;
+    color:#fff!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .care-actions summary,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-table-wrap .care-actions summary{
+    background:#111827!important;
+    border-color:#334155!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .care-actions summary:before,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-table-wrap .care-actions summary:before{
+    background:#1f7dd9!important;
+    color:#fff!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .primary,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .btn.primary{
+    background:#1f7dd9!important;
+    border-color:#1f7dd9!important;
+    color:#fff!important;
+}
+@media (max-width:1500px){
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-grid,
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-groups{
+        grid-template-columns:repeat(2,minmax(0,1fr))!important;
     }
-    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .ieum-shell-top{
-        left:0!important;
-        right:0!important;
-        padding:0 10px!important;
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .search{
+        grid-template-columns:minmax(240px,1fr) repeat(3,minmax(120px,.72fr)) auto!important;
+    }
+}
+@media (max-width:820px){
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-flow-grid,
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-groups,
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .search{
+        grid-template-columns:1fr!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-cards{
+        grid-template-columns:1fr!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .detail-grid,
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .form-grid{
+        grid-template-columns:1fr!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .dashboard-shell-help-group{
+        display:none!important;
+    }
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-head h1,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-head h2,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-list-head h2,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-list-count,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .name-link,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-rank-chip,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-class-cell strong,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .detail-head h2,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .edit-head h2,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .care-sms-head h2,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-card-name,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-card-field span,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .form-summary-card strong{
+    color:#f8fafc!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-head .count,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-head-note,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-head p,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-list-head p,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-subline,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-class-cell span,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-guardian-cell,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .list-page-bar,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .detail-code,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .detail-section p,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .care-sms-help,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-card-code,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-card-field strong,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .form-summary-card span,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .weekday-help{
+    color:#9aa8bb!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-card,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-card.warn,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-card.danger{
+    background:#151f2e!important;
+    border-color:#2c3a4f!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-card.warn{
+    border-color:#654d2d!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-card.danger{
+    border-color:#6b2c3d!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-main span,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-foot span{
+    color:#9aa8bb!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-main strong,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-main b{
+    color:#f8fafc!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-flow-foot{
+    border-color:#263244!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-belt-chip{
+    background:#0d3353!important;
+    border-color:#1d5f91!important;
+    color:#9bd7ff!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-badge{
+    border:1px solid rgba(255,255,255,.08)!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-badge.good,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-badge.info{
+    background:#0d3353!important;
+    color:#9bd7ff!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-badge.warn{
+    background:#3a2c13!important;
+    color:#ffd789!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-badge.danger{
+    background:#3a1420!important;
+    color:#ffb4c2!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .student-card-field{
+    background:#111827!important;
+    border-color:#2c3a4f!important;
+}
+body.ieum-dashboard-page.student-page-tune.ieum-dark .detail-actions,
+body.ieum-dashboard-page.student-page-tune.ieum-dark .care-sms-actions{
+    background:#111827!important;
+    border-color:#2c3a4f!important;
+}
+@media (max-width:720px){
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-card{
+        padding:12px!important;
+        border-radius:8px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-card-head{
+        gap:8px!important;
+        margin-bottom:8px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-card-name{
+        font-size:17px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-card-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr))!important;
+        gap:7px!important;
+        margin-bottom:8px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-card-field{
+        padding:8px!important;
+        min-width:0!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-card-field strong{
+        font-size:11px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-card-field span{
+        display:block!important;
+        min-width:0!important;
+        overflow:hidden!important;
+        text-overflow:ellipsis!important;
+        white-space:nowrap!important;
+        font-size:13px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-card-field:nth-child(5){
+        grid-column:1 / -1!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-card-more{
+        margin-top:8px!important;
+        padding-top:8px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-card-more summary{
+        min-height:36px!important;
+        padding:7px 9px!important;
     }
 }
 </style>
 </head>
-<body class="<?php echo $embed_mode ? 'embed-page' : 'ieum-side-layout ieum-dashboard-page ieum-simple-page'; ?> student-page-tune">
+<body class="<?php echo $embed_mode ? 'embed-page' : 'ieum-side-layout ieum-dashboard-page'; ?> student-page-tune">
 <?php if (!$embed_mode) { ?>
 <?php echo ieum_admin_header('students', 'side'); ?>
 <?php } ?>
@@ -4007,6 +4513,7 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-workspace{
             <thead>
             <tr>
                 <th scope="col">원생</th>
+                <th scope="col">품/단급</th>
                 <th scope="col">수업</th>
                 <th scope="col">보호자</th>
                 <th scope="col">관리 신호</th>
@@ -4037,6 +4544,18 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-workspace{
                 $promotion_next_label = empty($promotion_status['enabled'])
                     ? '-'
                     : ieum_students_promotion_rank_display($current_academy, $promotion_status, $promotion_next);
+                $promotion_current_belt = isset($promotion_status['belt']) ? trim((string) $promotion_status['belt']) : '';
+                $promotion_current_poom_dan = isset($promotion_status['poom_dan']) ? (int) $promotion_status['poom_dan'] : 0;
+                $promotion_current_grade_level = isset($promotion_status['grade_level']) ? (int) $promotion_status['grade_level'] : 0;
+                $class_belt_label = '';
+                $class_level_label = '';
+                if (!empty($promotion_status['enabled'])) {
+                    if ($promotion_current_belt === '' && function_exists('ieum_promotion_belt_for_grade')) {
+                        $promotion_current_belt = ieum_promotion_belt_for_grade($current_academy, $promotion_current_grade_level, $promotion_current_poom_dan);
+                    }
+                    $class_belt_label = $promotion_current_belt !== '' ? $promotion_current_belt : '띠 미지정';
+                    $class_level_label = ieum_students_promotion_level_badge($promotion_current_poom_dan, $promotion_current_grade_level);
+                }
                 $student_signals = ieum_student_care_signals($row, G5_TIME_YMD);
                 $student_care_plan = ieum_student_care_plan_text($student_signals);
                 $primary_signal_key = $student_signals && isset($student_signals[0]['key']) ? $student_signals[0]['key'] : '';
@@ -4084,6 +4603,12 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-workspace{
                     <button type="button" class="name-link student-detail-open" data-detail="<?php echo $detail_json; ?>" onclick="return window.ieumOpenStudentDetailFromButton ? window.ieumOpenStudentDetailFromButton(this) : true;"><?php echo get_text($row['student_name']); ?></button>
                     <span class="student-subline"><?php echo get_text($row['student_code']); ?> · <?php echo get_text(ieum_program_label($academy_id, isset($row['program_code']) ? $row['program_code'] : '')); ?> · <?php echo get_text($student_status_label); ?></span>
                 </td>
+                <td class="left student-rank-cell">
+                    <?php if ($class_belt_label !== '' || $class_level_label !== '') { ?>
+                    <?php if ($class_belt_label !== '') { ?><span class="student-belt-chip"><?php echo get_text($class_belt_label); ?></span><?php } ?>
+                    <?php if ($class_level_label !== '') { ?><span class="student-rank-chip"><?php echo get_text($class_level_label); ?></span><?php } ?>
+                    <?php } ?>
+                </td>
                 <td class="left student-class-cell">
                     <strong><?php echo get_text($row['class_name'] ? $row['class_name'] . ' ' . $row['start_time'] : '미지정'); ?></strong>
                     <span><?php echo get_text(ieum_grade_label($row['grade_group'])); ?> · <?php echo get_text(ieum_attendance_days_label(isset($row['attendance_days']) ? $row['attendance_days'] : '')); ?></span>
@@ -4096,6 +4621,7 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-workspace{
                     </div>
                 </td>
                 <td class="student-row-actions">
+                    <div class="student-row-action-box">
                     <a class="btn student-edit-modal-open" data-student-name="<?php echo get_text($row['student_name']); ?>" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form&amp;student_id=<?php echo (int) $row['student_id']; ?>" onclick="return window.ieumOpenStudentEditFromLink ? window.ieumOpenStudentEditFromLink(this) : true;">수정</a>
                     <form method="post" class="inline status-change-form" onsubmit="return confirm('선택한 상태로 변경할까요?');">
                         <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
@@ -4145,12 +4671,13 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-workspace{
                             </form>
                         </div>
                     </details>
+                    </div>
                 </td>
             </tr>
             <?php } ?>
             <?php if ($i === 0) { ?>
             <tr>
-                <td colspan="5">등록된 원생이 없습니다.</td>
+                <td colspan="6">등록된 원생이 없습니다.</td>
             </tr>
             <?php } ?>
             </tbody>
@@ -4170,6 +4697,8 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-workspace{
             $primary_signal_key = $student_signals && isset($student_signals[0]['key']) ? $student_signals[0]['key'] : '';
             $student_status_value = ieum_student_row_status_value($row);
             $student_status_label = ieum_student_status_label($student_status_value);
+            $card_promotion_status = ieum_promotion_status($current_academy, $row, date('Y-m'));
+            $card_promotion_current = ieum_students_promotion_rank_display($current_academy, $card_promotion_status);
             ?>
             <article class="student-card <?php echo $row['is_active'] ? '' : 'inactive'; ?>">
                 <div class="student-card-head">
@@ -4184,6 +4713,7 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-workspace{
                     <?php if (!$student_signals) { ?><span class="student-badge <?php echo $last_attendance_class; ?>"><?php echo get_text($last_attendance_label); ?></span><span class="student-badge <?php echo $tuition_badge_class; ?>"><?php echo get_text($tuition_badge_label); ?></span><?php } ?>
                 </div>
                 <div class="student-card-grid">
+                    <div class="student-card-field"><strong>품/단급</strong><span><?php echo get_text($card_promotion_current); ?></span></div>
                     <div class="student-card-field"><strong>학년/부</strong><span><?php echo get_text(ieum_grade_label($row['grade_group'])); ?></span></div>
                     <div class="student-card-field"><strong>수업 부</strong><span><?php echo get_text($row['class_name'] ? $row['class_name'] . ' ' . $row['start_time'] : '미지정'); ?></span></div>
                     <div class="student-card-field"><strong>출석 요일</strong><span><?php echo get_text(ieum_attendance_days_label(isset($row['attendance_days']) ? $row['attendance_days'] : '')); ?></span></div>
@@ -4399,72 +4929,159 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-workspace{
     </section>
     <?php } ?>
 </main>
+<?php
+$student_shortcut_js_catalog = array();
+foreach ($student_shortcut_catalog as $shortcut_key => $shortcut_item) {
+    $student_shortcut_js_catalog[$shortcut_key] = array(
+        'label' => isset($shortcut_item['label']) ? $shortcut_item['label'] : $shortcut_key,
+        'desc' => isset($shortcut_item['desc']) ? $shortcut_item['desc'] : '',
+        'url' => isset($shortcut_item['url']) ? $shortcut_item['url'] : '#',
+    );
+}
+?>
 <script>
 (function() {
-    var academyName = <?php echo json_encode(isset($current_academy['academy_name']) ? $current_academy['academy_name'] : '아이이음', JSON_UNESCAPED_UNICODE); ?>;
-    var brandText = document.querySelector('.student-page-tune.ieum-dashboard-page .side-brand span:last-child');
-    if (brandText) {
-        brandText.textContent = academyName;
-    }
-    var homeLink = document.querySelector('.student-page-tune.ieum-dashboard-page .ieum-shell-link');
-    if (homeLink) {
-        homeLink.textContent = '아이이음 교육페이지';
-    }
-    var meta = document.querySelector('.student-page-tune.ieum-dashboard-page .ieum-shell-meta');
-    if (!meta) {
-        return;
-    }
-    meta.textContent = '';
-    var supportBaseUrl = <?php echo json_encode(IEUM_URL . '/admin/support.php', JSON_UNESCAPED_UNICODE); ?>;
-    var metaInner = document.createElement('span');
-    metaInner.className = 'dashboard-shell-meta-inner';
-    var makeSupportLink = function(text, topic) {
-        var link = document.createElement('a');
-        link.className = 'dashboard-shell-support-link';
-        link.href = supportBaseUrl + '?topic=' + encodeURIComponent(topic);
-        link.textContent = text;
-        return link;
+    var shortcutCatalog = <?php echo json_encode($student_shortcut_js_catalog, JSON_UNESCAPED_UNICODE); ?>;
+    var currentShortcutKeys = <?php echo json_encode(array_values($student_shortcut_keys), JSON_UNESCAPED_UNICODE); ?>;
+    var defaultShortcutKeys = <?php echo json_encode(array_values($student_default_shortcut_keys), JSON_UNESCAPED_UNICODE); ?>;
+    var shortcutMax = 6;
+    var shortcutSaveUrl = <?php echo json_encode(IEUM_URL . '/dashboard.php', JSON_UNESCAPED_UNICODE); ?>;
+    var shortcutCsrfToken = <?php echo json_encode($csrf_token, JSON_UNESCAPED_UNICODE); ?>;
+    var shortcutButtons = [];
+    var shortcutToast = document.createElement('span');
+    var shortcutToastTimer = null;
+    var shortcutToastDefault = '<span>\ucd5c\ub300 6\uac1c\uae4c\uc9c0 \uc120\ud0dd\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.</span><span>\ubcf4\uc870\uc815\ubcf4- \uc5c5\ubb34\ubc14\ub85c\uac00\uae30\uc5d0\uc11c \ud655\uc778\ud558\uc138\uc694.</span>';
+    shortcutToast.className = 'side-favorite-toast';
+    shortcutToast.innerHTML = shortcutToastDefault;
+    document.body.appendChild(shortcutToast);
+    var normalizeShortcutKeys = function(keys) {
+        var seen = {};
+        var normalized = [];
+        (keys || []).forEach(function(key) {
+            key = String(key || '');
+            if (!shortcutCatalog[key] || seen[key]) {
+                return;
+            }
+            seen[key] = true;
+            normalized.push(key);
+        });
+        return normalized.slice(0, shortcutMax);
     };
-    var makeDivider = function() {
-        var divider = document.createElement('span');
-        divider.className = 'dashboard-shell-divider';
-        divider.textContent = '|';
-        return divider;
-    };
-    var helpGroup = document.createElement('span');
-    helpGroup.className = 'dashboard-shell-help-group';
-    [
-        ['Q&A', 'qna'],
-        ['자주하는 질문', 'faq'],
-        ['문의하기', 'contact'],
-        ['AI 챗봇', 'ai']
-    ].forEach(function(item, index) {
-        if (index > 0) {
-            var dot = document.createElement('span');
-            dot.className = 'dashboard-shell-help-dot';
-            dot.textContent = '·';
-            helpGroup.appendChild(dot);
+    currentShortcutKeys = normalizeShortcutKeys(currentShortcutKeys);
+    if (!currentShortcutKeys.length) {
+        currentShortcutKeys = normalizeShortcutKeys(defaultShortcutKeys);
+    }
+    var shortcutPath = function(url) {
+        try {
+            var parsed = new URL(url, window.location.href);
+            return parsed.pathname.replace(/\/+$/, '');
+        } catch (error) {
+            return String(url || '').split('?')[0].split('#')[0].replace(/\/+$/, '');
         }
-        helpGroup.appendChild(makeSupportLink(item[0], item[1]));
-    });
-    var academyText = document.createElement('span');
-    academyText.textContent = academyName;
-    var clockText = document.createElement('span');
-    clockText.className = 'dashboard-shell-clock';
-    var renderClock = function() {
-        var now = new Date();
-        clockText.textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
     };
-    metaInner.appendChild(makeSupportLink('개발지원센터', 'qna'));
-    metaInner.appendChild(makeDivider());
-    metaInner.appendChild(helpGroup);
-    metaInner.appendChild(makeDivider());
-    metaInner.appendChild(academyText);
-    metaInner.appendChild(makeDivider());
-    metaInner.appendChild(clockText);
-    meta.appendChild(metaInner);
-    renderClock();
-    window.setInterval(renderClock, 30000);
+    var shortcutByPath = {};
+    Object.keys(shortcutCatalog || {}).forEach(function(key) {
+        var path = shortcutPath(shortcutCatalog[key].url);
+        if (path && !shortcutByPath[path]) {
+            shortcutByPath[path] = key;
+        }
+    });
+    var showShortcutToast = function(button, message) {
+        shortcutToast.innerHTML = message || shortcutToastDefault;
+        var left = 214;
+        var top = 160;
+        if (button && button.getBoundingClientRect) {
+            var rect = button.getBoundingClientRect();
+            left = Math.max(12, rect.left - 166);
+            top = Math.max(72, rect.top + rect.height / 2 - 15);
+        }
+        shortcutToast.style.left = left + 'px';
+        shortcutToast.style.top = top + 'px';
+        shortcutToast.classList.add('is-show');
+        window.clearTimeout(shortcutToastTimer);
+        shortcutToastTimer = window.setTimeout(function() {
+            shortcutToast.classList.remove('is-show');
+        }, 1900);
+    };
+    var updateShortcutButtons = function() {
+        shortcutButtons.forEach(function(button) {
+            var key = button.getAttribute('data-shortcut-key') || '';
+            var item = shortcutCatalog[key] || {};
+            var active = currentShortcutKeys.indexOf(key) !== -1;
+            button.classList.toggle('is-active', active);
+            button.textContent = active ? '\u2605' : '\u2606';
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            button.setAttribute('title', active ? '\uc5c5\ubb34 \ubc14\ub85c\uac00\uae30\uc5d0\uc11c \uc81c\uac70' : '\uc5c5\ubb34 \ubc14\ub85c\uac00\uae30\uc5d0 \ucd94\uac00');
+            button.setAttribute('aria-label', (item.label || '\uba54\ub274') + (active ? ' \uc990\uaca8\ucc3e\uae30 \uc81c\uac70' : ' \uc990\uaca8\ucc3e\uae30 \ucd94\uac00'));
+        });
+    };
+    var saveShortcutKeys = function(keys) {
+        if (!window.fetch || !window.FormData || !shortcutSaveUrl) {
+            return;
+        }
+        var formData = new FormData();
+        formData.append('csrf_token', shortcutCsrfToken);
+        formData.append('action', 'save_dashboard_shortcuts');
+        keys.forEach(function(key) {
+            formData.append('shortcut_keys[]', key);
+        });
+        fetch(shortcutSaveUrl, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        }).catch(function() {});
+    };
+    var toggleShortcut = function(key, button) {
+        if (!shortcutCatalog[key]) {
+            return;
+        }
+        var nextKeys = currentShortcutKeys.slice();
+        var index = nextKeys.indexOf(key);
+        if (index === -1) {
+            if (nextKeys.length >= shortcutMax) {
+                showShortcutToast(button, '');
+                return;
+            }
+            nextKeys.push(key);
+        } else {
+            nextKeys.splice(index, 1);
+        }
+        if (!nextKeys.length) {
+            nextKeys = normalizeShortcutKeys(defaultShortcutKeys);
+        }
+        currentShortcutKeys = normalizeShortcutKeys(nextKeys);
+        updateShortcutButtons();
+        if (button) {
+            button.classList.add('is-pulse');
+            window.setTimeout(function() {
+                button.classList.remove('is-pulse');
+            }, 170);
+        }
+        saveShortcutKeys(currentShortcutKeys);
+    };
+    document.querySelectorAll('.student-page-tune.ieum-dashboard-page .side-sub a').forEach(function(link) {
+        var key = shortcutByPath[shortcutPath(link.href)];
+        if (!key || link.closest('.side-favorite-row')) {
+            return;
+        }
+        var row = document.createElement('span');
+        row.className = 'side-favorite-row';
+        row.setAttribute('data-shortcut-key', key);
+        link.parentNode.insertBefore(row, link);
+        row.appendChild(link);
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'side-favorite-toggle';
+        button.setAttribute('data-shortcut-key', key);
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            toggleShortcut(key, button);
+        });
+        row.appendChild(button);
+        shortcutButtons.push(button);
+    });
+    updateShortcutButtons();
 })();
 
 const tuitionPlans = <?php

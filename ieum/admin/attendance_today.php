@@ -278,6 +278,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $csrf_token = ieum_new_csrf_token();
+$attendance_shortcut_catalog = function_exists('ieum_dashboard_shortcut_catalog') ? ieum_dashboard_shortcut_catalog() : array();
+$attendance_shortcut_keys = function_exists('ieum_dashboard_get_shortcut_keys') ? ieum_dashboard_get_shortcut_keys($academy_id) : array();
+$attendance_default_shortcut_keys = function_exists('ieum_dashboard_default_shortcut_keys') ? ieum_dashboard_default_shortcut_keys() : array();
 $today = isset($_GET['date']) ? preg_replace('/[^0-9-]/', '', $_GET['date']) : G5_TIME_YMD;
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $today)) {
     $today = G5_TIME_YMD;
@@ -972,157 +975,6 @@ body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .class-bar{
         grid-template-columns:repeat(2,minmax(0,1fr))!important;
     }
 }
-/* Dashboard shell alignment: match the main dashboard frame before broad page redesign. */
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune{
-    --ieum-side-width:260px!important;
-    --ieum-rail-width:0px!important;
-    --ieum-top-height:64px!important;
-    --ieum-shell-top:#fff!important;
-    --ieum-side-bg:#fff!important;
-    background:#f4f6f9!important;
-    color:#1f2937!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-side{
-    width:260px!important;
-    background:var(--ieum-side-bg)!important;
-    border-right:1px solid #e7ebf0!important;
-    box-shadow:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-brand{
-    height:144px!important;
-    min-height:144px!important;
-    background:var(--ieum-side-bg)!important;
-    color:#111827!important;
-    padding:0 26px!important;
-    font-size:29px!important;
-    letter-spacing:0!important;
-    border-bottom:0!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-brand-mark,
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-profile,
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-search{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-nav{
-    padding:0 14px 24px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-main-link,
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-menu>summary{
-    min-height:42px!important;
-    padding:0 12px!important;
-    border-left:0!important;
-    border-radius:6px!important;
-    font-size:14px!important;
-    font-weight:700!important;
-    color:#243142!important;
-    letter-spacing:0!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-main-link:hover,
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-main-link.active,
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-menu[open]>summary,
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-menu>summary:hover{
-    background:#f4f7fb!important;
-    color:#111827!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-nav-label{
-    gap:8px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-nav-icon{
-    width:17px!important;
-    height:17px!important;
-    flex:0 0 17px!important;
-    color:#334155!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-sub{
-    background:#fff!important;
-    border:0!important;
-    padding:2px 0 8px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-sub a{
-    min-height:32px!important;
-    padding:0 12px 0 34px!important;
-    font-size:13px!important;
-    font-weight:600!important;
-    color:#4b5563!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-sub a:hover,
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .side-sub a.active{
-    background:#f4f7fb!important;
-    color:#111827!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-shell-top{
-    left:260px!important;
-    right:0!important;
-    height:64px!important;
-    background:var(--ieum-side-bg)!important;
-    color:#1f2937!important;
-    border-bottom:0!important;
-    box-shadow:none!important;
-    padding:0 38px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-shell-link{
-    min-height:34px!important;
-    border:0!important;
-    background:transparent!important;
-    color:#1f2937!important;
-    padding:0 10px!important;
-    border-radius:4px!important;
-    font-size:13px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-shell-link:before{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-shell-link:hover{
-    background:#f4f7fb!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-shell-meta{
-    color:#374151!important;
-    font-size:13px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .dashboard-shell-meta-inner{
-    display:inline-flex!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    gap:8px!important;
-    white-space:nowrap!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .dashboard-shell-divider,
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .dashboard-shell-help-dot{
-    color:#c3cad5!important;
-    font-weight:900!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .dashboard-shell-clock{
-    font-weight:900!important;
-    color:#243142!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .dashboard-shell-support-link{
-    display:inline-flex!important;
-    align-items:center!important;
-    min-height:26px!important;
-    color:#1f2937!important;
-    text-decoration:none!important;
-    font-size:13px!important;
-    font-weight:900!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .dashboard-shell-support-link:hover{
-    color:#1583e9!important;
-    text-decoration:underline!important;
-    text-underline-offset:3px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .dashboard-shell-help-group{
-    display:inline-flex!important;
-    align-items:center!important;
-    gap:6px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-right-rail{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-main{
-    margin:0 0 0 260px!important;
-    padding:96px 40px 42px!important;
-    max-width:none!important;
-    width:auto!important;
-}
 body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .bar,
 body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .quick-check,
 body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune #classAttendance,
@@ -1145,20 +997,53 @@ body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .stats{
         grid-template-columns:repeat(2,minmax(0,1fr))!important;
     }
 }
-@media(max-width:980px){
-    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-main{
-        margin:0!important;
-        padding:86px 14px 34px!important;
-    }
-    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-shell-top{
-        left:0!important;
-        right:0!important;
-        padding:0 10px!important;
-    }
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark{
+    --ieum-side-bg:#111827!important;
+    background:#0f1724!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .side-sub,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .bar,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .panel,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .quick-input,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .stat-card,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .filters,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .table-wrap,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .missing-item,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .detail-modal,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .edit-modal{
+    background:#151f2e!important;
+    border-color:#2c3a4f!important;
+    color:#e5edf7!important;
+    box-shadow:none!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark th{
+    background:#1b2535!important;
+    color:#d9e2ef!important;
+    border-color:#2c3a4f!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark td{
+    background:#151f2e!important;
+    color:#d9e2ef!important;
+    border-color:#263244!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark input,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark select,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark textarea,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .btn{
+    background:#111827!important;
+    border-color:#334155!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .primary,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .btn.primary{
+    background:#1f7dd9!important;
+    border-color:#1f7dd9!important;
+    color:#fff!important;
 }
 </style>
 </head>
-<body class="ieum-side-layout ieum-dashboard-page ieum-simple-page attendance-page-tune">
+<body class="ieum-side-layout ieum-dashboard-page attendance-page-tune">
 <?php echo ieum_admin_header('attendance', 'side'); ?>
 <main class="ieum-main">
     <div class="bar">
@@ -1350,10 +1235,26 @@ body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .stats{
     </section>
 </main>
 
-<script>
+<?php
+$attendance_shortcut_js_catalog = array();
+foreach ($attendance_shortcut_catalog as $shortcut_key => $shortcut_item) {
+    $attendance_shortcut_js_catalog[$shortcut_key] = array(
+        'label' => isset($shortcut_item['label']) ? $shortcut_item['label'] : $shortcut_key,
+        'desc' => isset($shortcut_item['desc']) ? $shortcut_item['desc'] : '',
+        'url' => isset($shortcut_item['url']) ? $shortcut_item['url'] : '#',
+    );
+}
+?>
+<script type="text/plain" data-deprecated-shell-sync="common-ui-owned">
 (function() {
     var academyName = <?php echo json_encode(isset($academy['academy_name']) ? $academy['academy_name'] : '아이이음', JSON_UNESCAPED_UNICODE); ?>;
     var rootSelector = '.attendance-page-tune.ieum-dashboard-page';
+    var shortcutCatalog = <?php echo json_encode($attendance_shortcut_js_catalog, JSON_UNESCAPED_UNICODE); ?>;
+    var currentShortcutKeys = <?php echo json_encode(array_values($attendance_shortcut_keys), JSON_UNESCAPED_UNICODE); ?>;
+    var defaultShortcutKeys = <?php echo json_encode(array_values($attendance_default_shortcut_keys), JSON_UNESCAPED_UNICODE); ?>;
+    var shortcutMax = 6;
+    var shortcutSaveUrl = <?php echo json_encode(IEUM_URL . '/dashboard.php', JSON_UNESCAPED_UNICODE); ?>;
+    var shortcutCsrfToken = <?php echo json_encode($csrf_token, JSON_UNESCAPED_UNICODE); ?>;
     var brandText = document.querySelector(rootSelector + ' .side-brand span:last-child');
     if (brandText) {
         brandText.textContent = academyName;
@@ -1417,6 +1318,191 @@ body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .stats{
     meta.appendChild(metaInner);
     renderClock();
     window.setInterval(renderClock, 30000);
+})();
+</script>
+<script>
+(function() {
+    var rootSelector = '.attendance-page-tune.ieum-dashboard-page';
+    var shortcutCatalog = <?php echo json_encode($attendance_shortcut_js_catalog, JSON_UNESCAPED_UNICODE); ?>;
+    var currentShortcutKeys = <?php echo json_encode(array_values($attendance_shortcut_keys), JSON_UNESCAPED_UNICODE); ?>;
+    var defaultShortcutKeys = <?php echo json_encode(array_values($attendance_default_shortcut_keys), JSON_UNESCAPED_UNICODE); ?>;
+    var shortcutMax = 6;
+    var shortcutSaveUrl = <?php echo json_encode(IEUM_URL . '/dashboard.php', JSON_UNESCAPED_UNICODE); ?>;
+    var shortcutCsrfToken = <?php echo json_encode($csrf_token, JSON_UNESCAPED_UNICODE); ?>;
+    var metaInner = document.querySelector(rootSelector + ' .dashboard-shell-meta-inner');
+    /*
+     * The shared top theme toggle is owned by lib/ui.php.
+     * Keep this old page-local block inert so favorite-star logic below still runs cleanly.
+     *
+    var themeIconPaths = {
+        dark: '<path d="M20 14.2A7.5 7.5 0 0 1 9.8 4a8 8 0 1 0 10.2 10.2Z"/>',
+        light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.9 4.9l1.4 1.4"/><path d="M17.7 17.7l1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M4.9 19.1l1.4-1.4"/><path d="M17.7 6.3l1.4-1.4"/>'
+    };
+    var setThemeButton = function(button, theme) {
+        var isDark = theme === 'dark';
+        document.body.classList.toggle('ieum-dark', isDark);
+        try {
+            localStorage.setItem('ieumDashboardTheme', isDark ? 'dark' : 'light');
+        } catch (error) {}
+        button.setAttribute('aria-label', isDark ? '\ub77c\uc774\ud2b8 \ubaa8\ub4dc\ub85c \ubcc0\uacbd' : '\ub2e4\ud06c \ubaa8\ub4dc\ub85c \ubcc0\uacbd');
+        button.setAttribute('title', isDark ? '\ub77c\uc774\ud2b8 \ubaa8\ub4dc\ub85c \ubcc0\uacbd' : '\ub2e4\ud06c \ubaa8\ub4dc\ub85c \ubcc0\uacbd');
+        button.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+        button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (isDark ? themeIconPaths.light : themeIconPaths.dark) + '</svg>';
+    };
+    if (metaInner && !metaInner.querySelector('.dashboard-theme-toggle')) {
+        var aiHelpLink = metaInner.querySelector('a[href*="topic=ai"]');
+        if (aiHelpLink) {
+            aiHelpLink.textContent = 'AI \ucc57\ubd07';
+        }
+        var themeButton = document.createElement('button');
+        themeButton.type = 'button';
+        themeButton.className = 'dashboard-theme-toggle';
+        metaInner.appendChild(themeButton);
+        var savedTheme = '';
+        try {
+            savedTheme = localStorage.getItem('ieumDashboardTheme') || '';
+        } catch (error) {}
+        setThemeButton(themeButton, savedTheme === 'dark' || document.body.classList.contains('ieum-dark') ? 'dark' : 'light');
+        themeButton.addEventListener('click', function() {
+            setThemeButton(themeButton, document.body.classList.contains('ieum-dark') ? 'light' : 'dark');
+        });
+    }
+    */
+    var shortcutButtons = [];
+    var shortcutToast = document.createElement('span');
+    var shortcutToastTimer = null;
+    var shortcutToastDefault = '<span>\ucd5c\ub300 6\uac1c\uae4c\uc9c0 \uc120\ud0dd\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.</span><span>\ubcf4\uc870\uc815\ubcf4- \uc5c5\ubb34\ubc14\ub85c\uac00\uae30\uc5d0\uc11c \ud655\uc778\ud558\uc138\uc694.</span>';
+    shortcutToast.className = 'side-favorite-toast';
+    shortcutToast.innerHTML = shortcutToastDefault;
+    document.body.appendChild(shortcutToast);
+    var normalizeShortcutKeys = function(keys) {
+        var seen = {};
+        var normalized = [];
+        (keys || []).forEach(function(key) {
+            key = String(key || '');
+            if (!shortcutCatalog[key] || seen[key]) {
+                return;
+            }
+            seen[key] = true;
+            normalized.push(key);
+        });
+        return normalized.slice(0, shortcutMax);
+    };
+    currentShortcutKeys = normalizeShortcutKeys(currentShortcutKeys);
+    if (!currentShortcutKeys.length) {
+        currentShortcutKeys = normalizeShortcutKeys(defaultShortcutKeys);
+    }
+    var shortcutPath = function(url) {
+        try {
+            var parsed = new URL(url, window.location.href);
+            return parsed.pathname.replace(/\/+$/, '');
+        } catch (error) {
+            return String(url || '').split('?')[0].split('#')[0].replace(/\/+$/, '');
+        }
+    };
+    var shortcutByPath = {};
+    Object.keys(shortcutCatalog || {}).forEach(function(key) {
+        var path = shortcutPath(shortcutCatalog[key].url);
+        if (path && !shortcutByPath[path]) {
+            shortcutByPath[path] = key;
+        }
+    });
+    var showShortcutToast = function(button, message) {
+        shortcutToast.innerHTML = message || shortcutToastDefault;
+        var left = 214;
+        var top = 160;
+        if (button && button.getBoundingClientRect) {
+            var rect = button.getBoundingClientRect();
+            left = Math.max(12, rect.left - 166);
+            top = Math.max(72, rect.top + rect.height / 2 - 15);
+        }
+        shortcutToast.style.left = left + 'px';
+        shortcutToast.style.top = top + 'px';
+        shortcutToast.classList.add('is-show');
+        window.clearTimeout(shortcutToastTimer);
+        shortcutToastTimer = window.setTimeout(function() {
+            shortcutToast.classList.remove('is-show');
+        }, 1900);
+    };
+    var updateShortcutButtons = function() {
+        shortcutButtons.forEach(function(button) {
+            var key = button.getAttribute('data-shortcut-key') || '';
+            var item = shortcutCatalog[key] || {};
+            var active = currentShortcutKeys.indexOf(key) !== -1;
+            button.classList.toggle('is-active', active);
+            button.textContent = active ? '\u2605' : '\u2606';
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            button.setAttribute('title', active ? '\uc5c5\ubb34 \ubc14\ub85c\uac00\uae30\uc5d0\uc11c \uc81c\uac70' : '\uc5c5\ubb34 \ubc14\ub85c\uac00\uae30\uc5d0 \ucd94\uac00');
+            button.setAttribute('aria-label', (item.label || '\uba54\ub274') + (active ? ' \uc990\uaca8\ucc3e\uae30 \uc81c\uac70' : ' \uc990\uaca8\ucc3e\uae30 \ucd94\uac00'));
+        });
+    };
+    var saveShortcutKeys = function(keys) {
+        if (!window.fetch || !window.FormData || !shortcutSaveUrl) {
+            return;
+        }
+        var formData = new FormData();
+        formData.append('csrf_token', shortcutCsrfToken);
+        formData.append('action', 'save_dashboard_shortcuts');
+        keys.forEach(function(key) {
+            formData.append('shortcut_keys[]', key);
+        });
+        fetch(shortcutSaveUrl, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        }).catch(function() {});
+    };
+    var toggleShortcut = function(key, button) {
+        if (!shortcutCatalog[key]) {
+            return;
+        }
+        var nextKeys = currentShortcutKeys.slice();
+        var index = nextKeys.indexOf(key);
+        if (index === -1) {
+            if (nextKeys.length >= shortcutMax) {
+                showShortcutToast(button, '');
+                return;
+            }
+            nextKeys.push(key);
+        } else {
+            nextKeys.splice(index, 1);
+        }
+        if (!nextKeys.length) {
+            nextKeys = normalizeShortcutKeys(defaultShortcutKeys);
+        }
+        currentShortcutKeys = normalizeShortcutKeys(nextKeys);
+        updateShortcutButtons();
+        if (button) {
+            button.classList.add('is-pulse');
+            window.setTimeout(function() {
+                button.classList.remove('is-pulse');
+            }, 170);
+        }
+        saveShortcutKeys(currentShortcutKeys);
+    };
+    document.querySelectorAll(rootSelector + ' .side-sub a').forEach(function(link) {
+        var key = shortcutByPath[shortcutPath(link.href)];
+        if (!key || link.closest('.side-favorite-row')) {
+            return;
+        }
+        var row = document.createElement('span');
+        row.className = 'side-favorite-row';
+        row.setAttribute('data-shortcut-key', key);
+        link.parentNode.insertBefore(row, link);
+        row.appendChild(link);
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'side-favorite-toggle';
+        button.setAttribute('data-shortcut-key', key);
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            toggleShortcut(key, button);
+        });
+        row.appendChild(button);
+        shortcutButtons.push(button);
+    });
+    updateShortcutButtons();
 })();
 </script>
 <div class="detail-backdrop" id="studentDetailBackdrop" hidden></div>

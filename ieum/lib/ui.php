@@ -206,6 +206,74 @@ function ieum_admin_nav_items()
     return $items;
 }
 
+function ieum_admin_shell_academy_name($shell_academy = array())
+{
+    global $is_admin;
+
+    if ($is_admin !== 'super' && is_array($shell_academy) && !empty($shell_academy['academy_name'])) {
+        return (string) $shell_academy['academy_name'];
+    }
+
+    return $is_admin === 'super' ? '아이이음 본사 관리자' : '아이이음 관리자';
+}
+
+function ieum_admin_shell_meta_html($academy_name = '')
+{
+    $academy_name = trim((string) $academy_name);
+    if ($academy_name === '') {
+        $academy_name = '아이이음';
+    }
+
+    $support_url = IEUM_URL . '/admin/support.php';
+    $html = '<span class="dashboard-shell-meta-inner" data-ieum-shell-meta="1">';
+    $html .= '<a class="dashboard-shell-support-link" href="' . $support_url . '">개발지원센터</a>';
+    $html .= '<span class="dashboard-shell-divider">|</span>';
+    $html .= '<span class="dashboard-shell-help-group">';
+    $html .= '<a class="dashboard-shell-support-link" href="' . $support_url . '?topic=qna">Q&A</a>';
+    $html .= '<span class="dashboard-shell-help-dot">·</span>';
+    $html .= '<a class="dashboard-shell-support-link" href="' . $support_url . '?topic=faq">자주하는 질문</a>';
+    $html .= '<span class="dashboard-shell-help-dot">·</span>';
+    $html .= '<a class="dashboard-shell-support-link" href="' . $support_url . '?topic=contact">문의하기</a>';
+    $html .= '<span class="dashboard-shell-help-dot">·</span>';
+    $html .= '<a class="dashboard-shell-support-link" href="' . $support_url . '?topic=ai">AI 챗봇</a>';
+    $html .= '</span>';
+    $html .= '<span class="dashboard-shell-divider">|</span>';
+    $html .= '<span class="dashboard-shell-academy">' . get_text($academy_name) . '</span>';
+    $html .= '<span class="dashboard-shell-divider">|</span>';
+    $html .= '<span class="dashboard-shell-clock" data-ieum-shell-clock>00:00</span>';
+    $html .= '<button type="button" class="dashboard-theme-toggle" data-ieum-shell-theme aria-label="다크 모드로 변경" title="다크 모드로 변경" aria-pressed="false"></button>';
+    $html .= '</span>';
+
+    return $html;
+}
+
+function ieum_admin_shell_script($academy_name = '')
+{
+    $academy_name = trim((string) $academy_name);
+    if ($academy_name === '') {
+        $academy_name = '아이이음';
+    }
+
+    $meta_html = ieum_admin_shell_meta_html($academy_name);
+
+    return '<script>(function(){'
+        . 'var academyName=' . json_encode($academy_name, JSON_UNESCAPED_UNICODE) . ';'
+        . 'var metaHtml=' . json_encode($meta_html, JSON_UNESCAPED_UNICODE) . ';'
+        . 'var homeUrl="https://wooacha.com";'
+        . 'var homeText="아이이음 교육페이지";'
+        . 'var syncing=false;'
+        . 'var themePaths={dark:\'<path d="M20 14.2A7.5 7.5 0 0 1 9.8 4a8 8 0 1 0 10.2 10.2Z"/>\',light:\'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.9 4.9l1.4 1.4"/><path d="M17.7 17.7l1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M4.9 19.1l1.4-1.4"/><path d="M17.7 6.3l1.4-1.4"/>\'};'
+        . 'function ready(fn){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",fn);}else{fn();}}'
+        . 'function savedTheme(){try{return localStorage.getItem("ieumDashboardTheme")||"";}catch(e){return "";}}'
+        . 'function setTheme(theme){var isDark=theme==="dark";document.body.classList.toggle("ieum-dark",isDark);try{localStorage.setItem("ieumDashboardTheme",isDark?"dark":"light");}catch(e){}var btn=document.querySelector(".dashboard-theme-toggle[data-ieum-shell-theme]");if(!btn){return;}btn.setAttribute("aria-label",isDark?"라이트 모드로 변경":"다크 모드로 변경");btn.setAttribute("title",isDark?"라이트 모드로 변경":"다크 모드로 변경");btn.setAttribute("aria-pressed",isDark?"true":"false");btn.innerHTML=\'<svg viewBox="0 0 24 24" aria-hidden="true">\'+(isDark?themePaths.light:themePaths.dark)+"</svg>";}'
+        . 'function tick(){var clock=document.querySelector(".dashboard-shell-clock[data-ieum-shell-clock]");if(!clock){return;}var now=new Date();clock.textContent=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");}'
+        . 'function shellLooksCommon(meta){var root=meta&&meta.querySelector("[data-ieum-shell-meta]");var ai=meta&&meta.querySelector("a[href*=\'topic=ai\']");return !!(root&&ai&&ai.textContent==="AI 챗봇"&&meta.querySelector(".dashboard-shell-clock[data-ieum-shell-clock]")&&meta.querySelector(".dashboard-theme-toggle[data-ieum-shell-theme]"));}'
+        . 'function bindTheme(){var btn=document.querySelector(".dashboard-theme-toggle[data-ieum-shell-theme]");if(!btn||btn.dataset.ieumThemeBound==="1"){return;}btn.dataset.ieumThemeBound="1";btn.addEventListener("click",function(){setTheme(document.body.classList.contains("ieum-dark")?"light":"dark");});}'
+        . 'function syncShell(){if(syncing){return;}syncing=true;var brand=document.querySelector(".ieum-side .side-brand span:last-child");if(brand&&academyName){brand.textContent=academyName;}var home=document.querySelector(".ieum-shell-links .ieum-shell-link");if(home){home.textContent=homeText;home.href=homeUrl;home.target="_blank";home.rel="noopener";}var meta=document.querySelector(".ieum-shell-meta");if(meta&&!shellLooksCommon(meta)){meta.innerHTML=metaHtml;}bindTheme();setTheme(savedTheme()==="dark"||document.body.classList.contains("ieum-dark")?"dark":"light");tick();syncing=false;}'
+        . 'ready(function(){syncShell();setTimeout(syncShell,0);setTimeout(syncShell,300);setTimeout(syncShell,1000);window.setInterval(tick,30000);var meta=document.querySelector(".ieum-shell-meta");if(meta&&window.MutationObserver){var observer=new MutationObserver(function(){if(!syncing&&!shellLooksCommon(meta)){syncShell();}});observer.observe(meta,{childList:true,subtree:true,characterData:true});}});'
+        . '})();</script>';
+}
+
 function ieum_admin_header($active = '', $layout = 'top')
 {
     global $is_admin, $member, $academy, $current_academy, $today, $today_label;
@@ -217,6 +285,9 @@ function ieum_admin_header($active = '', $layout = 'top')
     $brand = $is_admin === 'super' ? '아이이음 본사 관리자' : '아이이음 관리자';
     $member_label = isset($member['mb_name']) && $member['mb_name'] !== '' ? $member['mb_name'] : (isset($member['mb_id']) ? $member['mb_id'] : '');
     $brand_url = $is_admin === 'super' ? IEUM_URL . '/admin/hq_overview.php' : IEUM_URL . '/dashboard.php';
+    if ($layout === 'side') {
+        $brand = ieum_admin_shell_academy_name($shell_academy);
+    }
     $side_profile_note = '오늘 처리할 일만 먼저 봅니다';
 
     if ($layout === 'side') {
@@ -627,6 +698,508 @@ body.ieum-side-layout.ieum-dashboard-page.ieum-dark .ieum-shell-quick,
 body.ieum-side-layout.ieum-dashboard-page.ieum-dark .dashboard-theme-toggle{background:#172132!important;border-color:#334155!important;color:#f8fafc!important;box-shadow:none!important}
 body.ieum-side-layout.ieum-dashboard-page.ieum-dark .ieum-right-rail{background:#111827!important;border-color:#263244!important}
 body.ieum-side-layout.ieum-dashboard-page.ieum-dark .ieum-rail-link{background:#151f2e!important;border-color:#2c3a4f!important;color:#e5edf7!important}
+/* Dashboard shell source of truth. Page-specific tune CSS must not change the shared frame. */
+html body.ieum-side-layout.ieum-dashboard-page[class]{
+    --ieum-side-width:260px!important;
+    --ieum-rail-width:0px!important;
+    --ieum-top-height:64px!important;
+    --ieum-shell-top:#fff!important;
+    background:#f5f7fb!important;
+    color:#111827!important;
+    overflow-x:hidden!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side{
+    position:fixed!important;
+    inset:0 auto 0 0!important;
+    width:260px!important;
+    box-sizing:border-box!important;
+    background:#fff!important;
+    color:#0f172a!important;
+    border-right:1px solid #e2e8f0!important;
+    box-shadow:none!important;
+    z-index:70!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-brand{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:0!important;
+    width:100%!important;
+    height:144px!important;
+    min-height:144px!important;
+    padding:0 26px!important;
+    box-sizing:border-box!important;
+    background:#fff!important;
+    border:0!important;
+    color:#0f172a!important;
+    font-size:29px!important;
+    font-weight:900!important;
+    line-height:1.12!important;
+    letter-spacing:0!important;
+    text-decoration:none!important;
+    word-break:keep-all!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-brand span:last-child{
+    display:block!important;
+    margin:0!important;
+    transform:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-brand-mark,
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-profile,
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-search,
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-right-rail{
+    display:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-nav{
+    display:block!important;
+    padding:0 14px 24px!important;
+    overflow-y:auto!important;
+    scrollbar-width:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-nav::-webkit-scrollbar{
+    width:0!important;
+    height:0!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-main-link,
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-menu>summary{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:10px!important;
+    min-height:42px!important;
+    padding:0 12px!important;
+    border:0!important;
+    border-radius:6px!important;
+    background:transparent!important;
+    color:#0f172a!important;
+    font-size:15px!important;
+    font-weight:900!important;
+    line-height:1!important;
+    letter-spacing:0!important;
+    text-decoration:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-main-link.active,
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-main-link:hover,
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-menu[open]>summary,
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-menu>summary:hover{
+    background:#f1f5f9!important;
+    color:#0f172a!important;
+    border:0!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .ieum-nav-label{
+    display:inline-flex!important;
+    align-items:center!important;
+    gap:10px!important;
+    min-width:0!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .ieum-nav-icon{
+    width:18px!important;
+    height:18px!important;
+    flex:0 0 18px!important;
+    color:#334155!important;
+    opacity:1!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .ieum-nav-text{
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-sub{
+    display:grid!important;
+    margin:2px 0 8px!important;
+    padding:0 0 0 28px!important;
+    border:0!important;
+    background:transparent!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-sub a{
+    display:flex!important;
+    align-items:center!important;
+    min-height:34px!important;
+    padding:0 10px!important;
+    border-radius:6px!important;
+    background:transparent!important;
+    color:#475569!important;
+    font-size:14px!important;
+    font-weight:800!important;
+    line-height:1!important;
+    text-decoration:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-sub a:hover,
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-sub a.active{
+    background:#f1f5f9!important;
+    color:#0f172a!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .side-sub .side-favorite-row{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 28px!important;
+    align-items:center!important;
+    padding-right:7px!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .side-sub .side-favorite-row>a{
+    padding-right:4px!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .side-favorite-toggle{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:24px!important;
+    height:24px!important;
+    border:0!important;
+    border-radius:50%!important;
+    background:transparent!important;
+    color:#94a3b8!important;
+    font-size:18px!important;
+    line-height:1!important;
+    cursor:pointer!important;
+    opacity:.42!important;
+    transition:transform .14s ease,opacity .14s ease,color .14s ease,background .14s ease!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .side-favorite-row:hover .side-favorite-toggle,
+html body.ieum-side-layout.ieum-dashboard-page[class] .side-favorite-toggle:focus-visible{
+    opacity:1!important;
+    background:#eef3fb!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .side-favorite-toggle.is-active{
+    opacity:1!important;
+    color:#d99a00!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .side-favorite-toggle.is-pulse{
+    transform:scale(1.18)!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .side-favorite-toast{
+    position:fixed!important;
+    left:214px!important;
+    top:160px!important;
+    z-index:1000!important;
+    display:none!important;
+    align-items:flex-start!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    min-height:42px!important;
+    padding:7px 11px!important;
+    border:1px solid #f1c27d!important;
+    border-radius:10px!important;
+    background:#fff8e8!important;
+    color:#8a5a00!important;
+    box-shadow:0 10px 24px rgba(35,43,58,.12)!important;
+    font-size:12px!important;
+    font-weight:900!important;
+    line-height:1.35!important;
+    white-space:nowrap!important;
+    pointer-events:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .side-favorite-toast.is-show{
+    display:inline-flex!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-top{
+    position:fixed!important;
+    top:0!important;
+    left:260px!important;
+    right:0!important;
+    width:auto!important;
+    min-width:0!important;
+    height:64px!important;
+    min-height:64px!important;
+    padding:0 38px!important;
+    box-sizing:border-box!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:16px!important;
+    background:#fff!important;
+    color:#0f172a!important;
+    border-bottom:1px solid #e2e8f0!important;
+    box-shadow:none!important;
+    overflow:hidden!important;
+    z-index:69!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-links{
+    display:flex!important;
+    align-items:center!important;
+    min-width:0!important;
+    gap:10px!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-link{
+    display:inline-flex!important;
+    align-items:center!important;
+    min-height:38px!important;
+    padding:0 10px!important;
+    border:0!important;
+    border-radius:4px!important;
+    background:transparent!important;
+    color:#0f172a!important;
+    font-size:13px!important;
+    font-weight:900!important;
+    line-height:1!important;
+    text-decoration:none!important;
+    white-space:nowrap!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-link:hover{
+    background:#f1f5f9!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-link:before,
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-links>a.ieum-shell-link:after{
+    display:none!important;
+    content:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-meta{
+    display:block!important;
+    min-width:0!important;
+    margin-left:auto!important;
+    color:#0f172a!important;
+    font-size:13px!important;
+    font-weight:900!important;
+    line-height:1!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-shell-meta-inner{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:8px!important;
+    min-width:0!important;
+    white-space:nowrap!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-shell-support-link{
+    color:#0f172a!important;
+    font-size:13px!important;
+    font-weight:900!important;
+    text-decoration:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-shell-support-link:hover{
+    color:#1583e9!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-shell-help-group{
+    display:inline-flex!important;
+    align-items:center!important;
+    gap:8px!important;
+    white-space:nowrap!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-shell-academy{
+    display:inline!important;
+    min-height:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    color:#0f172a!important;
+    font-size:13px!important;
+    font-weight:900!important;
+    line-height:1!important;
+    letter-spacing:0!important;
+    white-space:nowrap!important;
+    box-shadow:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-shell-divider,
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-shell-help-dot{
+    color:#94a3b8!important;
+    font-weight:900!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-shell-clock{
+    color:#0f172a!important;
+    font-weight:900!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-theme-toggle{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:30px!important;
+    height:30px!important;
+    margin-left:2px!important;
+    padding:0!important;
+    border:1px solid #d6dee8!important;
+    border-radius:50%!important;
+    background:#fff!important;
+    color:#243142!important;
+    box-shadow:none!important;
+    cursor:pointer!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-theme-toggle:hover{
+    background:#f4f7fb!important;
+    border-color:#b9c8db!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-theme-toggle svg{
+    width:16px!important;
+    height:16px!important;
+    fill:none!important;
+    stroke:currentColor!important;
+    stroke-width:1.9!important;
+    stroke-linecap:round!important;
+    stroke-linejoin:round!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-quick{
+    display:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-menu{
+    display:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .wrap:not(.dashboard-simple),
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-main{
+    max-width:none!important;
+    width:auto!important;
+    min-width:0!important;
+    margin:0 0 0 260px!important;
+    padding:96px 40px 42px!important;
+    box-sizing:border-box!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark{
+    background:#0f1724!important;
+    color:#d9e2ef!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-shell-top,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-side,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-side .side-brand{
+    background:#111827!important;
+    border-color:#263244!important;
+    color:#e5edf7!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-side .side-main-link,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-side .side-menu>summary,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-side .ieum-nav-icon,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-shell-link,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .dashboard-shell-support-link,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .dashboard-shell-clock{
+    color:#e5edf7!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-side .side-sub,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .side-sub a{
+    color:#9aa8bb!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-side .side-main-link.active,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-side .side-main-link:hover,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-side .side-menu[open]>summary,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-side .side-menu>summary:hover,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .side-sub a:hover,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .side-sub a.active{
+    background:#1a2434!important;
+    color:#f8fafc!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-shell-link{
+    background:transparent!important;
+    border-color:transparent!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .dashboard-shell-academy{
+    background:transparent!important;
+    border-color:transparent!important;
+    color:#e5edf7!important;
+    box-shadow:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .dashboard-theme-toggle{
+    background:#172132!important;
+    border-color:#334155!important;
+    color:#f8fafc!important;
+    box-shadow:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .side-favorite-toggle{
+    color:#64748b!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .side-favorite-row:hover .side-favorite-toggle,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .side-favorite-toggle:focus-visible{
+    background:#1c2d44!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .side-favorite-toggle.is-active{
+    color:#f6c95b!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .side-favorite-toast{
+    background:#2d2412!important;
+    border-color:#7c5a12!important;
+    color:#f9d36b!important;
+    box-shadow:none!important;
+}
+@media(max-width:980px){
+    html body.ieum-side-layout.ieum-dashboard-page[class]{
+        --ieum-side-width:0px!important;
+        max-width:100%!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-top{
+        left:0!important;
+        right:0!important;
+        width:100%!important;
+        height:64px!important;
+        min-height:64px!important;
+        padding:0 10px!important;
+        gap:8px!important;
+        z-index:86!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-menu{
+        display:inline-flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        flex:0 0 42px!important;
+        width:42px!important;
+        height:42px!important;
+        border:1px solid #cbd5e1!important;
+        border-radius:12px!important;
+        background:#fff!important;
+        color:#0f172a!important;
+        box-shadow:0 6px 16px rgba(15,23,42,.10)!important;
+        font-size:20px!important;
+        font-weight:1000!important;
+        cursor:pointer!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-quick{
+        display:none!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-links{
+        flex:1 1 auto!important;
+        min-width:0!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-link{
+        min-width:0!important;
+        max-width:190px!important;
+        height:42px!important;
+        padding:0 11px!important;
+        border:1px solid #cbd5e1!important;
+        border-radius:10px!important;
+        background:#fff!important;
+        color:#0f172a!important;
+        font-size:13px!important;
+        overflow:hidden!important;
+        text-overflow:ellipsis!important;
+        white-space:nowrap!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-link:after,
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-link:before{
+        display:none!important;
+        content:none!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-meta{
+        display:none!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side{
+        top:64px!important;
+        bottom:0!important;
+        left:0!important;
+        width:min(84vw,292px)!important;
+        transform:translateX(-104%)!important;
+        transition:transform .22s ease!important;
+        box-shadow:18px 0 40px rgba(15,23,42,.24)!important;
+        z-index:84!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page.ieum-side-open[class] .ieum-side{
+        transform:translateX(0)!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-brand{
+        display:none!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-nav{
+        padding:12px 14px 24px!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-main-link,
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-menu>summary{
+        min-height:46px!important;
+        font-size:15px!important;
+        border-radius:6px!important;
+    }
+    html body.ieum-side-layout.ieum-dashboard-page[class] .wrap:not(.dashboard-simple),
+    html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-main{
+        margin:0!important;
+        width:100%!important;
+        max-width:100%!important;
+        min-width:0!important;
+        padding:84px 14px 34px!important;
+        box-sizing:border-box!important;
+    }
+}
 </style>';
         $html .= '<aside class="ieum-side" aria-label="아이이음 관리자 메뉴">';
         $html .= '<a class="side-brand" href="' . $brand_url . '"><span class="side-brand-mark">I</span><span>' . get_text($brand) . '</span></a>';
@@ -677,10 +1250,12 @@ body.ieum-side-layout.ieum-dashboard-page.ieum-dark .ieum-rail-link{background:#
                     }
                 }
             }
+            $shell_academy_name = ieum_admin_shell_academy_name($shell_academy);
             $html .= '<header class="ieum-shell-top" aria-label="아이이음 바로가기">';
-            $html .= '<div class="ieum-shell-links"><a class="ieum-shell-link" href="https://wooacha.com" target="_blank" rel="noopener">아이이음 홈페이지</a></div>';
-            $html .= '<div class="ieum-shell-meta">' . get_text($shell_meta) . '</div>';
+            $html .= '<div class="ieum-shell-links"><a class="ieum-shell-link" href="https://wooacha.com" target="_blank" rel="noopener">아이이음 교육페이지</a></div>';
+            $html .= '<div class="ieum-shell-meta">' . ieum_admin_shell_meta_html($shell_academy_name) . '</div>';
             $html .= '</header>';
+            $html .= ieum_admin_shell_script($shell_academy_name);
             $html .= '<aside class="ieum-right-rail" aria-label="빠른 확인">';
             $rail_summary = array();
             if (!empty($shell_academy['academy_id']) && function_exists('ieum_dashboard_rail_summary')) {

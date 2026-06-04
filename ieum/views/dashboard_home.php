@@ -593,48 +593,6 @@ $icon_svg = function ($name) {
 <style>
 *{box-sizing:border-box}
 body.ieum-side-layout.ieum-dashboard-page{background:#f4f6f9!important;color:#1f2937;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-body.ieum-side-layout.ieum-dashboard-page{--ieum-side-width:260px!important;--ieum-rail-width:0px!important;--ieum-top-height:64px!important;--ieum-shell-top:#fff!important;--ieum-side-bg:#fff!important}
-body.ieum-side-layout.ieum-dashboard-page .ieum-side{width:260px!important;background:var(--ieum-side-bg)!important;border-right:1px solid #e7ebf0!important;box-shadow:none!important}
-body.ieum-side-layout.ieum-dashboard-page .side-brand{height:144px!important;min-height:144px!important;background:var(--ieum-side-bg)!important;color:#111827!important;padding:0 26px!important;font-size:29px!important;letter-spacing:0!important;border-bottom:0!important}
-body.ieum-side-layout.ieum-dashboard-page .side-brand-mark{display:none!important}
-body.ieum-side-layout.ieum-dashboard-page .side-profile,body.ieum-side-layout.ieum-dashboard-page .side-search{display:none!important}
-body.ieum-side-layout.ieum-dashboard-page .side-nav{padding:0 14px 24px!important}
-body.ieum-side-layout.ieum-dashboard-page .side-main-link,body.ieum-side-layout.ieum-dashboard-page .side-menu>summary{min-height:42px!important;padding:0 12px!important;border-left:0!important;border-radius:6px!important;font-size:14px!important;font-weight:700!important;color:#243142!important;letter-spacing:0!important}
-body.ieum-side-layout.ieum-dashboard-page .side-main-link:hover,body.ieum-side-layout.ieum-dashboard-page .side-main-link.active,body.ieum-side-layout.ieum-dashboard-page .side-menu[open]>summary,body.ieum-side-layout.ieum-dashboard-page .side-menu>summary:hover{background:#f4f7fb!important;color:#111827!important}
-body.ieum-side-layout.ieum-dashboard-page .side-main-link>span,body.ieum-side-layout.ieum-dashboard-page .side-menu>summary>span,body.ieum-side-layout.ieum-dashboard-page .side-sub a{display:inline-flex!important;align-items:center!important;gap:8px!important;min-width:0!important}
-body.ieum-side-layout.ieum-dashboard-page .side-nav-icon{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 18px!important;width:18px!important;height:18px!important;color:#334155!important}
-body.ieum-side-layout.ieum-dashboard-page .side-nav-icon svg{display:block!important;width:17px!important;height:17px!important;stroke:currentColor!important;stroke-width:1.9!important;fill:none!important;stroke-linecap:round!important;stroke-linejoin:round!important}
-body.ieum-side-layout.ieum-dashboard-page .side-nav-label{display:block!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
-body.ieum-side-layout.ieum-dashboard-page .side-sub{background:#fff!important;border:0!important;padding:2px 0 8px!important}
-body.ieum-side-layout.ieum-dashboard-page .side-sub a{min-height:32px!important;padding:0 12px 0 34px!important;font-size:13px!important;font-weight:600!important;color:#4b5563!important}
-body.ieum-side-layout.ieum-dashboard-page .side-sub .side-nav-icon{flex-basis:15px!important;width:15px!important;height:15px!important;color:#64748b!important}
-body.ieum-side-layout.ieum-dashboard-page .side-sub .side-nav-icon svg{width:14px!important;height:14px!important;stroke-width:1.8!important}
-body.ieum-side-layout.ieum-dashboard-page .side-sub a:hover,body.ieum-side-layout.ieum-dashboard-page .side-sub a.active{background:#f4f7fb!important;color:#111827!important}
-body.ieum-side-layout.ieum-dashboard-page .side-sub .side-favorite-row{display:grid!important;grid-template-columns:minmax(0,1fr) 28px!important;align-items:center!important;padding-right:7px!important}
-body.ieum-side-layout.ieum-dashboard-page .side-sub .side-favorite-row>a{padding-right:4px!important}
-body.ieum-side-layout.ieum-dashboard-page .side-favorite-toggle{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:24px!important;height:24px!important;border:0!important;border-radius:50%!important;background:transparent!important;color:#94a3b8!important;font-size:18px!important;line-height:1!important;cursor:pointer!important;opacity:.42!important;transition:transform .14s ease,opacity .14s ease,color .14s ease,background .14s ease!important}
-body.ieum-side-layout.ieum-dashboard-page .side-favorite-row:hover .side-favorite-toggle,body.ieum-side-layout.ieum-dashboard-page .side-favorite-toggle:focus-visible{opacity:1!important;background:#eef3fb!important}
-body.ieum-side-layout.ieum-dashboard-page .side-favorite-toggle.is-active{opacity:1!important;color:#d99a00!important}
-body.ieum-side-layout.ieum-dashboard-page .side-favorite-toggle.is-pulse{transform:scale(1.18)!important}
-body.ieum-side-layout.ieum-dashboard-page .side-favorite-toast{position:fixed!important;left:214px!important;top:160px!important;z-index:90!important;display:none!important;align-items:flex-start!important;flex-direction:column!important;justify-content:center!important;min-height:42px!important;border:1px solid #f1c27d!important;border-radius:10px!important;background:#fff8e8!important;color:#8a5a00!important;box-shadow:0 10px 24px rgba(35,43,58,.12)!important;padding:7px 11px!important;font-size:12px!important;font-weight:900!important;line-height:1.35!important;white-space:nowrap!important;pointer-events:none!important}
-body.ieum-side-layout.ieum-dashboard-page .side-favorite-toast.is-show{display:inline-flex!important}
-body.ieum-side-layout.ieum-dashboard-page .ieum-shell-top{left:260px!important;right:0!important;height:64px!important;background:var(--ieum-side-bg)!important;color:#1f2937!important;border-bottom:0!important;box-shadow:none!important;padding:0 38px!important}
-body.ieum-side-layout.ieum-dashboard-page .ieum-shell-link{min-height:34px!important;border:0!important;background:transparent!important;color:#1f2937!important;padding:0 10px!important;border-radius:4px!important;font-size:13px!important}
-body.ieum-side-layout.ieum-dashboard-page .ieum-shell-link:before{display:none!important}
-body.ieum-side-layout.ieum-dashboard-page .ieum-shell-link:hover{background:#f4f7fb!important}
-body.ieum-side-layout.ieum-dashboard-page .ieum-shell-meta{color:#374151!important;font-size:13px!important}
-body.ieum-side-layout.ieum-dashboard-page .dashboard-shell-meta-inner{display:inline-flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;white-space:nowrap!important}
-body.ieum-side-layout.ieum-dashboard-page .dashboard-shell-divider{color:#c3cad5!important}
-body.ieum-side-layout.ieum-dashboard-page .dashboard-shell-clock{font-weight:900!important;color:#243142!important}
-body.ieum-side-layout.ieum-dashboard-page .dashboard-shell-support-link{display:inline-flex!important;align-items:center!important;min-height:26px!important;color:#1f2937!important;text-decoration:none!important;font-size:13px!important;font-weight:900!important}
-body.ieum-side-layout.ieum-dashboard-page .dashboard-shell-support-link:hover{color:#1583e9!important;text-decoration:underline!important;text-underline-offset:3px!important}
-body.ieum-side-layout.ieum-dashboard-page .dashboard-shell-help-group{display:inline-flex!important;align-items:center!important;gap:6px!important}
-body.ieum-side-layout.ieum-dashboard-page .dashboard-shell-help-dot{color:#c3cad5!important;font-weight:900!important}
-body.ieum-side-layout.ieum-dashboard-page .dashboard-theme-toggle{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:30px!important;height:30px!important;border:1px solid #d6dee8!important;border-radius:50%!important;background:#fff!important;color:#243142!important;padding:0!important;margin-left:2px!important;cursor:pointer!important}
-body.ieum-side-layout.ieum-dashboard-page .dashboard-theme-toggle:hover{background:#f4f7fb!important;border-color:#b9c8db!important}
-body.ieum-side-layout.ieum-dashboard-page .dashboard-theme-toggle svg{width:16px!important;height:16px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.9!important;stroke-linecap:round!important;stroke-linejoin:round!important}
-body.ieum-side-layout.ieum-dashboard-page .ieum-right-rail{display:none!important}
-body.ieum-side-layout.ieum-dashboard-page .wrap{margin:0 0 0 260px!important;padding:96px 40px 0!important;max-width:none!important;width:auto!important}
 .dashboard-simple{display:grid;gap:22px;min-height:calc(100vh - 96px)}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .dash-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:0}
@@ -863,23 +821,12 @@ details.settings-box summary::-webkit-details-marker{display:none}
 .dashboard-footer-brand{font-weight:800;color:#243142}
 .dashboard-footer-links{display:flex;gap:28px;flex-wrap:wrap}
 .dashboard-footer a{color:#1583e9;text-decoration:none;font-weight:700}
-body.ieum-dashboard-page.ieum-dark{--ieum-side-bg:#111827!important;background:#0f1724!important;color:#d9e2ef!important}
-body.ieum-dashboard-page.ieum-dark .ieum-side,body.ieum-dashboard-page.ieum-dark .side-brand,body.ieum-dashboard-page.ieum-dark .ieum-shell-top,body.ieum-dashboard-page.ieum-dark .dashboard-footer{background:#111827!important;border-color:#263244!important;color:#e5edf7!important}
-body.ieum-dashboard-page.ieum-dark .side-main-link,body.ieum-dashboard-page.ieum-dark .side-menu>summary,body.ieum-dashboard-page.ieum-dark .side-nav-icon,body.ieum-dashboard-page.ieum-dark .side-nav-label,body.ieum-dashboard-page.ieum-dark .ieum-shell-link,body.ieum-dashboard-page.ieum-dark .dashboard-shell-clock,body.ieum-dashboard-page.ieum-dark .dashboard-shell-support-link,body.ieum-dashboard-page.ieum-dark .dashboard-footer-brand{color:#e5edf7!important}
-body.ieum-dashboard-page.ieum-dark .side-sub{background:#111827!important}
-body.ieum-dashboard-page.ieum-dark .side-sub a,body.ieum-dashboard-page.ieum-dark .side-sub .side-nav-icon,body.ieum-dashboard-page.ieum-dark .ieum-shell-meta,body.ieum-dashboard-page.ieum-dark .dashboard-footer,body.ieum-dashboard-page.ieum-dark .dashboard-footer-links{color:#9aa8bb!important}
-body.ieum-dashboard-page.ieum-dark .side-favorite-toggle{color:#64748b!important}
-body.ieum-dashboard-page.ieum-dark .side-favorite-row:hover .side-favorite-toggle,body.ieum-dashboard-page.ieum-dark .side-favorite-toggle:focus-visible{background:#1c2d44!important}
-body.ieum-dashboard-page.ieum-dark .side-favorite-toggle.is-active{color:#f6c95b!important}
-body.ieum-dashboard-page.ieum-dark .side-favorite-toast{background:#2a2416!important;border-color:#6d5421!important;color:#f6c95b!important;box-shadow:none!important}
+body.ieum-dashboard-page.ieum-dark{background:#0f1724!important;color:#d9e2ef!important}
+body.ieum-dashboard-page.ieum-dark .dashboard-footer{background:#111827!important;border-color:#263244!important;color:#9aa8bb!important}
+body.ieum-dashboard-page.ieum-dark .dashboard-footer-brand{color:#e5edf7!important}
+body.ieum-dashboard-page.ieum-dark .dashboard-footer-links{color:#9aa8bb!important}
 body.ieum-dashboard-page.ieum-dark .shortcut-favorite-status{color:#8fd0ff!important}
 body.ieum-dashboard-page.ieum-dark .shortcut-favorite-status.is-error{color:#ffb4c0!important}
-body.ieum-dashboard-page.ieum-dark .side-main-link:hover,body.ieum-dashboard-page.ieum-dark .side-main-link.active,body.ieum-dashboard-page.ieum-dark .side-menu[open]>summary,body.ieum-dashboard-page.ieum-dark .side-menu>summary:hover,body.ieum-dashboard-page.ieum-dark .side-sub a:hover,body.ieum-dashboard-page.ieum-dark .side-sub a.active,body.ieum-dashboard-page.ieum-dark .ieum-shell-link:hover{background:#1a2434!important;color:#f8fafc!important}
-body.ieum-dashboard-page.ieum-dark .dashboard-shell-divider{color:#3a4658!important}
-body.ieum-dashboard-page.ieum-dark .dashboard-shell-support-link:hover{color:#8fd0ff!important}
-body.ieum-dashboard-page.ieum-dark .dashboard-shell-help-dot{color:#3a4658!important}
-body.ieum-dashboard-page.ieum-dark .dashboard-theme-toggle{background:#172132!important;border-color:#334155!important;color:#f8fafc!important}
-body.ieum-dashboard-page.ieum-dark .dashboard-theme-toggle:hover{background:#223047!important;border-color:#4b5e78!important}
 body.ieum-dashboard-page.ieum-dark .dash-panel,body.ieum-dashboard-page.ieum-dark .task-card,body.ieum-dashboard-page.ieum-dark .mini-card,body.ieum-dashboard-page.ieum-dark .progress-card,body.ieum-dashboard-page.ieum-dark .class-chip,body.ieum-dashboard-page.ieum-dark .table-clean,body.ieum-dashboard-page.ieum-dark .recent-action,body.ieum-dashboard-page.ieum-dark .utility-link,body.ieum-dashboard-page.ieum-dark .support-link,body.ieum-dashboard-page.ieum-dark .timeline-row,body.ieum-dashboard-page.ieum-dark .today-class-stat,body.ieum-dashboard-page.ieum-dark .month-day,body.ieum-dashboard-page.ieum-dark .calendar-memo-form input,body.ieum-dashboard-page.ieum-dark .calendar-memo-form select,body.ieum-dashboard-page.ieum-dark .memo-alert-controls,body.ieum-dashboard-page.ieum-dark .quick-attendance-form select,body.ieum-dashboard-page.ieum-dark .quick-attendance-target,body.ieum-dashboard-page.ieum-dark .secondary-drawer>summary,body.ieum-dashboard-page.ieum-dark .settings-trigger,body.ieum-dashboard-page.ieum-dark .summary-panel .settings-inner,body.ieum-dashboard-page.ieum-dark .settings-option,body.ieum-dashboard-page.ieum-dark details.settings-box,body.ieum-dashboard-page.ieum-dark .month-picker-popover{background:#151f2e!important;border-color:#2c3a4f!important;color:#e5edf7!important;box-shadow:none!important}
 body.ieum-dashboard-page.ieum-dark .summary-panel{background:transparent!important;border:0!important}
 body.ieum-dashboard-page.ieum-dark .task-card.warn,body.ieum-dashboard-page.ieum-dark .month-day.is-today,body.ieum-dashboard-page.ieum-dark .month-day.is-selected,body.ieum-dashboard-page.ieum-dark .timeline-row.is-now{background:#10283d!important;border-color:#1c5b88!important}
@@ -887,6 +834,9 @@ body.ieum-dashboard-page.ieum-dark .task-card.danger,body.ieum-dashboard-page.ie
 body.ieum-dashboard-page.ieum-dark .mini-card.warn,body.ieum-dashboard-page.ieum-dark .month-day.has-memo:not(.is-selected){background:#2a2416!important;border-color:#6d5421!important}
 body.ieum-dashboard-page.ieum-dark .dash-title,body.ieum-dashboard-page.ieum-dark .dash-panel h2,body.ieum-dashboard-page.ieum-dark .alert-head h2,body.ieum-dashboard-page.ieum-dark .task-text strong,body.ieum-dashboard-page.ieum-dark .task-number,body.ieum-dashboard-page.ieum-dark .mini-count,body.ieum-dashboard-page.ieum-dark .progress-card,body.ieum-dashboard-page.ieum-dark .class-chip strong,body.ieum-dashboard-page.ieum-dark .utility-link strong,body.ieum-dashboard-page.ieum-dark .support-link,body.ieum-dashboard-page.ieum-dark .timeline-body strong,body.ieum-dashboard-page.ieum-dark .timeline-time,body.ieum-dashboard-page.ieum-dark .timeline-count b,body.ieum-dashboard-page.ieum-dark .timeline-missing b,body.ieum-dashboard-page.ieum-dark .quick-attendance-title,body.ieum-dashboard-page.ieum-dark .today-class-head h3,body.ieum-dashboard-page.ieum-dark .today-class-stat b,body.ieum-dashboard-page.ieum-dark .month-day,body.ieum-dashboard-page.ieum-dark .calendar-memo-form input,body.ieum-dashboard-page.ieum-dark .calendar-memo-form select{color:#f8fafc!important}
 body.ieum-dashboard-page.ieum-dark .dash-desc,body.ieum-dashboard-page.ieum-dark .dash-kicker,body.ieum-dashboard-page.ieum-dark .dash-panel p,body.ieum-dashboard-page.ieum-dark .alert-head p,body.ieum-dashboard-page.ieum-dark .task-text span,body.ieum-dashboard-page.ieum-dark .mini-row span,body.ieum-dashboard-page.ieum-dark .class-chip span,body.ieum-dashboard-page.ieum-dark .recent-action span,body.ieum-dashboard-page.ieum-dark .utility-link span,body.ieum-dashboard-page.ieum-dark .support-note,body.ieum-dashboard-page.ieum-dark .timeline-count,body.ieum-dashboard-page.ieum-dark .timeline-missing,body.ieum-dashboard-page.ieum-dark .quick-attendance-label,body.ieum-dashboard-page.ieum-dark .today-class-stat span,body.ieum-dashboard-page.ieum-dark .month-help,body.ieum-dashboard-page.ieum-dark .month-weekday,body.ieum-dashboard-page.ieum-dark .secondary-drawer>summary small,body.ieum-dashboard-page.ieum-dark .settings-help,body.ieum-dashboard-page.ieum-dark .notice-row span{color:#9aa8bb!important}
+body.ieum-dashboard-page.ieum-dark .memo-alert-check,body.ieum-dashboard-page.ieum-dark .quick-attendance-options,body.ieum-dashboard-page.ieum-dark .quick-attendance-options label{color:#e5edf7!important}
+body.ieum-dashboard-page.ieum-dark .memo-alert-check input,body.ieum-dashboard-page.ieum-dark .quick-attendance-options input{accent-color:#1d7fe0!important}
+body.ieum-dashboard-page.ieum-dark .calendar-memo-form input::placeholder{color:#b8c4d6!important;opacity:1!important}
 body.ieum-dashboard-page.ieum-dark .task-icon,body.ieum-dashboard-page.ieum-dark .mini-icon{color:#aeb8cb!important;background:#1a2434!important}
 body.ieum-dashboard-page.ieum-dark .task-complete-button{background:#111827!important;border-color:#2c3a4f!important;color:#8fd0ff!important}
 body.ieum-dashboard-page.ieum-dark .dash-btn,body.ieum-dashboard-page.ieum-dark .month-nav a,body.ieum-dashboard-page.ieum-dark .month-nav button{background:#172132!important;border-color:#334155!important;color:#e5edf7!important}
@@ -1348,100 +1298,11 @@ foreach ($dashboard_shortcut_catalog as $shortcut_key => $shortcut_item) {
 ?>
 <script>
 (function(){
-    var academyName = <?php echo json_encode(isset($academy['academy_name']) ? $academy['academy_name'] : '아이이음', JSON_UNESCAPED_UNICODE); ?>;
     var shortcutCatalog = <?php echo json_encode($shortcut_js_catalog, JSON_UNESCAPED_UNICODE); ?>;
     var currentShortcutKeys = <?php echo json_encode(array_values($shortcut_keys), JSON_UNESCAPED_UNICODE); ?>;
     var defaultShortcutKeys = <?php echo json_encode(ieum_dashboard_default_shortcut_keys(), JSON_UNESCAPED_UNICODE); ?>;
     var shortcutMax = 6;
     var shortcutCsrfToken = <?php echo json_encode($csrf_token, JSON_UNESCAPED_UNICODE); ?>;
-    var brandText = document.querySelector('.ieum-dashboard-page .side-brand span:last-child');
-    if (brandText) {
-        brandText.textContent = academyName;
-    }
-    var homeLink = document.querySelector('.ieum-dashboard-page .ieum-shell-link');
-    if (homeLink) {
-        homeLink.textContent = '아이이음 교육페이지';
-    }
-    var themeIconPaths = {
-        dark: '<path d="M20 14.2A7.5 7.5 0 0 1 9.8 4a8 8 0 1 0 10.2 10.2Z"/>',
-        light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.9 4.9l1.4 1.4"/><path d="M17.7 17.7l1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M4.9 19.1l1.4-1.4"/><path d="M17.7 6.3l1.4-1.4"/>'
-    };
-    var dashboardThemeButton = null;
-    var setDashboardTheme = function(theme) {
-        var isDark = theme === 'dark';
-        document.body.classList.toggle('ieum-dark', isDark);
-        try {
-            localStorage.setItem('ieumDashboardTheme', isDark ? 'dark' : 'light');
-        } catch (error) {}
-        if (dashboardThemeButton) {
-            dashboardThemeButton.setAttribute('aria-label', isDark ? '라이트 모드로 변경' : '다크 모드로 변경');
-            dashboardThemeButton.setAttribute('title', isDark ? '라이트 모드로 변경' : '다크 모드로 변경');
-            dashboardThemeButton.setAttribute('aria-pressed', isDark ? 'true' : 'false');
-            dashboardThemeButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (isDark ? themeIconPaths.light : themeIconPaths.dark) + '</svg>';
-        }
-    };
-    var meta = document.querySelector('.ieum-dashboard-page .ieum-shell-meta');
-    if (meta) {
-        meta.textContent = '';
-        var metaInner = document.createElement('span');
-        metaInner.className = 'dashboard-shell-meta-inner';
-        var supportBaseUrl = <?php echo json_encode(IEUM_URL . '/admin/support.php'); ?>;
-        var makeSupportLink = function(text, topic) {
-            var link = document.createElement('a');
-            link.className = 'dashboard-shell-support-link';
-            link.href = supportBaseUrl + '?topic=' + encodeURIComponent(topic);
-            link.textContent = text;
-            return link;
-        };
-        var helpGroup = document.createElement('span');
-        helpGroup.className = 'dashboard-shell-help-group';
-        [
-            ['Q&A', 'qna'],
-            ['자주하는 질문', 'faq'],
-            ['문의하기', 'contact'],
-            ['AI 챗봇', 'ai']
-        ].forEach(function(item, index) {
-            if (index > 0) {
-                var dot = document.createElement('span');
-                dot.className = 'dashboard-shell-help-dot';
-                dot.textContent = '·';
-                helpGroup.appendChild(dot);
-            }
-            helpGroup.appendChild(makeSupportLink(item[0], item[1]));
-        });
-        var academyText = document.createElement('span');
-        academyText.textContent = academyName;
-        var clockText = document.createElement('span');
-        clockText.className = 'dashboard-shell-clock';
-        var makeDivider = function() {
-            var divider = document.createElement('span');
-            divider.className = 'dashboard-shell-divider';
-            divider.textContent = '|';
-            return divider;
-        };
-        var renderClock = function() {
-            var now = new Date();
-            clockText.textContent = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
-        };
-        dashboardThemeButton = document.createElement('button');
-        dashboardThemeButton.type = 'button';
-        dashboardThemeButton.className = 'dashboard-theme-toggle';
-        metaInner.appendChild(makeSupportLink('개발지원센터', 'qna'));
-        metaInner.appendChild(makeDivider());
-        metaInner.appendChild(helpGroup);
-        metaInner.appendChild(makeDivider());
-        metaInner.appendChild(academyText);
-        metaInner.appendChild(makeDivider());
-        metaInner.appendChild(clockText);
-        metaInner.appendChild(dashboardThemeButton);
-        meta.appendChild(metaInner);
-        renderClock();
-        window.setInterval(renderClock, 30000);
-        setDashboardTheme(document.body.classList.contains('ieum-dark') ? 'dark' : 'light');
-        dashboardThemeButton.addEventListener('click', function() {
-            setDashboardTheme(document.body.classList.contains('ieum-dark') ? 'light' : 'dark');
-        });
-    }
     var menuIconPaths = {
         home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M9.5 20v-6h5v6"/>',
         school: '<path d="M4 10 12 6l8 4-8 4-8-4Z"/><path d="M6.5 12v4.5c1.5 1.2 3.3 1.8 5.5 1.8s4-.6 5.5-1.8V12"/>',

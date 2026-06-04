@@ -44,6 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $csrf_token = ieum_new_csrf_token();
+$sms_shortcut_catalog = function_exists('ieum_dashboard_shortcut_catalog') ? ieum_dashboard_shortcut_catalog() : array();
+$sms_shortcut_keys = function_exists('ieum_dashboard_get_shortcut_keys') ? ieum_dashboard_get_shortcut_keys($academy_id) : array();
+$sms_default_shortcut_keys = function_exists('ieum_dashboard_default_shortcut_keys') ? ieum_dashboard_default_shortcut_keys() : array();
 
 $status = isset($_GET['status']) ? preg_replace('/[^a-z_]/', '', trim($_GET['status'])) : '';
 $date = isset($_GET['date']) ? preg_replace('/[^0-9-]/', '', $_GET['date']) : '';
@@ -52,10 +55,10 @@ $q = isset($_GET['q']) ? trim($_GET['q']) : '';
 function ieum_sms_status_label($status)
 {
     $labels = array(
-        'pending' => '전송 대기',
-        'processing' => '전송 처리중',
-        'sent' => '전송 완료',
-        'failed' => '전송 실패',
+        'pending' => '발송 대기',
+        'processing' => '발송 중',
+        'sent' => '발송 완료',
+        'failed' => '발송 실패',
         'canceled' => '발송 취소',
     );
 
@@ -177,138 +180,6 @@ body.sms-queue-page-tune .sms-message-preview{overflow-wrap:anywhere;word-break:
 @media(max-width:1180px){body.sms-queue-page-tune .chips{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 <style>
-/* Dashboard shell alignment: SMS history follows the dashboard navigation frame. */
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune{
-    --ieum-side-width:260px;
-    --ieum-top-height:64px;
-    --ieum-rail-width:0px;
-    background:#f5f7fb!important;
-    color:#111827!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .ieum-side{
-    width:260px!important;
-    background:#fff!important;
-    border-right:1px solid #e2e8f0!important;
-    box-shadow:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-brand{
-    display:flex!important;
-    height:144px!important;
-    min-height:144px!important;
-    padding:0 28px!important;
-    background:#fff!important;
-    color:#0f172a!important;
-    font-size:29px!important;
-    letter-spacing:0!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-brand-mark,
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-profile,
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-search{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-nav{
-    padding:0 14px 24px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-main-link,
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-menu>summary{
-    min-height:42px!important;
-    border-radius:6px!important;
-    padding:0 12px!important;
-    color:#0f172a!important;
-    font-size:15px!important;
-    font-weight:900!important;
-    letter-spacing:0!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-main-link:hover,
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-main-link.active,
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-menu[open]>summary,
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-menu>summary:hover{
-    background:#f1f5f9!important;
-    color:#0f172a!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .ieum-nav-label{
-    gap:10px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .ieum-nav-icon{
-    width:18px!important;
-    height:18px!important;
-    color:#334155!important;
-    opacity:1!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-sub{
-    margin:2px 0 8px!important;
-    padding:0 0 0 28px!important;
-    background:transparent!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-sub a{
-    min-height:34px!important;
-    border-radius:6px!important;
-    color:#475569!important;
-    font-size:14px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-sub a:hover,
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .side-sub a.active{
-    background:#f1f5f9!important;
-    color:#0f172a!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .ieum-shell-top{
-    left:260px!important;
-    right:0!important;
-    width:auto!important;
-    height:64px!important;
-    padding:0 40px!important;
-    background:#fff!important;
-    border-bottom:1px solid #e2e8f0!important;
-    box-shadow:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .ieum-shell-link{
-    flex:0 0 auto!important;
-    color:#0f172a!important;
-    font-weight:900!important;
-    text-decoration:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .ieum-shell-link:before{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .ieum-shell-meta{
-    margin-left:auto!important;
-    color:#0f172a!important;
-    font-size:13px!important;
-    font-weight:900!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .dashboard-shell-meta-inner{
-    display:flex!important;
-    align-items:center!important;
-    justify-content:flex-end!important;
-    gap:8px!important;
-    white-space:nowrap!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .dashboard-shell-divider,
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .dashboard-shell-help-dot{
-    color:#94a3b8!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .dashboard-shell-support-link{
-    color:#0f172a!important;
-    text-decoration:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .dashboard-shell-support-link:hover,
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .ieum-shell-link:hover{
-    color:#1769c2!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .dashboard-shell-help-group{
-    display:inline-flex!important;
-    align-items:center!important;
-    gap:4px!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .ieum-right-rail{
-    display:none!important;
-}
-body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .wrap{
-    margin:0 0 0 260px!important;
-    padding:96px 40px 42px!important;
-    max-width:none!important;
-    width:auto!important;
-}
 body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .bar{
     padding:0!important;
     border:0!important;
@@ -362,20 +233,50 @@ body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .token code{
     margin-top:8px!important;
     word-break:break-all!important;
 }
-@media(max-width:980px){
-    body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .wrap{
-        margin:0!important;
-        padding:86px 14px 34px!important;
-    }
-    body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .ieum-shell-top{
-        left:0!important;
-        right:0!important;
-        padding:0 10px!important;
-    }
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark{
+    background:#0f1724!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .panel,
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .bar,
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .chip,
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .token,
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .queue-table-wrap{
+    background:#151f2e!important;
+    border-color:#2c3a4f!important;
+    color:#e5edf7!important;
+    box-shadow:none!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .meta{
+    color:#9aa8bb!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark th{
+    background:#1b2535!important;
+    color:#d9e2ef!important;
+    border-color:#2c3a4f!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark td{
+    background:#151f2e!important;
+    color:#d9e2ef!important;
+    border-color:#263244!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark input,
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark select,
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark textarea,
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .btn{
+    background:#111827!important;
+    border-color:#334155!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .primary,
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .btn.primary{
+    background:#1f7dd9!important;
+    border-color:#1f7dd9!important;
+    color:#fff!important;
 }
 </style>
 </head>
-<body class="ieum-side-layout ieum-dashboard-page ieum-simple-page sms-queue-page-tune">
+<body class="ieum-side-layout ieum-dashboard-page sms-queue-page-tune">
 <?php echo ieum_admin_header('sms_queue', 'side'); ?>
 <main class="wrap">
     <?php if ($message) { ?><div class="notice ok"><?php echo get_text($message); ?></div><?php } ?>
@@ -383,15 +284,15 @@ body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .token code{
     <div class="bar">
         <div>
             <h1>문자 발송현황</h1>
-            <div class="meta"><?php echo get_text($current_academy['academy_name']); ?> · 전송 대기/완료/실패를 최근 200건까지 확인합니다.</div>
+            <div class="meta"><?php echo get_text($current_academy['academy_name']); ?> · 발송 대기/완료/실패를 최근 200건까지 확인합니다.</div>
         </div>
     </div>
 
     <section class="panel">
         <div class="chips">
-            <span class="chip pending">전송 대기 <?php echo number_format(isset($summary['pending']) ? $summary['pending'] : 0); ?>건</span>
-            <span class="chip processing">전송 처리중 <?php echo number_format(isset($summary['processing']) ? $summary['processing'] : 0); ?>건</span>
-            <span class="chip sent">전송 완료 <?php echo number_format(isset($summary['sent']) ? $summary['sent'] : 0); ?>건</span>
+            <span class="chip pending">발송 대기 <?php echo number_format(isset($summary['pending']) ? $summary['pending'] : 0); ?>건</span>
+            <span class="chip processing">발송 중 <?php echo number_format(isset($summary['processing']) ? $summary['processing'] : 0); ?>건</span>
+            <span class="chip sent">발송 완료 <?php echo number_format(isset($summary['sent']) ? $summary['sent'] : 0); ?>건</span>
             <span class="chip failed">실패 확인 <?php echo number_format($failed_open_count); ?><?php echo $failed_total !== $failed_open_count ? '/' . number_format($failed_total) : ''; ?>건</span>
             <span class="chip canceled">발송 취소 <?php echo number_format(isset($summary['canceled']) ? $summary['canceled'] : 0); ?>건</span>
         </div>
@@ -399,10 +300,10 @@ body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .token code{
         <form method="get" class="filters">
             <select name="status">
                 <option value="">전체 상태</option>
-                <option value="pending" <?php echo get_selected($status, 'pending'); ?>>전송 대기</option>
-                <option value="processing" <?php echo get_selected($status, 'processing'); ?>>전송 처리중</option>
-                <option value="sent" <?php echo get_selected($status, 'sent'); ?>>전송 완료</option>
-                <option value="failed" <?php echo get_selected($status, 'failed'); ?>>전송 실패</option>
+                <option value="pending" <?php echo get_selected($status, 'pending'); ?>>발송 대기</option>
+                <option value="processing" <?php echo get_selected($status, 'processing'); ?>>발송 중</option>
+                <option value="sent" <?php echo get_selected($status, 'sent'); ?>>발송 완료</option>
+                <option value="failed" <?php echo get_selected($status, 'failed'); ?>>발송 실패</option>
                 <option value="canceled" <?php echo get_selected($status, 'canceled'); ?>>발송 취소</option>
             </select>
             <input type="date" name="date" value="<?php echo get_text($date); ?>">
@@ -480,7 +381,17 @@ body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .token code{
         </div>
     </section>
 </main>
-<script>
+<?php
+$sms_shortcut_js_catalog = array();
+foreach ($sms_shortcut_catalog as $shortcut_key => $shortcut_item) {
+    $sms_shortcut_js_catalog[$shortcut_key] = array(
+        'label' => isset($shortcut_item['label']) ? $shortcut_item['label'] : $shortcut_key,
+        'desc' => isset($shortcut_item['desc']) ? $shortcut_item['desc'] : '',
+        'url' => isset($shortcut_item['url']) ? $shortcut_item['url'] : '#',
+    );
+}
+?>
+<script type="text/plain" data-deprecated-shell-sync="common-ui-owned">
 (function(){
     var rootSelector = '.sms-queue-page-tune.ieum-dashboard-page';
     var brandText = document.querySelector(rootSelector + ' .side-brand span:last-child');
@@ -517,6 +428,191 @@ body.ieum-side-layout.ieum-dashboard-page.sms-queue-page-tune .token code{
             + '<span class="dashboard-shell-clock">' + hh + ':' + mm + '</span>'
             + '</span>';
     }
+})();
+</script>
+<script>
+(function(){
+    var rootSelector = '.sms-queue-page-tune.ieum-dashboard-page';
+    var shortcutCatalog = <?php echo json_encode($sms_shortcut_js_catalog, JSON_UNESCAPED_UNICODE); ?>;
+    var currentShortcutKeys = <?php echo json_encode(array_values($sms_shortcut_keys), JSON_UNESCAPED_UNICODE); ?>;
+    var defaultShortcutKeys = <?php echo json_encode(array_values($sms_default_shortcut_keys), JSON_UNESCAPED_UNICODE); ?>;
+    var shortcutMax = 6;
+    var shortcutSaveUrl = <?php echo json_encode(IEUM_URL . '/dashboard.php', JSON_UNESCAPED_UNICODE); ?>;
+    var shortcutCsrfToken = <?php echo json_encode($csrf_token, JSON_UNESCAPED_UNICODE); ?>;
+    var metaInner = document.querySelector(rootSelector + ' .dashboard-shell-meta-inner');
+    /*
+     * The shared top theme toggle is owned by lib/ui.php.
+     * Keep this old page-local block inert so favorite-star logic below still runs cleanly.
+     *
+    var themeIconPaths = {
+        dark: '<path d="M20 14.2A7.5 7.5 0 0 1 9.8 4a8 8 0 1 0 10.2 10.2Z"/>',
+        light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.9 4.9l1.4 1.4"/><path d="M17.7 17.7l1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M4.9 19.1l1.4-1.4"/><path d="M17.7 6.3l1.4-1.4"/>'
+    };
+    var setThemeButton = function(button, theme) {
+        var isDark = theme === 'dark';
+        document.body.classList.toggle('ieum-dark', isDark);
+        try {
+            localStorage.setItem('ieumDashboardTheme', isDark ? 'dark' : 'light');
+        } catch (error) {}
+        button.setAttribute('aria-label', isDark ? '라이트 모드로 변경' : '다크 모드로 변경');
+        button.setAttribute('title', isDark ? '라이트 모드로 변경' : '다크 모드로 변경');
+        button.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+        button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (isDark ? themeIconPaths.light : themeIconPaths.dark) + '</svg>';
+    };
+    if (metaInner && !metaInner.querySelector('.dashboard-theme-toggle')) {
+        var aiHelpLink = metaInner.querySelector('a[href*="#chatbot"], a[href*="topic=ai"]');
+        if (aiHelpLink) {
+            aiHelpLink.textContent = 'AI 챗봇';
+        }
+        var themeButton = document.createElement('button');
+        themeButton.type = 'button';
+        themeButton.className = 'dashboard-theme-toggle';
+        metaInner.appendChild(themeButton);
+        var savedTheme = '';
+        try {
+            savedTheme = localStorage.getItem('ieumDashboardTheme') || '';
+        } catch (error) {}
+        setThemeButton(themeButton, savedTheme === 'dark' || document.body.classList.contains('ieum-dark') ? 'dark' : 'light');
+        themeButton.addEventListener('click', function() {
+            setThemeButton(themeButton, document.body.classList.contains('ieum-dark') ? 'light' : 'dark');
+        });
+    }
+    */
+    var shortcutButtons = [];
+    var shortcutToast = document.createElement('span');
+    var shortcutToastTimer = null;
+    var shortcutToastDefault = '<span>최대 6개까지 선택할 수 있습니다.</span><span>보조정보- 업무바로가기에서 확인하세요.</span>';
+    shortcutToast.className = 'side-favorite-toast';
+    shortcutToast.innerHTML = shortcutToastDefault;
+    document.body.appendChild(shortcutToast);
+    var normalizeShortcutKeys = function(keys) {
+        var seen = {};
+        var normalized = [];
+        (keys || []).forEach(function(key) {
+            key = String(key || '');
+            if (!shortcutCatalog[key] || seen[key]) {
+                return;
+            }
+            seen[key] = true;
+            normalized.push(key);
+        });
+        return normalized.slice(0, shortcutMax);
+    };
+    currentShortcutKeys = normalizeShortcutKeys(currentShortcutKeys);
+    if (!currentShortcutKeys.length) {
+        currentShortcutKeys = normalizeShortcutKeys(defaultShortcutKeys);
+    }
+    var shortcutPath = function(url) {
+        try {
+            var parsed = new URL(url, window.location.href);
+            return parsed.pathname.replace(/\/+$/, '');
+        } catch (error) {
+            return String(url || '').split('?')[0].split('#')[0].replace(/\/+$/, '');
+        }
+    };
+    var shortcutByPath = {};
+    Object.keys(shortcutCatalog || {}).forEach(function(key) {
+        var path = shortcutPath(shortcutCatalog[key].url);
+        if (path && !shortcutByPath[path]) {
+            shortcutByPath[path] = key;
+        }
+    });
+    var showShortcutToast = function(button, message) {
+        shortcutToast.innerHTML = message || shortcutToastDefault;
+        var left = 214;
+        var top = 160;
+        if (button && button.getBoundingClientRect) {
+            var rect = button.getBoundingClientRect();
+            left = Math.max(12, rect.left - 166);
+            top = Math.max(72, rect.top + rect.height / 2 - 15);
+        }
+        shortcutToast.style.left = left + 'px';
+        shortcutToast.style.top = top + 'px';
+        shortcutToast.classList.add('is-show');
+        window.clearTimeout(shortcutToastTimer);
+        shortcutToastTimer = window.setTimeout(function() {
+            shortcutToast.classList.remove('is-show');
+        }, 1900);
+    };
+    var updateShortcutButtons = function() {
+        shortcutButtons.forEach(function(button) {
+            var key = button.getAttribute('data-shortcut-key') || '';
+            var item = shortcutCatalog[key] || {};
+            var active = currentShortcutKeys.indexOf(key) !== -1;
+            button.classList.toggle('is-active', active);
+            button.textContent = active ? '★' : '☆';
+            button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            button.setAttribute('title', active ? '업무 바로가기에서 제거' : '업무 바로가기에 추가');
+            button.setAttribute('aria-label', (item.label || '메뉴') + (active ? ' 즐겨찾기 제거' : ' 즐겨찾기 추가'));
+        });
+    };
+    var saveShortcutKeys = function(keys) {
+        if (!window.fetch || !window.FormData || !shortcutSaveUrl) {
+            return;
+        }
+        var formData = new FormData();
+        formData.append('csrf_token', shortcutCsrfToken);
+        formData.append('action', 'save_dashboard_shortcuts');
+        keys.forEach(function(key) {
+            formData.append('shortcut_keys[]', key);
+        });
+        fetch(shortcutSaveUrl, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        }).catch(function() {});
+    };
+    var toggleShortcut = function(key, button) {
+        if (!shortcutCatalog[key]) {
+            return;
+        }
+        var nextKeys = currentShortcutKeys.slice();
+        var index = nextKeys.indexOf(key);
+        if (index === -1) {
+            if (nextKeys.length >= shortcutMax) {
+                showShortcutToast(button, '');
+                return;
+            }
+            nextKeys.push(key);
+        } else {
+            nextKeys.splice(index, 1);
+        }
+        if (!nextKeys.length) {
+            nextKeys = normalizeShortcutKeys(defaultShortcutKeys);
+        }
+        currentShortcutKeys = normalizeShortcutKeys(nextKeys);
+        updateShortcutButtons();
+        if (button) {
+            button.classList.add('is-pulse');
+            window.setTimeout(function() {
+                button.classList.remove('is-pulse');
+            }, 170);
+        }
+        saveShortcutKeys(currentShortcutKeys);
+    };
+    document.querySelectorAll(rootSelector + ' .side-sub a').forEach(function(link) {
+        var key = shortcutByPath[shortcutPath(link.href)];
+        if (!key || link.closest('.side-favorite-row')) {
+            return;
+        }
+        var row = document.createElement('span');
+        row.className = 'side-favorite-row';
+        row.setAttribute('data-shortcut-key', key);
+        link.parentNode.insertBefore(row, link);
+        row.appendChild(link);
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'side-favorite-toggle';
+        button.setAttribute('data-shortcut-key', key);
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            toggleShortcut(key, button);
+        });
+        row.appendChild(button);
+        shortcutButtons.push(button);
+    });
+    updateShortcutButtons();
 })();
 </script>
 </body>
