@@ -241,6 +241,7 @@ function ieum_admin_shell_meta_html($academy_name = '')
     $html .= '<span class="dashboard-shell-academy">' . get_text($academy_name) . '</span>';
     $html .= '<span class="dashboard-shell-divider">|</span>';
     $html .= '<span class="dashboard-shell-clock" data-ieum-shell-clock>00:00</span>';
+    $html .= '<button type="button" class="dashboard-font-toggle" data-ieum-shell-font aria-label="메뉴 글자 크기 변경" title="메뉴 글자 크기 변경">가</button>';
     $html .= '<button type="button" class="dashboard-theme-toggle" data-ieum-shell-theme aria-label="다크 모드로 변경" title="다크 모드로 변경" aria-pressed="false"></button>';
     $html .= '</span>';
 
@@ -265,12 +266,15 @@ function ieum_admin_shell_script($academy_name = '')
         . 'var themePaths={dark:\'<path d="M20 14.2A7.5 7.5 0 0 1 9.8 4a8 8 0 1 0 10.2 10.2Z"/>\',light:\'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.9 4.9l1.4 1.4"/><path d="M17.7 17.7l1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M4.9 19.1l1.4-1.4"/><path d="M17.7 6.3l1.4-1.4"/>\'};'
         . 'function ready(fn){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",fn);}else{fn();}}'
         . 'function savedTheme(){try{return localStorage.getItem("ieumDashboardTheme")||"";}catch(e){return "";}}'
+        . 'function savedFont(){try{return localStorage.getItem("ieumShellFont")||"default";}catch(e){return "default";}}'
+        . 'function setFont(size){if(size!=="small"&&size!=="large"){size="default";}document.body.classList.toggle("ieum-font-small",size==="small");document.body.classList.toggle("ieum-font-large",size==="large");try{localStorage.setItem("ieumShellFont",size);}catch(e){}var btn=document.querySelector(".dashboard-font-toggle[data-ieum-shell-font]");if(!btn){return;}var label=size==="small"?"작게":(size==="large"?"크게":"기본");btn.setAttribute("aria-label","메뉴 글자 "+label);btn.setAttribute("title","메뉴 글자 "+label);btn.setAttribute("data-font-size",size);btn.textContent=size==="small"?"가":(size==="large"?"가+":"가");}'
         . 'function setTheme(theme){var isDark=theme==="dark";document.body.classList.toggle("ieum-dark",isDark);try{localStorage.setItem("ieumDashboardTheme",isDark?"dark":"light");}catch(e){}var btn=document.querySelector(".dashboard-theme-toggle[data-ieum-shell-theme]");if(!btn){return;}btn.setAttribute("aria-label",isDark?"라이트 모드로 변경":"다크 모드로 변경");btn.setAttribute("title",isDark?"라이트 모드로 변경":"다크 모드로 변경");btn.setAttribute("aria-pressed",isDark?"true":"false");btn.innerHTML=\'<svg viewBox="0 0 24 24" aria-hidden="true">\'+(isDark?themePaths.light:themePaths.dark)+"</svg>";}'
         . 'function tick(){var clock=document.querySelector(".dashboard-shell-clock[data-ieum-shell-clock]");if(!clock){return;}var now=new Date();clock.textContent=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");}'
-        . 'function shellLooksCommon(meta){var root=meta&&meta.querySelector("[data-ieum-shell-meta]");var ai=meta&&meta.querySelector("a[href*=\'topic=ai\']");return !!(root&&ai&&ai.textContent==="AI 챗봇"&&meta.querySelector(".dashboard-shell-clock[data-ieum-shell-clock]")&&meta.querySelector(".dashboard-theme-toggle[data-ieum-shell-theme]"));}'
+        . 'function shellLooksCommon(meta){var root=meta&&meta.querySelector("[data-ieum-shell-meta]");var ai=meta&&meta.querySelector("a[href*=\'topic=ai\']");return !!(root&&ai&&ai.textContent==="AI 챗봇"&&meta.querySelector(".dashboard-shell-clock[data-ieum-shell-clock]")&&meta.querySelector(".dashboard-font-toggle[data-ieum-shell-font]")&&meta.querySelector(".dashboard-theme-toggle[data-ieum-shell-theme]"));}'
         . 'function shellNeedsSync(){var brand=document.querySelector(".ieum-side .side-brand span:last-child");var home=document.querySelector(".ieum-shell-links .ieum-shell-link");var meta=document.querySelector(".ieum-shell-meta");if(brand&&academyName&&brand.textContent!==academyName){return true;}if(home&&(home.textContent!==homeText||home.getAttribute("href")!==homeUrl)){return true;}if(meta&&!shellLooksCommon(meta)){return true;}return false;}'
         . 'function bindTheme(){var btn=document.querySelector(".dashboard-theme-toggle[data-ieum-shell-theme]");if(!btn||btn.dataset.ieumThemeBound==="1"){return;}btn.dataset.ieumThemeBound="1";btn.addEventListener("click",function(){setTheme(document.body.classList.contains("ieum-dark")?"light":"dark");});}'
-        . 'function syncShell(){if(syncing){return;}syncing=true;var brand=document.querySelector(".ieum-side .side-brand span:last-child");if(brand&&academyName&&brand.textContent!==academyName){brand.textContent=academyName;}var home=document.querySelector(".ieum-shell-links .ieum-shell-link");if(home){if(home.textContent!==homeText){home.textContent=homeText;}if(home.getAttribute("href")!==homeUrl){home.setAttribute("href",homeUrl);}if(home.getAttribute("target")!=="_blank"){home.setAttribute("target","_blank");}if(home.getAttribute("rel")!=="noopener"){home.setAttribute("rel","noopener");}}var meta=document.querySelector(".ieum-shell-meta");if(meta&&!shellLooksCommon(meta)){meta.innerHTML=metaHtml;}bindTheme();setTheme(savedTheme()==="dark"||document.body.classList.contains("ieum-dark")?"dark":"light");tick();syncing=false;}'
+        . 'function bindFont(){var btn=document.querySelector(".dashboard-font-toggle[data-ieum-shell-font]");if(!btn||btn.dataset.ieumFontBound==="1"){return;}btn.dataset.ieumFontBound="1";btn.addEventListener("click",function(){var cur=savedFont();setFont(cur==="small"?"default":(cur==="default"?"large":"small"));});}'
+        . 'function syncShell(){if(syncing){return;}syncing=true;var brand=document.querySelector(".ieum-side .side-brand span:last-child");if(brand&&academyName&&brand.textContent!==academyName){brand.textContent=academyName;}var home=document.querySelector(".ieum-shell-links .ieum-shell-link");if(home){if(home.textContent!==homeText){home.textContent=homeText;}if(home.getAttribute("href")!==homeUrl){home.setAttribute("href",homeUrl);}if(home.getAttribute("target")!=="_blank"){home.setAttribute("target","_blank");}if(home.getAttribute("rel")!=="noopener"){home.setAttribute("rel","noopener");}}var meta=document.querySelector(".ieum-shell-meta");if(meta&&!shellLooksCommon(meta)){meta.innerHTML=metaHtml;}bindTheme();bindFont();setTheme(savedTheme()==="dark"||document.body.classList.contains("ieum-dark")?"dark":"light");setFont(savedFont());tick();syncing=false;}'
         . 'ready(function(){syncShell();setTimeout(syncShell,0);setTimeout(syncShell,300);setTimeout(syncShell,1000);window.setInterval(tick,30000);var shell=document.querySelector(".ieum-shell-top");var side=document.querySelector(".ieum-side");if(window.MutationObserver){var observer=new MutationObserver(function(){if(!syncing&&shellNeedsSync()){syncShell();}});if(shell){observer.observe(shell,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["href","target","rel"]});}if(side){observer.observe(side,{childList:true,subtree:true,characterData:true});}}});'
         . '})();</script>';
 }
@@ -1002,6 +1006,28 @@ html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-shell-clock{
     color:#0f172a!important;
     font-weight:900!important;
 }
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-font-toggle{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-width:30px!important;
+    height:30px!important;
+    margin-left:2px!important;
+    padding:0 7px!important;
+    border:1px solid #d6dee8!important;
+    border-radius:999px!important;
+    background:#fff!important;
+    color:#243142!important;
+    font-size:13px!important;
+    font-weight:900!important;
+    line-height:1!important;
+    box-shadow:none!important;
+    cursor:pointer!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-font-toggle:hover{
+    background:#f4f7fb!important;
+    border-color:#b9c8db!important;
+}
 html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-theme-toggle{
     display:inline-flex!important;
     align-items:center!important;
@@ -1029,6 +1055,38 @@ html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-theme-toggle sv
     stroke-width:1.9!important;
     stroke-linecap:round!important;
     stroke-linejoin:round!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-small .ieum-side .side-main-link,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-small .ieum-side .side-menu>summary{
+    min-height:40px!important;
+    font-size:14px!important;
+    font-weight:700!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-small .ieum-side .side-sub a{
+    min-height:31px!important;
+    font-size:13px!important;
+    font-weight:600!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-small .ieum-side .ieum-nav-icon{
+    width:17px!important;
+    height:17px!important;
+    flex-basis:17px!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-large .ieum-side .side-main-link,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-large .ieum-side .side-menu>summary{
+    min-height:44px!important;
+    font-size:16px!important;
+    font-weight:900!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-large .ieum-side .side-sub a{
+    min-height:36px!important;
+    font-size:15px!important;
+    font-weight:900!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-font-large .ieum-side .ieum-nav-icon{
+    width:19px!important;
+    height:19px!important;
+    flex-basis:19px!important;
 }
 html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-shell-quick{
     display:none!important;
@@ -1085,6 +1143,12 @@ html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .dashboard-shell
     background:transparent!important;
     border-color:transparent!important;
     color:#e5edf7!important;
+    box-shadow:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .dashboard-font-toggle{
+    background:#172132!important;
+    border-color:#334155!important;
+    color:#f8fafc!important;
     box-shadow:none!important;
 }
 html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .dashboard-theme-toggle{
