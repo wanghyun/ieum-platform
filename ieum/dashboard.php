@@ -484,6 +484,21 @@ function ieum_dashboard_boarding_status_label($status)
     return isset($labels[$status]) ? $labels[$status] : '미확인';
 }
 
+function ieum_dashboard_sms_status_label($status)
+{
+    $labels = array(
+        'pending' => '발송 대기',
+        'processing' => '발송 중',
+        'sent' => '발송 완료',
+        'failed' => '발송 실패',
+        'canceled' => '발송 취소',
+        'none' => '문자 없음',
+        '' => '문자 없음',
+    );
+
+    return isset($labels[$status]) ? $labels[$status] : '확인 필요';
+}
+
 $student = sql_fetch("
     select count(*) as cnt
       from " . IEUM_STUDENT_TABLE . "
@@ -1147,7 +1162,7 @@ exit;
                         <td><?php echo get_text(substr($row['checked_at'], 11, 5)); ?></td>
                         <td><?php echo get_text($row['student_code']); ?></td>
                         <td><?php echo get_text($row['student_name']); ?></td>
-                        <td class="<?php echo get_text($status); ?>"><?php echo get_text($status); ?></td>
+                        <td class="<?php echo get_text($status); ?>"><?php echo get_text(ieum_dashboard_sms_status_label($status)); ?></td>
                     </tr>
                     <?php } ?>
                     <?php if ($i === 0) { ?><tr><td colspan="4">오늘 등원 기록이 없습니다.</td></tr><?php } ?>
@@ -1209,7 +1224,7 @@ exit;
                 <h2>수련비/문자</h2>
                 <div class="link-list">
                     <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php"><strong>수련비 납부</strong><span>월별 납부/미납</span></a>
-                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/sms_queue.php"><strong>문자 발송 대기</strong><span>발송 상태 확인</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/sms_queue.php"><strong>문자 발송 현황</strong><span>성공과 실패 확인</span></a>
                 </div>
             </section>
             <section class="link-section">

@@ -3254,7 +3254,7 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .side-link{
     font-size:13px!important;
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-panel{
-    padding:16px!important;
+    padding:14px!important;
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-list-head{
     margin-bottom:12px!important;
@@ -3312,7 +3312,7 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap{
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap table{
     width:100%!important;
-    min-width:1240px!important;
+    min-width:1320px!important;
     table-layout:fixed!important;
     border-collapse:collapse!important;
 }
@@ -3339,19 +3339,19 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap 
     background:#f8fbff!important;
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(1),
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(1){width:13%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(1){width:12%!important}
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(2),
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(2){width:9%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(2){width:8%!important}
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(3),
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(3){width:11%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(3){width:10%!important}
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(4),
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(4){width:18%!important}
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(5),
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(5){width:32%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(5){width:34%!important}
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(6),
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(6){width:17%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(6){width:18%!important}
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td.student-row-actions{
-    padding:7px 8px!important;
+    padding:7px 10px!important;
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .name-link{
     color:#0f172a!important;
@@ -3385,8 +3385,8 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-signal-list
     flex-wrap:wrap!important;
     justify-content:flex-start!important;
     align-content:flex-start!important;
-    gap:5px!important;
-    max-height:48px!important;
+    gap:4px 5px!important;
+    max-height:43px!important;
     overflow:hidden!important;
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-badge{
@@ -3394,18 +3394,22 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-badge{
     padding:3px 6px!important;
     font-size:11px!important;
     line-height:1.25!important;
+    max-width:128px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box{
     display:grid!important;
-    grid-template-columns:54px minmax(92px,1fr) 42px!important;
-    gap:5px 6px!important;
+    grid-template-columns:54px minmax(96px,1fr) 44px!important;
+    gap:5px!important;
     align-items:start!important;
     width:100%!important;
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box>.btn,
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box>form.inline .btn{
     min-height:31px!important;
-    padding:5px 7px!important;
+    padding:5px 6px!important;
     border-radius:6px!important;
     font-size:12px!important;
 }
@@ -3439,6 +3443,7 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-
     min-height:29px!important;
     border-radius:6px!important;
     font-size:12px!important;
+    justify-content:center!important;
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .detail-modal,
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .edit-modal,

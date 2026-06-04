@@ -145,7 +145,7 @@ function ieum_admin_nav_items()
         'children' => array(
             'tuition_payments' => array('label' => '수련비 납부', 'icon' => 'credit-card', 'url' => IEUM_URL . '/admin/tuition_payments.php'),
             'family_billing' => array('label' => '형제/자매 청구', 'icon' => 'users', 'url' => IEUM_URL . '/admin/family_billing.php'),
-            'sms' => array('label' => '문자 발송현황', 'icon' => 'mail', 'url' => IEUM_URL . '/admin/sms_queue.php'),
+            'sms' => array('label' => '문자 발송 현황', 'icon' => 'mail', 'url' => IEUM_URL . '/admin/sms_queue.php'),
             'sms_devices' => array('label' => '문자 발송폰', 'icon' => 'phone', 'url' => IEUM_URL . '/admin/sms_devices.php'),
             'sms_templates' => array('label' => '문자 템플릿', 'icon' => 'message', 'url' => IEUM_URL . '/admin/sms_templates.php'),
             'tuition' => array('label' => '수련비 정책', 'icon' => 'credit-card', 'url' => IEUM_URL . '/admin/tuition.php'),
@@ -749,6 +749,9 @@ html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-brand-mar
 html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-profile,
 html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-search,
 html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-right-rail{
+    display:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-brand .side-brand-mark{
     display:none!important;
 }
 html body.ieum-side-layout.ieum-dashboard-page[class] .ieum-side .side-nav{
