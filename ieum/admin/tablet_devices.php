@@ -191,22 +191,249 @@ function ieum_tablet_remaining_text($datetime)
 *{box-sizing:border-box}
 body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}
-.wrap{max-width:1120px;margin:28px auto;padding:0 20px}.bar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:22px}.muted{color:#667085}.panel{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:22px;margin-top:18px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.notice{padding:12px 14px;border-radius:8px;margin:0 0 14px}.ok{background:#eaf7ef;color:#0f7a3a}.err{background:#fdecec;color:#a4262c}.btn{border:1px solid #cfd6df;background:#fff;border-radius:8px;padding:10px 14px;font-weight:900;cursor:pointer;text-decoration:none;color:#111827;display:inline-flex;align-items:center;justify-content:center}.btn.primary{background:#2248bf;border-color:#2248bf;color:#fff}.btn.danger{border-color:#fecaca;color:#b42318}input{height:42px;border:1px solid #cfd6df;border-radius:8px;padding:0 12px;width:100%;background:#fff}.connect-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:stretch}.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}.summary-card{border:1px solid #d9e1ec;border-radius:10px;padding:14px;background:#f8fafc}.summary-card span{display:block;color:#667085;font-size:13px}.summary-card strong{display:block;margin-top:4px;font-size:18px}.steps{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}.step{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:start;border:1px solid #d9e1ec;border-radius:10px;padding:12px;background:#fff}.step-no{width:30px;height:30px;border-radius:50%;background:#2248bf;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center}.step strong{display:block;margin-bottom:3px}.form-inline{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-top:14px}label{font-weight:900;display:grid;gap:6px}.qr-panel{border:2px solid #2248bf;border-radius:14px;background:#eef6ff;padding:20px;text-align:center}.qr-panel.empty{border-color:#d8dee9;background:#f8fafc}.code{font-size:48px;font-weight:1000;letter-spacing:8px;color:#2248bf}.expires{margin-top:2px;color:#667085}.qr-image{width:240px;height:240px;margin:16px auto 0;padding:10px;border-radius:12px;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:center}.qr-image img{display:block}.qr-server{margin-top:12px;text-align:left}.qr-server small{font-weight:400;color:#667085}.hint{font-size:13px;line-height:1.6;color:#667085;margin:10px 0 0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;background:#fff;min-width:760px}th,td{border:1px solid #d8dee9;padding:10px;text-align:left;vertical-align:middle}th{background:#71829f;color:#fff}.status{display:inline-flex;border-radius:999px;background:#eef2f7;padding:5px 9px;font-weight:900}.status.active{background:#eaf7ef;color:#0f7a3a}.status.pending{background:#fff6db;color:#946200}.status.revoked{background:#f2f4f7;color:#667085}.guide-card{background:#fbfcff;border:1px solid #d9e1ec;border-radius:10px;padding:14px;margin-top:14px}.guide-card ul{margin:8px 0 0;padding-left:18px;line-height:1.8;color:#475467}@media(max-width:920px){.connect-grid{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.summary{grid-template-columns:1fr}.form-inline{grid-template-columns:1fr}.code{font-size:40px}}
+.wrap{max-width:1900px;margin:28px auto;padding:0 20px}body.ieum-side-layout .wrap{max-width:1900px;margin:0;padding:28px 24px 44px}.bar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:22px}.muted{color:#667085}.panel{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:22px;margin-top:18px;box-shadow:0 8px 20px rgba(15,23,42,.06)}.notice{padding:12px 14px;border-radius:8px;margin:0 0 14px}.ok{background:#eaf7ef;color:#0f7a3a}.err{background:#fdecec;color:#a4262c}.btn{border:1px solid #cfd6df;background:#fff;border-radius:8px;padding:10px 14px;font-weight:900;cursor:pointer;text-decoration:none;color:#111827;display:inline-flex;align-items:center;justify-content:center}.btn.primary{background:#2248bf;border-color:#2248bf;color:#fff}.btn.danger{border-color:#fecaca;color:#b42318}input{height:42px;border:1px solid #cfd6df;border-radius:8px;padding:0 12px;width:100%;background:#fff}.connect-grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:stretch}.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}.summary-card{border:1px solid #d9e1ec;border-radius:10px;padding:14px;background:#f8fafc}.summary-card span{display:block;color:#667085;font-size:13px}.summary-card strong{display:block;margin-top:4px;font-size:18px}.steps{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}.step{display:grid;grid-template-columns:38px 1fr;gap:10px;align-items:start;border:1px solid #d9e1ec;border-radius:10px;padding:12px;background:#fff}.step-no{width:30px;height:30px;border-radius:50%;background:#2248bf;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center}.step strong{display:block;margin-bottom:3px}.form-inline{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-top:14px}label{font-weight:900;display:grid;gap:6px}.qr-panel{border:2px solid #2248bf;border-radius:14px;background:#eef6ff;padding:20px;text-align:center}.qr-panel.empty{border-color:#d8dee9;background:#f8fafc}.code{font-size:48px;font-weight:1000;letter-spacing:8px;color:#2248bf}.expires{margin-top:2px;color:#667085}.qr-image{width:240px;height:240px;margin:16px auto 0;padding:10px;border-radius:12px;background:#fff;box-shadow:0 8px 20px rgba(15,23,42,.08);display:flex;align-items:center;justify-content:center}.qr-image img{display:block}.qr-server{margin-top:12px;text-align:left}.qr-server small{font-weight:400;color:#667085}.hint{font-size:13px;line-height:1.6;color:#667085;margin:10px 0 0}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;background:#fff;min-width:760px}th,td{border:1px solid #d8dee9;padding:10px;text-align:left;vertical-align:middle}th{background:#71829f;color:#fff}.status{display:inline-flex;border-radius:999px;background:#eef2f7;padding:5px 9px;font-weight:900}.status.active{background:#eaf7ef;color:#0f7a3a}.status.pending{background:#fff6db;color:#946200}.status.revoked{background:#f2f4f7;color:#667085}.guide-card{background:#fbfcff;border:1px solid #d9e1ec;border-radius:10px;padding:14px;margin-top:14px}.guide-card ul{margin:8px 0 0;padding-left:18px;line-height:1.8;color:#475467}@media(max-width:920px){.connect-grid{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.summary{grid-template-columns:1fr}.form-inline{grid-template-columns:1fr}.code{font-size:40px}}
 </style>
 <style>
 .qr-warning{display:none;margin-top:8px;padding:9px 10px;border-radius:8px;background:#fff1f0;color:#b42318;font-size:13px;line-height:1.45}
 .qr-warning.on{display:block}
 .device-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.chips{display:flex;gap:8px;flex-wrap:wrap}.chip{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f7;color:#344054;padding:7px 10px;font-weight:900;font-size:13px}.chip.good{background:#eaf7ef;color:#0f7a3a}.chip.warn{background:#fff6db;color:#946200}.chip.expired{background:#fff1f0;color:#b42318}.device-name-form{display:flex;gap:6px;align-items:center}.device-name-form input{min-width:180px}.actions{display:flex;gap:6px;flex-wrap:wrap}.btn.small{height:38px;padding:8px 10px;font-size:13px}.btn.ghost{background:#f8fafc}.status.expired{background:#fff1f0;color:#b42318}.device-meta{display:block;margin-top:4px;color:#667085;font-size:12px}.device-code{font-size:20px;font-weight:1000;letter-spacing:2px;color:#1947ba}.device-help{display:block;margin-top:3px;color:#667085;font-size:12px}.empty-state{padding:28px;text-align:center;color:#667085}.guide-card strong{font-size:18px}.setup-banner{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;align-items:stretch;background:#f7f9ff;border:1px solid #dbe5ff;border-radius:12px;padding:16px;margin-top:18px}.setup-banner h2{margin-bottom:8px}.setup-list{display:grid;gap:8px}.setup-item{display:flex;gap:8px;align-items:center;color:#344054}.setup-dot{width:24px;height:24px;border-radius:999px;background:#2248bf;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:1000;flex:0 0 auto}.manual-card{background:#15204a;color:#fff;border-radius:12px;padding:16px}.manual-card strong{display:block;margin-bottom:6px;font-size:18px}.manual-card p{margin:0;color:#d8e2ff;line-height:1.6}.quick-help{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.help-card{border:1px solid #d9e1ec;border-radius:10px;background:#fff;padding:14px}.help-card strong{display:block;margin-bottom:6px}.help-card p{margin:0;color:#667085;font-size:13px;line-height:1.6}.form-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.45fr);gap:10px;align-items:end}@media(max-width:920px){.setup-banner,.quick-help,.form-row{grid-template-columns:1fr}}
 </style>
+<style>
+/* Dashboard shell alignment: the device screen should feel like the same admin desk. */
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune{
+    --ieum-side-width:260px;
+    --ieum-top-height:64px;
+    --ieum-rail-width:0px;
+    background:#f5f7fb!important;
+    color:#111827!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .ieum-side{
+    width:260px!important;
+    background:#fff!important;
+    border-right:1px solid #e2e8f0!important;
+    box-shadow:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-brand{
+    display:flex!important;
+    height:144px!important;
+    min-height:144px!important;
+    padding:0 28px!important;
+    background:#fff!important;
+    color:#0f172a!important;
+    font-size:29px!important;
+    letter-spacing:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-brand-mark,
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-profile,
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-search{
+    display:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-nav{
+    padding:0 14px 24px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-main-link,
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-menu>summary{
+    min-height:42px!important;
+    border-radius:6px!important;
+    padding:0 12px!important;
+    color:#0f172a!important;
+    font-size:15px!important;
+    font-weight:900!important;
+    letter-spacing:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-main-link:hover,
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-main-link.active,
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-menu[open]>summary,
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-menu>summary:hover{
+    background:#f1f5f9!important;
+    color:#0f172a!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .ieum-nav-label{
+    gap:10px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .ieum-nav-icon{
+    width:18px!important;
+    height:18px!important;
+    color:#334155!important;
+    opacity:1!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-sub{
+    margin:2px 0 8px!important;
+    padding:0 0 0 28px!important;
+    background:transparent!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-sub a{
+    min-height:34px!important;
+    border-radius:6px!important;
+    color:#475569!important;
+    font-size:14px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-sub a:hover,
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .side-sub a.active{
+    background:#f1f5f9!important;
+    color:#0f172a!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .ieum-shell-top{
+    left:260px!important;
+    right:0!important;
+    width:auto!important;
+    height:64px!important;
+    padding:0 40px!important;
+    background:#fff!important;
+    border-bottom:1px solid #e2e8f0!important;
+    box-shadow:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .ieum-shell-link{
+    flex:0 0 auto!important;
+    color:#0f172a!important;
+    font-weight:900!important;
+    text-decoration:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .ieum-shell-link:before{
+    display:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .ieum-shell-link:hover{
+    color:#1769c2!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .ieum-shell-meta{
+    margin-left:auto!important;
+    color:#0f172a!important;
+    font-size:13px!important;
+    font-weight:900!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .dashboard-shell-meta-inner{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:8px!important;
+    white-space:nowrap!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .dashboard-shell-divider,
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .dashboard-shell-help-dot{
+    color:#94a3b8!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .dashboard-shell-clock{
+    font-weight:1000!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .dashboard-shell-support-link{
+    color:#0f172a!important;
+    text-decoration:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .dashboard-shell-support-link:hover{
+    color:#1769c2!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .dashboard-shell-help-group{
+    display:inline-flex!important;
+    align-items:center!important;
+    gap:4px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .ieum-right-rail{
+    display:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .wrap{
+    margin:0 0 0 260px!important;
+    padding:96px 40px 42px!important;
+    max-width:none!important;
+    width:auto!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .bar{
+    align-items:flex-end!important;
+    margin-bottom:18px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .bar h1{
+    font-size:30px!important;
+    font-weight:1000!important;
+    letter-spacing:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .bar .muted{
+    margin:8px 0 0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .actions{
+    align-items:center!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .btn{
+    min-height:38px!important;
+    border-radius:6px!important;
+    font-size:14px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .setup-banner,
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .panel,
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .guide-card{
+    border-color:#dfe5ee!important;
+    border-radius:8px!important;
+    box-shadow:0 10px 24px rgba(15,23,42,.04)!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .setup-banner{
+    margin-top:0!important;
+    background:#fff!important;
+    padding:18px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .manual-card{
+    background:#f8fafc!important;
+    color:#0f172a!important;
+    border:1px solid #e2e8f0!important;
+    border-radius:8px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .manual-card p{
+    color:#475569!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .connect-grid{
+    grid-template-columns:minmax(0,1fr) minmax(360px,420px)!important;
+    gap:16px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .summary-card,
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .step,
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .help-card{
+    border-radius:8px!important;
+    border-color:#e2e8f0!important;
+    box-shadow:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .qr-panel{
+    border-radius:8px!important;
+    border:1px solid #cfe4ff!important;
+    background:#f0f7ff!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune table{
+    min-width:860px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune th{
+    background:#f3f6fb!important;
+    color:#334155!important;
+    border-color:#e2e8f0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune td{
+    border-color:#e5ebf3!important;
+}
+@media(max-width:1500px){
+    body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .connect-grid{
+        grid-template-columns:1fr!important;
+    }
+}
+@media(max-width:980px){
+    body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .wrap{
+        margin:0!important;
+        padding:86px 14px 34px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.tablet-page-tune .ieum-shell-top{
+        left:0!important;
+        right:0!important;
+        padding:0 10px!important;
+    }
+}
+</style>
 </head>
-<body>
-<?php echo ieum_admin_header('tablet_devices'); ?>
-<?php echo ieum_admin_subnav('tablet_devices'); ?>
+<body class="ieum-side-layout ieum-dashboard-page tablet-page-tune">
+<?php echo ieum_admin_header('tablet_devices', 'side'); ?>
 <main class="wrap">
     <div class="bar">
         <div>
             <h1>앱 출석기 관리</h1>
             <p class="muted"><?php echo get_text($academy['academy_name']); ?> 전용 출석 앱을 연결하고 관리합니다.</p>
+        </div>
+        <div class="actions">
+            <a class="btn" href="<?php echo IEUM_URL; ?>/admin/attendance_today.php">오늘 출석</a>
+            <a class="btn" href="<?php echo IEUM_URL; ?>/admin/student_groups.php">부별 명단</a>
+            <a class="btn" href="<?php echo IEUM_URL; ?>/admin/students.php">원생 관리</a>
         </div>
     </div>
 
@@ -456,5 +683,44 @@ body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-syst
         </ul>
     </section>
 </main>
+<script>
+(function(){
+    var rootSelector = '.tablet-page-tune.ieum-dashboard-page';
+    var brandText = document.querySelector(rootSelector + ' .side-brand span:last-child');
+    if (brandText) {
+        brandText.textContent = <?php echo json_encode($academy['academy_name']); ?>;
+    }
+
+    var homeLink = document.querySelector(rootSelector + ' .ieum-shell-link');
+    if (homeLink) {
+        homeLink.textContent = '아이이음 교육페이지';
+    }
+
+    var meta = document.querySelector(rootSelector + ' .ieum-shell-meta');
+    if (meta) {
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2, '0');
+        var mm = String(now.getMinutes()).padStart(2, '0');
+        meta.innerHTML = ''
+            + '<span class="dashboard-shell-meta-inner">'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php">개발지원센터</a>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span class="dashboard-shell-help-group">'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#qna">Q&A</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#faq">자주하는 질문</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#contact">문의하기</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#chatbot">AI 챗봇</a>'
+            + '</span>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span><?php echo get_text($academy['academy_name']); ?></span>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span class="dashboard-shell-clock">' + hh + ':' + mm + '</span>'
+            + '</span>';
+    }
+})();
+</script>
 </body>
 </html>

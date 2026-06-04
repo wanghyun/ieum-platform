@@ -1,0 +1,8 @@
+﻿<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="base_url">http://192.168.0.81</string>
+    <string name="academy_code">IEUMTKD001</string>
+    <string name="driver_token">eyJhIjoxLCJyIjoxLCJlIjoxNzgxNDQyODEzLCJpYXQiOjE3Nzg4NTA4MTN9.b624a4739c8c76fa9ae0f9bc43da57c741bc23a33ead1bb70f45fc14961932e6</string>
+    <int name="route_id" value="1" />
+    <string name="route_label">1호차 · 학교 픽업 A코스</string>
+</map>

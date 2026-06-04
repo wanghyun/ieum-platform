@@ -208,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!$clean_student_ids) {
-            $error = '배정할 학생을 선택하세요.';
+            $error = '배정할 원생을 선택하세요.';
         } elseif (empty($stop['stop_id'])) {
             $error = $ride_type === 'dropoff' ? '하원 정류장을 선택하세요.' : '등원 정류장을 선택하세요.';
         } else {
@@ -391,11 +391,34 @@ $assignment_labels = array(
     'none' => '미배정',
 );
 $display_total = count($students);
+$assignment_card_urls = array();
+foreach (array('', 'both', 'pickup_only', 'dropoff_only', 'none') as $assignment_key) {
+    $query = $_GET;
+    $query['page'] = 1;
+    if ($assignment_key === '') {
+        unset($query['assignment']);
+    } else {
+        $query['assignment'] = $assignment_key;
+    }
+    $assignment_card_urls[$assignment_key] = IEUM_URL . '/admin/vehicle_assignments.php?' . http_build_query($query);
+}
 $total_pages = max(1, (int) ceil($display_total / $page_size));
 if ($page > $total_pages) {
     $page = $total_pages;
 }
 $students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
+
+$active_runs = sql_query("
+    select vr.run_id, vr.ride_type, vr.route_id, vr.vehicle_label, vr.started_at, vr.last_location_at,
+           r.route_name, r.driver_name, r.driver_phone
+      from " . IEUM_VEHICLE_RUN_TABLE . " vr
+ left join " . IEUM_VEHICLE_ROUTE_TABLE . " r on r.route_id = vr.route_id and r.academy_id = vr.academy_id
+     where vr.academy_id = '{$academy_id}'
+       and vr.journal_date = '" . sql_escape_string(G5_TIME_YMD) . "'
+       and vr.status = 'active'
+  order by vr.started_at desc, vr.run_id desc
+     limit 8
+", false);
 ?>
 <!doctype html>
 <html lang="ko">
@@ -404,7 +427,7 @@ $students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:22px}.meta{color:#667085;margin-top:6px}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn,select,input[type=text]{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:800}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.btn.subtle{background:#f8fafc}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;margin-bottom:18px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.notice{border-radius:8px;padding:12px 14px;margin-bottom:14px;font-weight:800}.notice.ok{background:#eef9f1;color:#176b2c}.notice.err{background:#fdecec;color:#a4262c}.notice .btn{margin-left:8px;min-height:32px;padding:5px 10px}.filter,.bulk{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.bulk{background:#f8fafc;border:1px solid #d9dee7;border-radius:8px;padding:12px;margin-bottom:14px}.bulk input[type=text]{min-width:220px;flex:1}.bulk .check{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:8px 10px;border:1px solid #d9dee7;border-radius:8px;background:#fff;font-weight:800}.day-options{width:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #e2e8f0;padding-top:10px}.day-options strong{font-size:14px}.day-options label{display:inline-flex;align-items:center;gap:5px;border:1px solid #d9dee7;border-radius:999px;background:#fff;padding:7px 10px;font-weight:800}.custom-days{display:inline-flex;gap:6px;flex-wrap:wrap}.custom-days.is-hidden{display:none}.bulk-tools{width:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.selected-count{margin-left:auto;color:#1769c2;font-weight:900}.bulk-hint{width:100%;color:#667085;font-size:13px}.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:18px}.card{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:16px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.card span{display:block;color:#667085;font-size:13px;font-weight:800}.card strong{display:block;margin-top:5px;font-size:28px}.card.warn{border-color:#f4c27a;background:#fffaf0}.route-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.route-card{border:1px solid #d9dee7;border-radius:8px;padding:14px;background:#fff}.route-card h3{margin:0 0 8px;font-size:17px}.route-card .muted{color:#667085;font-size:13px}.route-counts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.route-counts div{border-radius:8px;background:#f4f7fb;padding:10px}.route-counts span{display:block;color:#667085;font-size:12px;font-weight:800}.route-counts strong{font-size:22px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:1020px}th,td{border:1px solid #d8dee9;padding:10px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.pick-col{width:42px}.badge{display:inline-flex;align-items:center;justify-content:center;min-width:76px;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900}.badge.both{background:#e8f5ef;color:#087443}.badge.pickup_only{background:#eaf2ff;color:#1769c2}.badge.dropoff_only{background:#fff4e5;color:#9a5b00}.badge.none{background:#feecec;color:#a4262c}.student-name{font-weight:900}.sub{display:block;color:#667085;font-size:12px;margin-top:3px}.vehicle-text{font-weight:800}.vehicle-memo{display:block;color:#667085;font-size:12px;margin-top:3px}.empty{padding:28px;text-align:center;color:#667085}.quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.quick a{display:inline-flex;border:1px solid #d9dee7;border-radius:999px;padding:6px 10px;text-decoration:none;color:#344054;background:#f8fafc;font-size:13px;font-weight:800}.quick a.active{background:#1769c2;border-color:#1769c2;color:#fff}@media(max-width:980px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.route-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.selected-count{margin-left:0;width:100%}}@media(max-width:620px){.wrap{padding:0 14px}.cards,.route-grid{grid-template-columns:1fr}.hero{align-items:flex-start}.actions .btn{width:100%}.filter select,.filter .btn,.bulk select,.bulk input,.bulk .btn{width:100%}.notice .btn{margin:8px 0 0;width:100%}.day-options label{width:100%}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1900px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;margin-bottom:18px;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:22px}.meta{color:#667085;margin-top:6px}.hint{margin:-6px 0 14px;color:#667085;font-size:13px;line-height:1.45}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn,select,input[type=text]{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #cfd6df;border-radius:8px;background:#fff;color:#111827;text-decoration:none;padding:9px 12px;font-weight:800}.btn.primary{background:#1769c2;border-color:#1769c2;color:#fff}.btn.subtle{background:#f8fafc}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;margin-bottom:18px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.notice{border-radius:8px;padding:12px 14px;margin-bottom:14px;font-weight:800}.notice.ok{background:#eef9f1;color:#176b2c}.notice.err{background:#fdecec;color:#a4262c}.notice .btn{margin-left:8px;min-height:32px;padding:5px 10px}.filter,.bulk{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.bulk{background:#f8fafc;border:1px solid #d9dee7;border-radius:8px;padding:12px;margin-bottom:14px}.bulk input[type=text]{min-width:220px;flex:1}.bulk .check{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:8px 10px;border:1px solid #d9dee7;border-radius:8px;background:#fff;font-weight:800}.day-options{width:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid #e2e8f0;padding-top:10px}.day-options strong{font-size:14px}.day-options label{display:inline-flex;align-items:center;gap:5px;border:1px solid #d9dee7;border-radius:999px;background:#fff;padding:7px 10px;font-weight:800}.custom-days{display:inline-flex;gap:6px;flex-wrap:wrap}.custom-days.is-hidden{display:none}.bulk-tools{width:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.selected-count{margin-left:auto;color:#1769c2;font-weight:900}.bulk-hint{width:100%;color:#667085;font-size:13px}.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:18px}.card{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:16px;box-shadow:0 8px 20px rgba(15,23,42,.05)}.card span{display:block;color:#667085;font-size:13px;font-weight:800}.card strong{display:block;margin-top:5px;font-size:28px}.card.warn{border-color:#f4c27a;background:#fffaf0}.route-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.route-card{border:1px solid #d9dee7;border-radius:8px;padding:14px;background:#fff}.route-card h3{margin:0 0 8px;font-size:17px}.route-card .muted{color:#667085;font-size:13px}.route-counts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.route-counts div{border-radius:8px;background:#f4f7fb;padding:10px}.route-counts span{display:block;color:#667085;font-size:12px;font-weight:800}.route-counts strong{font-size:22px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:1020px}th,td{border:1px solid #d8dee9;padding:10px;text-align:center;font-size:14px;vertical-align:middle}th{background:#72829d;color:#fff}.left{text-align:left}.pick-col{width:42px}.badge{display:inline-flex;align-items:center;justify-content:center;min-width:76px;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900}.badge.both{background:#e8f5ef;color:#087443}.badge.pickup_only{background:#eaf2ff;color:#1769c2}.badge.dropoff_only{background:#fff4e5;color:#9a5b00}.badge.none{background:#feecec;color:#a4262c}.student-name{font-weight:900}.sub{display:block;color:#667085;font-size:12px;margin-top:3px}.vehicle-text{font-weight:800}.vehicle-memo{display:block;color:#667085;font-size:12px;margin-top:3px}.empty{padding:28px;text-align:center;color:#667085}.quick{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.quick a{display:inline-flex;border:1px solid #d9dee7;border-radius:999px;padding:6px 10px;text-decoration:none;color:#344054;background:#f8fafc;font-size:13px;font-weight:800}.quick a.active{background:#1769c2;border-color:#1769c2;color:#fff}@media(max-width:980px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.route-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.selected-count{margin-left:0;width:100%}}@media(max-width:620px){.wrap{padding:0 14px}.cards,.route-grid{grid-template-columns:1fr}.hero{align-items:flex-start}.actions .btn{width:100%}.filter select,.filter .btn,.bulk select,.bulk input,.bulk .btn{width:100%}.notice .btn{margin:8px 0 0;width:100%}.day-options label{width:100%}}
 </style>
 <style>
 .pager{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
@@ -412,11 +435,60 @@ $students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
 .pages{display:flex;gap:5px;flex-wrap:wrap}
 .pages a,.pages span{display:inline-flex;align-items:center;justify-content:center;min-width:34px;min-height:34px;border:1px solid #d9dee7;border-radius:8px;background:#fff;color:#344054;text-decoration:none;font-weight:900}
 .pages span{background:#1769c2;border-color:#1769c2;color:#fff}
+.cards a.card{color:#111827;text-decoration:none}
+.cards a.card:hover{border-color:#1769c2;background:#f8fbff;box-shadow:0 12px 26px rgba(23,105,194,.12);transform:translateY(-1px)}
+</style>
+<style>
+body.vehicle-assignments-page-tune .wrap{max-width:none!important;margin:0 86px 0 248px!important;padding:84px 28px 42px!important}
+body.vehicle-assignments-page-tune .top,
+body.vehicle-assignments-page-tune .ieum-subnav-wrap{display:none!important}
+body.vehicle-assignments-page-tune .hero{padding:6px 0 4px;margin-bottom:18px}
+body.vehicle-assignments-page-tune .panel,
+body.vehicle-assignments-page-tune .card{border-radius:16px;border-color:#dbe3ef;box-shadow:0 12px 28px rgba(15,23,42,.06)}
+body.vehicle-assignments-page-tune .btn,
+body.vehicle-assignments-page-tune select,
+body.vehicle-assignments-page-tune input[type=text]{border-radius:10px}
+@media(max-width:1100px){body.vehicle-assignments-page-tune .wrap{margin:0 74px 0 0!important;padding:84px 18px 32px!important}}
+body.ieum-side-layout.ieum-dashboard-page.vehicle-assignments-page-tune{
+    --ieum-side-width:260px;
+    --ieum-top-height:64px;
+    --ieum-rail-width:0px;
+    --ieum-shell-top:#fff;
+    background:#f5f7fb!important;
+    color:#111827!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.vehicle-assignments-page-tune .ieum-side{
+    width:260px!important;
+    background:#fff!important;
+    border-right:1px solid #e5e7eb!important;
+    box-shadow:none!important;
+}
+.vehicle-assignments-page-tune .side-brand{height:144px!important;padding:0 28px!important;align-items:center!important;font-size:30px!important;font-weight:900!important;letter-spacing:0!important}
+.vehicle-assignments-page-tune .side-brand-mark,
+.vehicle-assignments-page-tune .side-profile,
+.vehicle-assignments-page-tune .side-search,
+.vehicle-assignments-page-tune .ieum-right-rail{display:none!important}
+.vehicle-assignments-page-tune .side-nav{padding:0 14px 22px!important}
+.vehicle-assignments-page-tune .side-nav a{border-radius:8px!important;color:#0f172a!important}
+.vehicle-assignments-page-tune .side-nav a.active{background:#f1f5f9!important;color:#0f172a!important}
+.vehicle-assignments-page-tune .ieum-shell-top{left:260px!important;right:0!important;height:64px!important;background:#fff!important;border-bottom:1px solid #eef2f7!important;color:#0f172a!important;box-shadow:none!important}
+.vehicle-assignments-page-tune .ieum-shell-link,
+.vehicle-assignments-page-tune .dashboard-shell-support-link{color:#0f172a!important;text-decoration:none!important;font-weight:800!important}
+.vehicle-assignments-page-tune .ieum-shell-link::before{display:none!important}
+.vehicle-assignments-page-tune .ieum-shell-meta{color:#0f172a!important}
+.vehicle-assignments-page-tune .dashboard-shell-meta-inner{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.vehicle-assignments-page-tune .dashboard-shell-divider,
+.vehicle-assignments-page-tune .dashboard-shell-help-dot{color:#94a3b8}
+body.ieum-side-layout.ieum-dashboard-page.vehicle-assignments-page-tune .wrap{max-width:none!important;width:auto!important;margin:0 0 0 260px!important;padding:96px 40px 42px!important}
+@media(max-width:980px){
+    body.ieum-side-layout.ieum-dashboard-page.vehicle-assignments-page-tune{--ieum-side-width:0px}
+    .vehicle-assignments-page-tune .ieum-shell-top{left:0!important}
+    body.ieum-side-layout.ieum-dashboard-page.vehicle-assignments-page-tune .wrap{margin-left:0!important;padding:88px 16px 32px!important}
+}
 </style>
 </head>
-<body>
-<?php echo ieum_admin_header('vehicle_assignments'); ?>
-<?php echo ieum_admin_subnav('vehicle_assignments'); ?>
+<body class="ieum-side-layout ieum-dashboard-page vehicle-assignments-page-tune">
+<?php echo ieum_admin_header('vehicle_assignments', 'side'); ?>
 <main class="wrap">
     <div class="hero">
         <div>
@@ -424,9 +496,9 @@ $students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
             <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 호차별 등원/하원 배정 확인</div>
         </div>
         <div class="actions">
-            <a class="btn" href="<?php echo IEUM_URL; ?>/admin/vehicles.php">차량 관리</a>
+            <a class="btn" href="<?php echo IEUM_URL; ?>/admin/vehicles.php">차량/노선 설정</a>
             <a class="btn" href="<?php echo IEUM_URL; ?>/admin/vehicle_journal.php">차량 일지</a>
-            <a class="btn primary" href="<?php echo IEUM_URL; ?>/admin/students.php">학생 관리</a>
+            <a class="btn primary" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php">오늘 탑승</a>
         </div>
     </div>
     <?php if ($message !== '') { ?><div class="notice ok"><?php echo get_text($message); ?><?php if ($journal_link !== '') { ?><a class="btn" href="<?php echo get_text($journal_link); ?>">차량 일지 확인</a><?php } ?></div><?php } ?>
@@ -477,15 +549,16 @@ $students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
     </section>
 
     <section class="cards">
-        <article class="card"><span>조회 학생</span><strong><?php echo number_format((int) $summary['total']); ?>명</strong></article>
-        <article class="card"><span>등원+하원</span><strong><?php echo number_format((int) $summary['both']); ?>명</strong></article>
-        <article class="card"><span>등원만</span><strong><?php echo number_format((int) $summary['pickup_only']); ?>명</strong></article>
-        <article class="card"><span>하원만</span><strong><?php echo number_format((int) $summary['dropoff_only']); ?>명</strong></article>
-        <article class="card warn"><span>미배정</span><strong><?php echo number_format((int) $summary['none']); ?>명</strong></article>
+        <a class="card" href="<?php echo get_text($assignment_card_urls['']); ?>"><span>조회 원생</span><strong><?php echo number_format((int) $summary['total']); ?>명</strong></a>
+        <a class="card" href="<?php echo get_text($assignment_card_urls['both']); ?>"><span>등원+하원</span><strong><?php echo number_format((int) $summary['both']); ?>명</strong></a>
+        <a class="card" href="<?php echo get_text($assignment_card_urls['pickup_only']); ?>"><span>등원만</span><strong><?php echo number_format((int) $summary['pickup_only']); ?>명</strong></a>
+        <a class="card" href="<?php echo get_text($assignment_card_urls['dropoff_only']); ?>"><span>하원만</span><strong><?php echo number_format((int) $summary['dropoff_only']); ?>명</strong></a>
+        <a class="card warn" href="<?php echo get_text($assignment_card_urls['none']); ?>"><span>미배정</span><strong><?php echo number_format((int) $summary['none']); ?>명</strong></a>
     </section>
 
     <section class="panel">
         <h2>호차/노선별 배정</h2>
+        <p class="hint">차량 화면은 배정, 탑승 확인, 운행표 출력만 담당합니다. 원생의 기본 정보 수정은 원생관리에서 처리합니다.</p>
         <div class="route-grid">
             <?php foreach ($route_summary as $route) { ?>
             <article class="route-card">
@@ -505,7 +578,7 @@ $students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
     <input type="hidden" name="csrf_token" value="<?php echo get_text($csrf_token); ?>">
     <input type="hidden" name="action" value="bulk_assign">
     <section class="panel">
-        <h2>학생별 배정 상태</h2>
+        <h2>원생별 배정 상태</h2>
         <div class="bulk">
             <select name="ride_type" id="bulkRideType">
                 <option value="pickup">등원 차량 배정</option>
@@ -522,10 +595,10 @@ $students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
             </select>
             <input type="text" name="bulk_memo" placeholder="차량 메모 선택 입력">
             <label class="check"><input type="checkbox" name="overwrite_existing" value="1"> 기존 배정 덮어쓰기</label>
-            <button type="submit" class="btn primary">선택 학생 일괄 배정</button>
+            <button type="submit" class="btn primary">선택 원생 일괄 배정</button>
             <div class="day-options">
                 <strong>차량 요일</strong>
-                <label><input type="radio" name="ride_day_mode" value="student" checked> 학생 출석 요일 사용</label>
+                <label><input type="radio" name="ride_day_mode" value="student" checked> 원생 출석 요일 사용</label>
                 <label><input type="radio" name="ride_day_mode" value="custom"> 직접 선택</label>
                 <span class="custom-days is-hidden" id="customRideDays">
                     <label><input type="checkbox" name="ride_days[]" value="mon" checked> 월</label>
@@ -542,7 +615,7 @@ $students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
                 <button type="button" class="btn subtle" id="clearSelectedStudents">선택 해제</button>
                 <span class="selected-count" id="selectedStudentCount">선택 0명</span>
             </div>
-            <div class="bulk-hint">기본은 이미 배정된 학생을 건너뜁니다. 요일을 직접 선택하면 선택한 요일에만 차량 일지와 탑승 확인에 표시됩니다.</div>
+            <div class="bulk-hint">기본은 이미 배정된 원생을 건너뜁니다. 요일을 직접 선택하면 선택한 요일에만 차량 일지와 탑승 확인에 표시됩니다.</div>
         </div>
         <div class="table-wrap">
             <table>
@@ -550,7 +623,7 @@ $students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
                     <tr>
                         <th class="pick-col"><input type="checkbox" id="checkAllStudents" aria-label="전체 선택"></th>
                         <th>상태</th>
-                        <th>학생</th>
+                        <th>원생</th>
                         <th>프로그램/학년</th>
                         <th>수업 부</th>
                         <th>등원 차량</th>
@@ -587,7 +660,7 @@ $students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
                     </tr>
                     <?php } ?>
                     <?php if (!$students_page) { ?>
-                    <tr><td colspan="8" class="empty">조건에 맞는 학생이 없습니다.</td></tr>
+                    <tr><td colspan="8" class="empty">조건에 맞는 원생이 없습니다.</td></tr>
                     <?php } ?>
                 </tbody>
             </table>
@@ -612,6 +685,45 @@ $students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
     </section>
     </form>
 </main>
+<script>
+(function(){
+    var rootSelector = '.vehicle-assignments-page-tune.ieum-dashboard-page';
+    var brandText = document.querySelector(rootSelector + ' .side-brand span:last-child');
+    if (brandText) {
+        brandText.textContent = <?php echo json_encode($academy['academy_name']); ?>;
+    }
+
+    var homeLink = document.querySelector(rootSelector + ' .ieum-shell-link');
+    if (homeLink) {
+        homeLink.textContent = '아이이음 교육페이지';
+    }
+
+    var meta = document.querySelector(rootSelector + ' .ieum-shell-meta');
+    if (meta) {
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2, '0');
+        var mm = String(now.getMinutes()).padStart(2, '0');
+        meta.innerHTML = ''
+            + '<span class="dashboard-shell-meta-inner">'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php">개발지원센터</a>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span class="dashboard-shell-help-group">'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#qna">Q&A</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#faq">자주하는 질문</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#contact">문의하기</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#chatbot">AI 챗봇</a>'
+            + '</span>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span><?php echo get_text($academy['academy_name']); ?></span>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span class="dashboard-shell-clock">' + hh + ':' + mm + '</span>'
+            + '</span>';
+    }
+})();
+</script>
 <script>
 (function(){
     var checkAll = document.getElementById('checkAllStudents');
@@ -695,7 +807,7 @@ $students_page = array_slice($students, ($page - 1) * $page_size, $page_size);
             checks.forEach(function(check){ if (check.checked) { checked++; } });
             if (checked === 0) {
                 event.preventDefault();
-                alert('배정할 학생을 선택하세요.');
+                alert('배정할 원생을 선택하세요.');
                 return;
             }
             if (stopSelect && stopSelect.value === '0') {

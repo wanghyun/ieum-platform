@@ -78,7 +78,7 @@ function ieum_project_status_label($status)
 $phase1_items = array(
     array('area' => '출석/문자', 'status' => 'done', 'title' => '학생번호 등원, 중복 방지, 문자 큐', 'note' => '1구간 핵심 흐름은 동작 확인됨. 실제 문자 발송은 도장별 운영 전 최종 점검 필요.'),
     array('area' => '출석 앱', 'status' => 'review', 'title' => '태블릿 앱 QR 연결과 등원 화면', 'note' => '연결/입력은 동작. 7인치/10인치 실기기 화면과 화면 고정 운영 안내가 추가 검증 포인트.'),
-    array('area' => '학생 관리', 'status' => 'review', 'title' => '보호자, 프로그램, 학년/부, 수업부, 차량', 'note' => '기본 구조는 갖춤. 프로그램 필터와 대량 원생 관리 UX 보강 필요.'),
+    array('area' => '학생 관리', 'status' => 'done', 'title' => '신규 등록, 등록 학생 수정, 대량 원생 목록', 'note' => '필수 정보 빠른 등록, 상세 패널, 필터, 일괄 변경, 엑셀 이동 준비까지 1차 운영 흐름이 잡힘.'),
     array('area' => '수련비', 'status' => 'review', 'title' => '정책, 납부, 자동 발송 설정', 'note' => '청구/미납 흐름은 준비됨. 비대면 결제 연동 전 상태값과 발송 로그 정리가 필요.'),
     array('area' => '차량', 'status' => 'review', 'title' => '차량/노선/정류장, 일지, 탑승 확인', 'note' => '운영 골격은 좋음. 요일별 예외와 모바일 탑승확인 기록의 실제 기사님 UX 확인 필요.'),
     array('area' => '인성 리포트', 'status' => 'review', 'title' => '주간 입력, 월간 리포트, 아이잘해 미션, 성장 레벨', 'note' => '기능 방향은 맞음. 학부모용 A4/모바일 디자인 고도화가 상품성 핵심.'),
@@ -89,14 +89,19 @@ $phase1_items = array(
 $phase1_total = count($phase1_items);
 $phase1_done = 0;
 $phase1_review = 0;
+$phase1_score = 0;
 foreach ($phase1_items as $item) {
     if ($item['status'] === 'done') {
         $phase1_done++;
+        $phase1_score += 100;
     } elseif ($item['status'] === 'review') {
         $phase1_review++;
+        $phase1_score += 60;
+    } elseif ($item['status'] === 'hold') {
+        $phase1_score += 20;
     }
 }
-$phase1_percent = $phase1_total ? (int) round(($phase1_done / $phase1_total) * 100) : 0;
+$phase1_percent = $phase1_total ? (int) round($phase1_score / $phase1_total) : 0;
 
 function ieum_project_phase_status_label($status)
 {
@@ -107,11 +112,39 @@ function ieum_project_phase_status_label($status)
 $scenario_items = array(
     array('status' => 'done', 'title' => 'Git 정리와 원격 백업', 'detail' => '빌드 산출물 추적 제거, 기능 변경 분리 커밋, GitHub push 완료'),
     array('status' => 'ready', 'title' => '학생 등록', 'detail' => '프로그램, 학년/부, 수업부, 보호자, 수련비, 차량 정보를 한 학생 기준으로 끝까지 입력'),
+    array('status' => 'ready', 'title' => '학생 대량 이관', 'detail' => '에듀패밀리 원생 엑셀 업로드, 검토 화면, 프로그램/수업부 연결, 확인 필요 행 다운로드 확인'),
     array('status' => 'ready', 'title' => '출석 앱 연결', 'detail' => '태블릿 QR 연결, 기기명 확인, 잘못 입력/중복 번호/등원 완료 10초 표시 확인'),
     array('status' => 'ready', 'title' => '출석 → 문자 큐', 'detail' => '등원 처리 후 보호자 문자 큐 생성, 수신 대상 체크, 중복 등원 방지 확인'),
     array('status' => 'ready', 'title' => '차량 운영', 'detail' => '등원/하원 차량 배정, 차량 일지, 탑승 확인, 차량 메모 대시보드 노출 확인'),
     array('status' => 'ready', 'title' => '수련비 운영', 'detail' => '납부일 자동 발송 설정, 미리 납부자 제외, 미납 포함 청구 문구 확인'),
     array('status' => 'ready', 'title' => '인성 입력', 'detail' => '부별 인성 입력, 아이잘해 미션 참여 체크, 월간 학부모 리포트 확인'),
+);
+
+$next_priority_items = array(
+    array(
+        'title' => '1. 학생관리 실사용 마감',
+        'detail' => '신규 등록, 학생명 팝업 수정, 엑셀 이관, 프로그램/부 필터, 일괄 변경을 100~200명 기준으로 점검',
+    ),
+    array(
+        'title' => '2. 오늘 출석/Daily 화면 마감',
+        'detail' => '오늘 수업 대상, 미등원, 직접 등원 처리, 생일, 장기 미등원, 차량 메모, 수련비 신호를 하루 운영 기준으로 정리',
+    ),
+    array(
+        'title' => '3. 수련비/결제선생 준비',
+        'detail' => '형제·자매 묶음 청구, 자동 발송 제외 규칙, 미납 포함 청구, 도장별 발송 로그와 본사 사용량 집계 준비',
+    ),
+    array(
+        'title' => '4. 차량 기사님 흐름',
+        'detail' => '기사님 모바일 탑승/미탑승/통화/메모, 관리자 확인 처리, 네이버 지도 정류장/노선 실사용 검증',
+    ),
+    array(
+        'title' => '5. 월말 운영 루틴',
+        'detail' => '수련비, 장기 미등원, 상담 필요, 인성 입력 누락, 리포트 발송 대상을 월말 체크 화면으로 묶기',
+    ),
+    array(
+        'title' => '6. 인성/성장 상품성',
+        'detail' => '학부모용 A4/모바일 디자인, 아이잘해 미션, 성장 레벨, 6개월·12개월 종합 리포트 고도화',
+    ),
 );
 
 function ieum_project_scenario_status_label($status)
@@ -127,7 +160,7 @@ function ieum_project_scenario_status_label($status)
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>아이이음 프로젝트 진행 현황</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1180px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}.meta{color:#667085;margin-top:6px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.form-grid{display:grid;grid-template-columns:1fr 120px;gap:10px}.form-grid textarea{grid-column:1 / -1;min-height:90px}input,select,textarea{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px;width:100%}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #1769c2;border-radius:8px;background:#1769c2;color:#fff;text-decoration:none;padding:9px 13px;font-weight:800;cursor:pointer}.task{border:1px solid #d8dee9;border-radius:8px;padding:14px;margin-top:10px;background:#fff}.task-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2ff;color:#253469;padding:4px 10px;font-weight:800;font-size:12px}.task p{line-height:1.55}.muted{color:#667085;font-size:13px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.phase-head{display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:center}.phase-score{border:1px solid #d9dee7;border-radius:8px;padding:16px;background:#f8fbff}.phase-score strong{display:block;font-size:34px}.progress{height:12px;background:#e9eef6;border-radius:999px;overflow:hidden;margin-top:10px}.progress span{display:block;height:100%;background:#1769c2}.phase-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}.phase-item{border:1px solid #d9dee7;border-radius:8px;padding:13px;background:#fff}.phase-item h3{margin:6px 0 6px;font-size:16px}.phase-item p{margin:0;color:#667085;font-size:13px;line-height:1.5}.phase-badge{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:900}.phase-badge.done{background:#eef9f1;color:#176b2c}.phase-badge.review{background:#fff8e6;color:#8a5200}.phase-badge.todo{background:#eef2ff;color:#253469}.next-list{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.next-card{border:1px solid #d9dee7;border-radius:8px;padding:13px;background:#fff}.next-card strong{display:block;margin-bottom:5px}.scenario-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}.scenario{display:grid;grid-template-columns:94px 1fr;gap:12px;border:1px solid #d9dee7;border-radius:8px;padding:13px;background:#fff}.scenario-state{display:inline-flex;align-items:center;justify-content:center;align-self:start;min-height:32px;border-radius:999px;font-size:12px;font-weight:900}.scenario-state.done{background:#eef9f1;color:#176b2c}.scenario-state.ready{background:#eef2ff;color:#253469}.scenario-state.issue{background:#fdecec;color:#a4262c}.scenario strong{display:block;margin-bottom:4px}.scenario p{margin:0;color:#667085;font-size:13px;line-height:1.5}@media(max-width:900px){.phase-head,.phase-grid,.next-list,.scenario-list{grid-template-columns:1fr}}@media(max-width:760px){.form-grid{grid-template-columns:1fr}.ieum-user{margin-left:0}.task-head{align-items:flex-start;flex-direction:column}.scenario{grid-template-columns:1fr}.scenario-state{justify-content:flex-start;padding:6px 10px}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1900px;margin:28px auto;padding:0 20px}.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}.meta{color:#667085;margin-top:6px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:18px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.form-grid{display:grid;grid-template-columns:1fr 120px;gap:10px}.form-grid textarea{grid-column:1 / -1;min-height:90px}input,select,textarea{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px;width:100%}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;border:1px solid #1769c2;border-radius:8px;background:#1769c2;color:#fff;text-decoration:none;padding:9px 13px;font-weight:800;cursor:pointer}.task{border:1px solid #d8dee9;border-radius:8px;padding:14px;margin-top:10px;background:#fff}.task-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2ff;color:#253469;padding:4px 10px;font-weight:800;font-size:12px}.task p{line-height:1.55}.muted{color:#667085;font-size:13px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.phase-head{display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:center}.phase-score{border:1px solid #d9dee7;border-radius:8px;padding:16px;background:#f8fbff}.phase-score strong{display:block;font-size:34px}.progress{height:12px;background:#e9eef6;border-radius:999px;overflow:hidden;margin-top:10px}.progress span{display:block;height:100%;background:#1769c2}.phase-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}.phase-item{border:1px solid #d9dee7;border-radius:8px;padding:13px;background:#fff}.phase-item h3{margin:6px 0 6px;font-size:16px}.phase-item p{margin:0;color:#667085;font-size:13px;line-height:1.5}.phase-badge{display:inline-flex;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:900}.phase-badge.done{background:#eef9f1;color:#176b2c}.phase-badge.review{background:#fff8e6;color:#8a5200}.phase-badge.todo{background:#eef2ff;color:#253469}.next-list{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.next-card{border:1px solid #d9dee7;border-radius:8px;padding:13px;background:#fff}.next-card strong{display:block;margin-bottom:5px}.scenario-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}.scenario{display:grid;grid-template-columns:94px 1fr;gap:12px;border:1px solid #d9dee7;border-radius:8px;padding:13px;background:#fff}.scenario-state{display:inline-flex;align-items:center;justify-content:center;align-self:start;min-height:32px;border-radius:999px;font-size:12px;font-weight:900}.scenario-state.done{background:#eef9f1;color:#176b2c}.scenario-state.ready{background:#eef2ff;color:#253469}.scenario-state.issue{background:#fdecec;color:#a4262c}.scenario strong{display:block;margin-bottom:4px}.scenario p{margin:0;color:#667085;font-size:13px;line-height:1.5}@media(max-width:900px){.phase-head,.phase-grid,.next-list,.scenario-list{grid-template-columns:1fr}}@media(max-width:760px){.form-grid{grid-template-columns:1fr}.ieum-user{margin-left:0}.task-head{align-items:flex-start;flex-direction:column}.scenario{grid-template-columns:1fr}.scenario-state{justify-content:flex-start;padding:6px 10px}}
 </style>
 </head>
 <body>
@@ -146,10 +179,11 @@ function ieum_project_scenario_status_label($status)
     <section class="panel">
         <div class="phase-head">
             <article class="phase-score">
-                <span class="muted">1차 마감 완료도</span>
+                <span class="muted">1차 마감 준비도</span>
                 <strong><?php echo (int) $phase1_percent; ?>%</strong>
                 <div class="progress"><span style="width:<?php echo (int) $phase1_percent; ?>%"></span></div>
                 <p class="muted">완료 <?php echo (int) $phase1_done; ?>개 · 보강 <?php echo (int) $phase1_review; ?>개 · 전체 <?php echo (int) $phase1_total; ?>개</p>
+                <p class="muted">완료는 100%, 보강은 60%로 반영합니다. 숫자는 개발 완료율이 아니라 실사용 준비도입니다.</p>
             </article>
             <div>
                 <h2>1차 마감 체크리스트</h2>
@@ -170,9 +204,9 @@ function ieum_project_scenario_status_label($status)
     <section class="panel">
         <h2>다음 우선순위</h2>
         <div class="next-list">
-            <article class="next-card"><strong>1. 실사용 시나리오 테스트</strong><span class="muted">학생 등록 → 출석 앱 → 문자 큐 → 차량 → 수련비 → 인성 입력</span></article>
-            <article class="next-card"><strong>2. 관장님 UX 다듬기</strong><span class="muted">용어 통일, 리스트 필터, 대량 원생 관리, 모바일/태블릿 화면 확인</span></article>
-            <article class="next-card"><strong>3. 1차 마감 리포트</strong><span class="muted">완료/보강/보류 항목을 정리해 승인자가 바로 판단할 수 있게 정리</span></article>
+            <?php foreach ($next_priority_items as $item) { ?>
+            <article class="next-card"><strong><?php echo get_text($item['title']); ?></strong><span class="muted"><?php echo get_text($item['detail']); ?></span></article>
+            <?php } ?>
         </div>
     </section>
 

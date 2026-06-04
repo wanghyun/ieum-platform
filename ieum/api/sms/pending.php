@@ -2,6 +2,7 @@
 require_once dirname(dirname(__DIR__)) . '/_common.php';
 require_once IEUM_PATH . '/lib/response.php';
 require_once IEUM_PATH . '/lib/gateway.php';
+require_once IEUM_PATH . '/lib/sms_queue.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     ieum_json_response(false, '허용되지 않은 요청입니다.', array(), 405);
@@ -9,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 $academy = ieum_require_gateway_token();
 $academy_id = (int) $academy['academy_id'];
+ieum_sms_queue_ensure_schedule_columns();
 
 $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 20;
 if ($limit < 1) {
@@ -25,6 +27,7 @@ $result = sql_query("
  left join " . IEUM_STUDENT_TABLE . " s on s.student_id = q.student_id
      where q.academy_id = '{$academy_id}'
        and q.status = 'pending'
+       and (q.scheduled_at is null or q.scheduled_at <= '" . G5_TIME_YMDHIS . "')
   order by q.sms_id asc
      limit {$limit}
 ", false);

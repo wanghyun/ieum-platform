@@ -146,6 +146,24 @@ function ieum_attendance_calendar_marks($academy_id, $start_date, $end_date)
 
 function ieum_attendance_fixed_public_holiday_label($date)
 {
+    $specific_labels = array(
+        '2026-02-16' => '설날 연휴',
+        '2026-02-17' => '설날',
+        '2026-02-18' => '설날 연휴',
+        '2026-03-02' => '삼일절 대체공휴일',
+        '2026-05-24' => '부처님오신날',
+        '2026-05-25' => '부처님오신날 대체공휴일',
+        '2026-06-03' => '제9회 전국동시지방선거일',
+        '2026-08-17' => '광복절 대체공휴일',
+        '2026-09-24' => '추석 연휴',
+        '2026-09-25' => '추석',
+        '2026-09-26' => '추석 연휴',
+        '2026-10-05' => '개천절 대체공휴일',
+    );
+    if (isset($specific_labels[$date])) {
+        return $specific_labels[$date];
+    }
+
     $mmdd = substr($date, 5, 5);
     $labels = array(
         '01-01' => '신정',
@@ -159,6 +177,99 @@ function ieum_attendance_fixed_public_holiday_label($date)
     );
 
     return isset($labels[$mmdd]) ? $labels[$mmdd] : '';
+}
+
+function ieum_attendance_public_holiday_labels($start_date, $end_date)
+{
+    $start_ts = strtotime($start_date);
+    $end_ts = strtotime($end_date);
+    $labels = array();
+
+    if (!$start_ts || !$end_ts || $start_ts > $end_ts) {
+        return $labels;
+    }
+
+    for ($ts = $start_ts; $ts <= $end_ts; $ts = strtotime('+1 day', $ts)) {
+        $date = date('Y-m-d', $ts);
+        $label = ieum_attendance_fixed_public_holiday_label($date);
+        if ($label !== '') {
+            $labels[$date] = $label;
+        }
+    }
+
+    return $labels;
+}
+
+function ieum_attendance_weekday_key($date)
+{
+    $ts = strtotime($date);
+    if (!$ts) {
+        return '';
+    }
+
+    $weekday_map = array(1 => 'mon', 2 => 'tue', 3 => 'wed', 4 => 'thu', 5 => 'fri', 6 => 'sat', 7 => 'sun');
+    $weekday_no = (int) date('N', $ts);
+
+    return isset($weekday_map[$weekday_no]) ? $weekday_map[$weekday_no] : '';
+}
+
+function ieum_attendance_day_context($academy_id, $date)
+{
+    $academy_id = (int) $academy_id;
+    $date = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $date) ? $date : date('Y-m-d');
+    $marks = $academy_id > 0 ? ieum_attendance_calendar_marks($academy_id, $date, $date) : array();
+    $mark = isset($marks[$date]) ? $marks[$date] : array('closed' => false, 'makeup' => false);
+    $public_holiday_label = ieum_attendance_fixed_public_holiday_label($date);
+    $is_closed = !empty($mark['closed']) || $public_holiday_label !== '';
+    $is_makeup = !$is_closed && !empty($mark['makeup']);
+    $weekday = ieum_attendance_weekday_key($date);
+
+    $label = '수업 대상 없음';
+    $desc = '주말 또는 수업 설정이 없는 요일입니다. 보충 수업이 있으면 학원 설정에서 보충 수업일로 등록해 주세요.';
+    if ($is_closed) {
+        $label = $public_holiday_label !== '' ? '휴일 · ' . $public_holiday_label : '도장 휴관';
+        $desc = '오늘은 정상 수업일에서 제외됩니다. 출석률과 미등원 계산에도 반영됩니다.';
+    } elseif ($is_makeup) {
+        $label = '보충 수업일';
+        $desc = '학원 설정에 등록된 보충 수업일입니다. 오늘 출석 대상에 포함해 계산합니다.';
+    } elseif ($weekday !== '') {
+        $label = '정상 수업일';
+        $desc = '원생별 출석 요일과 수업 부 기준으로 미등원 원생을 계산합니다.';
+    }
+
+    return array(
+        'date' => $date,
+        'weekday' => $weekday,
+        'mark' => $mark,
+        'public_holiday_label' => $public_holiday_label,
+        'is_closed' => $is_closed,
+        'is_makeup' => $is_makeup,
+        'is_weekday_lesson' => !$is_closed && !$is_makeup && $weekday !== '',
+        'lesson_label' => $label,
+        'lesson_desc' => $desc,
+    );
+}
+
+function ieum_attendance_student_day_filter_sql($academy_id, $date, $student_alias = 's')
+{
+    $student_alias = preg_replace('/[^a-z0-9_]/i', '', (string) $student_alias);
+    if ($student_alias === '') {
+        $student_alias = 's';
+    }
+
+    $context = ieum_attendance_day_context($academy_id, $date);
+    if (!empty($context['is_closed'])) {
+        return " and 1 = 0 ";
+    }
+    if (!empty($context['is_makeup'])) {
+        return "";
+    }
+    if ($context['weekday'] !== '') {
+        $weekday_sql = sql_escape_string($context['weekday']);
+        return " and find_in_set('{$weekday_sql}', {$student_alias}.attendance_days) > 0 ";
+    }
+
+    return " and 1 = 0 ";
 }
 
 function ieum_attendance_scheduled_dates($days_csv, $start_date, $end_date, $academy_id = 0)
@@ -186,12 +297,10 @@ function ieum_attendance_scheduled_dates($days_csv, $start_date, $end_date, $aca
         $mark = isset($calendar_marks[$date]) ? $calendar_marks[$date] : null;
         $is_fixed_holiday = ieum_attendance_fixed_public_holiday_label($date) !== '';
 
-        if ($mark && !empty($mark['closed'])) {
+        if (($mark && !empty($mark['closed'])) || $is_fixed_holiday) {
             $is_scheduled = false;
         } elseif ($mark && !empty($mark['makeup'])) {
             $is_scheduled = true;
-        } elseif ($is_fixed_holiday) {
-            $is_scheduled = false;
         }
 
         if ($is_scheduled) {

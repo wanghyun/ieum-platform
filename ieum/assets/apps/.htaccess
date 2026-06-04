@@ -1,0 +1,4 @@
+AddType application/vnd.android.package-archive .apk
+<IfModule mod_headers.c>
+    Header set Content-Disposition "attachment"
+</IfModule>

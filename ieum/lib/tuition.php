@@ -33,11 +33,11 @@ function ieum_tuition_default_sms_templates()
     return array(
         'tuition_due' => array(
             'title' => '수련비 납부 안내',
-            'message' => '[{academy_name}] 안녕하세요. {student_name} 학생 {billing_month} 수련비 납부일 안내드립니다. 납부 예정 금액은 {balance}원이며, 편하실 때 확인 부탁드립니다.',
+            'message' => '[{도장명}] 안녕하세요. {원생명} 원생의 {청구월} 수련비 안내드립니다. 이번 달 납부 예정 금액은 {금액}원입니다. 편하실 때 확인 부탁드리며, 이미 납부하셨다면 이 안내는 지나쳐 주세요. 감사합니다.',
         ),
         'tuition_overdue' => array(
             'title' => '수련비 미납 안내',
-            'message' => '[{academy_name}] 안녕하세요. {student_name} 학생 {billing_month} 수련비 확인 안내드립니다. 현재 확인이 필요한 금액은 {balance}원입니다. 이미 납부하셨다면 이 메시지는 지나쳐 주세요.',
+            'message' => '[{도장명}] 안녕하세요. {원생명} 원생의 {청구월} 수련비 확인 안내드립니다. 현재 확인이 필요한 금액은 {금액}원입니다. 납부 내역 확인을 위해 한 번 더 안내드리며, 이미 납부하셨다면 이 안내는 지나쳐 주세요. 감사합니다.',
         ),
     );
 }
@@ -103,6 +103,42 @@ function ieum_tuition_get_sms_template($academy_id, $template_key)
     );
 }
 
+function ieum_tuition_save_sms_template($academy_id, $template_key, $message, $title = '')
+{
+    $academy_id = (int) $academy_id;
+    $defaults = ieum_tuition_default_sms_templates();
+    if (!isset($defaults[$template_key])) {
+        return false;
+    }
+
+    $message = trim((string) $message);
+    if ($message === '') {
+        return false;
+    }
+
+    $title = trim((string) $title);
+    if ($title === '') {
+        $title = $defaults[$template_key]['title'];
+    }
+
+    sql_query("
+        insert into " . IEUM_SMS_TEMPLATE_TABLE . "
+            set academy_id = '{$academy_id}',
+                template_key = '" . sql_escape_string($template_key) . "',
+                title = '" . sql_escape_string($title) . "',
+                message = '" . sql_escape_string($message) . "',
+                is_active = 1,
+                updated_at = '" . G5_TIME_YMDHIS . "'
+        on duplicate key update
+                title = values(title),
+                message = values(message),
+                is_active = 1,
+                updated_at = values(updated_at)
+    ");
+
+    return true;
+}
+
 function ieum_tuition_due_date($billing_month, $due_day)
 {
     $due_day = (int) $due_day;
@@ -123,9 +159,12 @@ function ieum_tuition_due_date($billing_month, $due_day)
 function ieum_tuition_student_amount($student)
 {
     $amount = isset($student['tuition_amount']) ? (int) $student['tuition_amount'] : 0;
-    if ($amount <= 0 && isset($student['academy_id'])) {
+    if (isset($student['academy_id'])) {
         $week_type = isset($student['tuition_week_type']) ? preg_replace('/[^0-9a-z_]/', '', $student['tuition_week_type']) : '';
-        if ($week_type !== '') {
+        $needs_plan_amount = $amount <= 0;
+        $needs_plan_discount = !empty($student['sibling_discount_enabled'])
+            && (!isset($student['sibling_discount_amount']) || (int) $student['sibling_discount_amount'] <= 0);
+        if ($week_type !== '' && ($needs_plan_amount || $needs_plan_discount)) {
             $plan = sql_fetch("
                 select monthly_fee, sibling_discount_amount, default_due_day
                   from " . IEUM_TUITION_PLAN_TABLE . "
@@ -136,8 +175,10 @@ function ieum_tuition_student_amount($student)
                  limit 1
             ", false);
             if (isset($plan['monthly_fee'])) {
-                $amount = (int) $plan['monthly_fee'];
-                if (!empty($student['sibling_discount_enabled']) && empty($student['sibling_discount_amount'])) {
+                if ($needs_plan_amount) {
+                    $amount = (int) $plan['monthly_fee'];
+                }
+                if ($needs_plan_discount) {
                     $student['sibling_discount_amount'] = (int) $plan['sibling_discount_amount'];
                 }
             }
@@ -190,7 +231,8 @@ function ieum_tuition_ensure_month($academy_id, $billing_month)
                    and payment_id = '{$payment_id}'
                    and status in ('unpaid', 'partial')
                    and amount_paid = 0
-                   and amount_due = 0
+                   and (bill_sent_at is null or bill_sent_at = '0000-00-00 00:00:00')
+                   and (amount_due <> '{$amount_due}' or due_date <> '{$due_date_sql}')
             ");
             continue;
         }
@@ -210,6 +252,62 @@ function ieum_tuition_ensure_month($academy_id, $billing_month)
     }
 
     return $created;
+}
+
+function ieum_tuition_refresh_month_amounts($academy_id, $billing_month)
+{
+    $academy_id = (int) $academy_id;
+    $billing_month_sql = sql_escape_string($billing_month);
+    $result = array(
+        'updated' => 0,
+        'unchanged' => 0,
+        'skipped_paid' => 0,
+        'skipped_sent' => 0,
+    );
+
+    ieum_tuition_ensure_month($academy_id, $billing_month);
+
+    $rows = sql_query("
+        select p.payment_id, p.amount_due, p.amount_paid, p.status, p.due_date, p.bill_sent_at,
+               s.student_id, s.academy_id, s.tuition_week_type, s.tuition_amount,
+               s.sibling_discount_enabled, s.sibling_discount_amount, s.tuition_due_day
+          from " . IEUM_TUITION_PAYMENT_TABLE . " p
+          join " . IEUM_STUDENT_TABLE . " s on s.student_id = p.student_id and s.academy_id = p.academy_id
+         where p.academy_id = '{$academy_id}'
+           and p.billing_month = '{$billing_month_sql}'
+           and s.is_active = 1
+    ", false);
+
+    while ($row = sql_fetch_array($rows)) {
+        if ((int) $row['amount_paid'] > 0 || $row['status'] === 'paid') {
+            $result['skipped_paid']++;
+            continue;
+        }
+        if (!empty($row['bill_sent_at']) && $row['bill_sent_at'] !== '0000-00-00 00:00:00') {
+            $result['skipped_sent']++;
+            continue;
+        }
+
+        $amount_due = ieum_tuition_student_amount($row);
+        $due_date = ieum_tuition_due_date($billing_month, isset($row['tuition_due_day']) ? (int) $row['tuition_due_day'] : 5);
+        if ((int) $row['amount_due'] === $amount_due && (string) $row['due_date'] === $due_date) {
+            $result['unchanged']++;
+            continue;
+        }
+
+        sql_query("
+            update " . IEUM_TUITION_PAYMENT_TABLE . "
+               set amount_due = '{$amount_due}',
+                   due_date = '" . sql_escape_string($due_date) . "',
+                   status = 'unpaid',
+                   updated_at = '" . G5_TIME_YMDHIS . "'
+             where academy_id = '{$academy_id}'
+               and payment_id = '" . (int) $row['payment_id'] . "'
+        ");
+        $result['updated']++;
+    }
+
+    return $result;
 }
 
 function ieum_tuition_payment_auto_status($amount_due, $amount_paid)
@@ -272,13 +370,17 @@ function ieum_tuition_notice_recipients($academy_id, $student_id)
     return $phones;
 }
 
-function ieum_tuition_build_notice_message($academy_name, $student_name, $billing_month, $amount_due, $amount_paid, $due_date, $notice_type = 'due')
+function ieum_tuition_build_notice_message($academy_name, $student_name, $billing_month, $amount_due, $amount_paid, $due_date, $notice_type = 'due', $template_override = '')
 {
     $balance = max(0, (int) $amount_due - (int) $amount_paid);
     $template_key = $notice_type === 'overdue' ? 'tuition_overdue' : 'tuition_due';
     $academy_id = isset($GLOBALS['ieum_tuition_template_academy_id']) ? (int) $GLOBALS['ieum_tuition_template_academy_id'] : 0;
-    $template = $academy_id ? ieum_tuition_get_sms_template($academy_id, $template_key) : null;
-    $message = $template && !empty($template['is_active']) ? $template['message'] : '';
+    $message = trim((string) $template_override);
+    $template = null;
+    if ($message === '') {
+        $template = $academy_id ? ieum_tuition_get_sms_template($academy_id, $template_key) : null;
+        $message = $template && !empty($template['is_active']) ? $template['message'] : '';
+    }
     if ($message === '') {
         $defaults = ieum_tuition_default_sms_templates();
         $message = isset($defaults[$template_key]) ? $defaults[$template_key]['message'] : '';
@@ -292,6 +394,15 @@ function ieum_tuition_build_notice_message($academy_name, $student_name, $billin
         'amount_paid' => number_format((int) $amount_paid),
         'balance' => number_format($balance),
         'due_date' => $due_date,
+        '도장명' => $academy_name,
+        '학생명' => $student_name,
+        '원생명' => $student_name,
+        '청구월' => $billing_month,
+        '청구액' => number_format((int) $amount_due),
+        '입금액' => number_format((int) $amount_paid),
+        '잔액' => number_format($balance),
+        '금액' => number_format($balance),
+        '납부일' => $due_date,
     ));
 }
 
@@ -307,6 +418,15 @@ function ieum_tuition_render_notice_message_from_template($template_message, $ac
         'amount_paid' => number_format((int) $amount_paid),
         'balance' => number_format($balance),
         'due_date' => $due_date,
+        '도장명' => $academy_name,
+        '학생명' => $student_name,
+        '원생명' => $student_name,
+        '청구월' => $billing_month,
+        '청구액' => number_format((int) $amount_due),
+        '입금액' => number_format((int) $amount_paid),
+        '잔액' => number_format($balance),
+        '금액' => number_format($balance),
+        '납부일' => $due_date,
     ));
 }
 
@@ -359,7 +479,7 @@ function ieum_tuition_sample_payment($academy_id)
     );
 }
 
-function ieum_tuition_send_payment_notice($payment_id, $notice_type = 'due', $force = false)
+function ieum_tuition_send_payment_notice($payment_id, $notice_type = 'due', $force = false, $template_override = '')
 {
     $payment_id = (int) $payment_id;
     $payment = sql_fetch("
@@ -393,7 +513,8 @@ function ieum_tuition_send_payment_notice($payment_id, $notice_type = 'due', $fo
         (int) $payment['amount_due'],
         (int) $payment['amount_paid'],
         $payment['due_date'],
-        $notice_type
+        $notice_type,
+        $template_override
     );
 
     $sms_ids = array();

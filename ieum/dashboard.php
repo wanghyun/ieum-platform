@@ -6,6 +6,7 @@ require_once IEUM_PATH . '/lib/sms_queue.php';
 require_once IEUM_PATH . '/lib/ui.php';
 require_once IEUM_PATH . '/lib/tuition.php';
 require_once IEUM_PATH . '/lib/absent_alert.php';
+require_once IEUM_PATH . '/lib/attendance.php';
 require_once IEUM_PATH . '/lib/dashboard.php';
 
 if (!$is_member) {
@@ -19,6 +20,286 @@ $now_ts = strtotime(G5_TIME_YMDHIS);
 $billing_month = ieum_tuition_billing_month($now_ts);
 $message = '';
 $error = '';
+
+function ieum_dashboard_bulk_attendance_for_class($academy, $class_time_id, $send_sms, $created_by = '')
+{
+    $academy_id = isset($academy['academy_id']) ? (int) $academy['academy_id'] : 0;
+    $class_time_id = (int) $class_time_id;
+    $send_sms = !empty($send_sms);
+    $created_by = trim((string) $created_by);
+    if ($academy_id <= 0 || $class_time_id <= 0) {
+        return array('ok' => false, 'message' => '처리할 부를 선택해 주세요.');
+    }
+
+    $class = sql_fetch("
+        select class_time_id, class_name, start_time
+          from " . IEUM_CLASS_TIME_TABLE . "
+         where academy_id = '{$academy_id}'
+           and class_time_id = '{$class_time_id}'
+           and is_active = 1
+         limit 1
+    ", false);
+    if (empty($class['class_time_id'])) {
+        return array('ok' => false, 'message' => '선택한 부를 확인할 수 없습니다.');
+    }
+
+    $today_date = G5_TIME_YMD;
+    $today_context = function_exists('ieum_attendance_day_context') ? ieum_attendance_day_context($academy_id, $today_date) : array();
+    if (!empty($today_context['is_closed'])) {
+        $closed_label = !empty($today_context['public_holiday_label']) ? $today_context['public_holiday_label'] : '도장 휴관일';
+        return array('ok' => false, 'message' => '오늘은 ' . $closed_label . '이라 출석 처리할 수 없습니다.');
+    }
+
+    $today_weekday = isset($today_context['weekday']) ? $today_context['weekday'] : '';
+    if ($today_weekday === '') {
+        return array('ok' => false, 'message' => '오늘 수업 요일을 확인할 수 없습니다.');
+    }
+
+    $today_sql = sql_escape_string($today_date);
+    $weekday_sql = sql_escape_string($today_weekday);
+    $created_by_sql = sql_escape_string($created_by);
+    $now_sql = sql_escape_string(G5_TIME_YMDHIS);
+    $source_sql = sql_escape_string('dashboard_bulk');
+    $today_student_day_filter_sql = function_exists('ieum_attendance_student_day_filter_sql') ? ieum_attendance_student_day_filter_sql($academy_id, $today_date, 's') : " and find_in_set('{$weekday_sql}', s.attendance_days) > 0 ";
+
+    $students = sql_query("
+        select s.*
+          from " . IEUM_STUDENT_TABLE . " s
+     left join " . IEUM_ATTENDANCE_TABLE . " a on a.academy_id = s.academy_id
+           and a.student_id = s.student_id
+           and a.attendance_date = '{$today_sql}'
+         where s.academy_id = '{$academy_id}'
+           and s.class_time_id = '{$class_time_id}'
+           and s.is_active = 1
+           {$today_student_day_filter_sql}
+           and a.attendance_id is null
+      order by s.student_name asc, s.student_id asc
+    ", false);
+
+    $created = 0;
+    $duplicates = 0;
+    $sms_count = 0;
+    while ($student = sql_fetch_array($students)) {
+        $student_id = (int) $student['student_id'];
+        sql_query("
+            insert ignore into " . IEUM_ATTENDANCE_TABLE . "
+                set academy_id = '{$academy_id}',
+                    student_id = '{$student_id}',
+                    attendance_date = '{$today_sql}',
+                    checked_at = '{$now_sql}',
+                    input_source = '{$source_sql}',
+                    created_by = '{$created_by_sql}',
+                    created_at = '{$now_sql}'
+        ", false);
+
+        $attendance_id = (int) sql_insert_id();
+        if (!$attendance_id) {
+            $duplicates++;
+            continue;
+        }
+
+        $created++;
+        if ($send_sms) {
+            $sms_message = function_exists('ieum_build_attendance_sms_message')
+                ? ieum_build_attendance_sms_message($student['student_name'], G5_TIME_YMDHIS)
+                : '';
+            if ($sms_message !== '' && function_exists('ieum_create_sms_queue')) {
+                $sms_ids = ieum_create_sms_queue($student, $attendance_id, $sms_message, 'checkin');
+                $sms_count += is_array($sms_ids) ? count($sms_ids) : 0;
+            }
+        }
+    }
+
+    $class_label = trim($class['class_name'] . ' ' . substr($class['start_time'], 0, 5));
+    return array(
+        'ok' => true,
+        'class_label' => $class_label,
+        'created' => $created,
+        'duplicates' => $duplicates,
+        'sms_count' => $sms_count,
+        'send_sms' => $send_sms,
+    );
+}
+
+function ieum_dashboard_resolve_current_task($academy, $task_key, $today, $billing_month, $resolved_by = '')
+{
+    $academy_id = isset($academy['academy_id']) ? (int) $academy['academy_id'] : 0;
+    $task_key = preg_replace('/[^0-9a-z_]/i', '', trim((string) $task_key));
+    $today = preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $today) ? $today : G5_TIME_YMD;
+    $billing_month = preg_match('/^\d{4}-\d{2}$/', (string) $billing_month) ? $billing_month : ieum_tuition_billing_month();
+    $resolved_by = trim((string) $resolved_by);
+
+    if ($academy_id <= 0 || $task_key === '') {
+        return array('ok' => false, 'message' => '확인 처리할 알림을 찾을 수 없습니다.');
+    }
+
+    ieum_dashboard_ensure_auto_check_table();
+    $memo = '대시보드 오늘 알림에서 확인';
+    $count = 0;
+
+    if ($task_key === 'long_absent') {
+        $today_sql = sql_escape_string($today);
+        $rows = sql_query("
+            select s.student_id,
+                   max(a.attendance_date) as last_attendance,
+                   coalesce(s.admission_date, date(s.created_at)) as base_date
+              from " . IEUM_STUDENT_TABLE . " s
+         left join " . IEUM_ATTENDANCE_TABLE . " a on a.academy_id = s.academy_id
+               and a.student_id = s.student_id
+             where s.academy_id = '{$academy_id}'
+               and s.is_active = 1
+               " . ieum_dashboard_auto_check_not_resolved_sql('acr', $academy_id, 'long_absent', 'cast(s.student_id as char)', $today) . "
+          group by s.student_id
+            having (last_attendance is null and datediff('{$today_sql}', base_date) >= 14)
+                or (last_attendance is not null and datediff('{$today_sql}', last_attendance) >= 14)
+             limit 500
+        ", false);
+        while ($row = sql_fetch_array($rows)) {
+            if (ieum_dashboard_resolve_auto_check($academy_id, 'long_absent', (string) (int) $row['student_id'], $today, $resolved_by, $memo)) {
+                $count++;
+            }
+        }
+        return array('ok' => true, 'count' => $count, 'message' => '장기 미등원 알림 ' . number_format($count) . '건을 오늘 확인 처리했습니다. 내일도 등원 기록이 없으면 다시 표시됩니다.');
+    }
+
+    if ($task_key === 'sms_failed') {
+        $rows = sql_query("
+            select sms_id, created_at
+              from " . IEUM_SMS_QUEUE_TABLE . " q
+             where q.academy_id = '{$academy_id}'
+               and q.status = 'failed'
+               and not exists (
+                   select 1
+                     from " . IEUM_AUTO_CHECK_RESOLVE_TABLE . " acr
+                    where acr.academy_id = q.academy_id
+                      and acr.check_type = 'sms_failed'
+                      and acr.target_key = cast(q.sms_id as char)
+                      and acr.target_date = left(q.created_at, 10)
+               )
+          order by q.sms_id desc
+             limit 500
+        ", false);
+        while ($row = sql_fetch_array($rows)) {
+            $target_date = substr((string) $row['created_at'], 0, 10);
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $target_date)) {
+                $target_date = $today;
+            }
+            if (ieum_dashboard_resolve_auto_check($academy_id, 'sms_failed', (string) (int) $row['sms_id'], $target_date, $resolved_by, $memo)) {
+                $count++;
+            }
+        }
+        return array('ok' => true, 'count' => $count, 'message' => '문자 실패 알림 ' . number_format($count) . '건을 확인 처리했습니다.');
+    }
+
+    if ($task_key === 'vehicle_notes') {
+        $today_sql = sql_escape_string($today);
+        $row = sql_fetch("
+            select count(*) as cnt
+              from " . IEUM_VEHICLE_BOARDING_TABLE . "
+             where academy_id = '{$academy_id}'
+               and journal_date = '{$today_sql}'
+               and (note <> '' or status in ('missed', 'called'))
+               and resolved_at is null
+        ", false);
+        $count = isset($row['cnt']) ? (int) $row['cnt'] : 0;
+        if ($count > 0) {
+            sql_query("
+                update " . IEUM_VEHICLE_BOARDING_TABLE . "
+                   set resolved_by = '" . sql_escape_string($resolved_by) . "',
+                       resolved_at = '" . G5_TIME_YMDHIS . "',
+                       updated_at = '" . G5_TIME_YMDHIS . "'
+                 where academy_id = '{$academy_id}'
+                   and journal_date = '{$today_sql}'
+                   and (note <> '' or status in ('missed', 'called'))
+                   and resolved_at is null
+            ", false);
+        }
+        return array('ok' => true, 'count' => $count, 'message' => '차량 메모 ' . number_format($count) . '건을 확인 처리했습니다.');
+    }
+
+    if ($task_key === 'tuition_notice_pending') {
+        ieum_tuition_ensure_month($academy_id, $billing_month);
+        $settings = ieum_tuition_get_settings($academy_id);
+        $overdue_days = max(1, min(30, (int) (isset($settings['overdue_after_days']) ? $settings['overdue_after_days'] : 5)));
+        $today_sql = sql_escape_string($today);
+        $billing_month_sql = sql_escape_string($billing_month);
+        $queries = array();
+        if (!empty($settings['due_notice_enabled'])) {
+            $queries[] = "
+                select p.payment_id
+                  from " . IEUM_TUITION_PAYMENT_TABLE . " p
+                  join " . IEUM_STUDENT_TABLE . " s on s.student_id = p.student_id
+                   and s.academy_id = p.academy_id
+                   and s.is_active = 1
+                 where p.academy_id = '{$academy_id}'
+                   and p.billing_month = '{$billing_month_sql}'
+                   and p.status in ('unpaid', 'partial')
+                   and p.due_date = '{$today_sql}'
+                   and (p.notice_sent_at is null or p.notice_sent_at < '{$today_sql} 00:00:00')
+                   " . ieum_dashboard_auto_check_not_resolved_sql('acr', $academy_id, 'tuition_notice', 'cast(p.payment_id as char)', $today) . "
+            ";
+        }
+        if (!empty($settings['overdue_notice_enabled'])) {
+            $queries[] = "
+                select p.payment_id
+                  from " . IEUM_TUITION_PAYMENT_TABLE . " p
+                  join " . IEUM_STUDENT_TABLE . " s on s.student_id = p.student_id
+                   and s.academy_id = p.academy_id
+                   and s.is_active = 1
+                 where p.academy_id = '{$academy_id}'
+                   and p.billing_month = '{$billing_month_sql}'
+                   and p.status in ('unpaid', 'partial')
+                   and datediff('{$today_sql}', p.due_date) > '{$overdue_days}'
+                   and (p.notice_sent_at is null or p.notice_sent_at < '{$today_sql} 00:00:00')
+                   " . ieum_dashboard_auto_check_not_resolved_sql('acr', $academy_id, 'tuition_notice', 'cast(p.payment_id as char)', $today) . "
+            ";
+        }
+        $seen = array();
+        foreach ($queries as $query) {
+            $rows = sql_query($query . " limit 500", false);
+            while ($row = sql_fetch_array($rows)) {
+                $payment_id = (int) $row['payment_id'];
+                if ($payment_id <= 0 || isset($seen[$payment_id])) {
+                    continue;
+                }
+                $seen[$payment_id] = true;
+                if (ieum_dashboard_resolve_auto_check($academy_id, 'tuition_notice', (string) $payment_id, $today, $resolved_by, $memo)) {
+                    $count++;
+                }
+            }
+        }
+        return array('ok' => true, 'count' => $count, 'message' => '수련비 문자 예정 알림 ' . number_format($count) . '건을 확인 처리했습니다.');
+    }
+
+    if ($task_key === 'promotion_due') {
+        if (!function_exists('ieum_promotion_status')) {
+            return array('ok' => false, 'message' => '승급 기준을 확인할 수 없습니다.');
+        }
+        $report_month = substr($today, 0, 7);
+        $target_month = $report_month . '-01';
+        $rows = sql_query("
+            select s.*
+              from " . IEUM_STUDENT_TABLE . " s
+             where s.academy_id = '{$academy_id}'
+               and s.is_active = 1
+               and coalesce(s.promotion_enabled, 1) = 1
+               " . ieum_dashboard_auto_check_not_resolved_sql('acr', $academy_id, 'promotion_due', 'cast(s.student_id as char)', $target_month) . "
+             limit 500
+        ", false);
+        while ($student = sql_fetch_array($rows)) {
+            $status = ieum_promotion_status($academy, $student, $report_month);
+            if ((empty($status['due_this_month']) && empty($status['overdue'])) || !empty($status['is_poomdan_exam'])) {
+                continue;
+            }
+            if (ieum_dashboard_resolve_auto_check($academy_id, 'promotion_due', (string) (int) $student['student_id'], $target_month, $resolved_by, $memo)) {
+                $count++;
+            }
+        }
+        return array('ok' => true, 'count' => $count, 'message' => '승급 대상 알림 ' . number_format($count) . '건을 오늘 확인 처리했습니다.');
+    }
+
+    return array('ok' => false, 'message' => '이 알림은 상세 화면에서 실제 처리해야 합니다.');
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrf_token = isset($_POST['csrf_token']) ? trim($_POST['csrf_token']) : '';
@@ -41,7 +322,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'run_absent_alerts') {
         $result = ieum_absent_alert_create_for_academy($academy_id, false);
         if ((int) $result['created_sms'] > 0) {
-            $message = '미등원 알림 문자 큐 ' . number_format((int) $result['created_sms']) . '건을 생성했습니다.';
+            $message = '미등원 알림 문자 ' . number_format((int) $result['created_sms']) . '건을 발송 대기 목록에 등록했습니다.';
         } else {
             $message = '현재 새로 생성할 미등원 알림이 없습니다. 이미 발송되었거나 알림 시간이 아직 지나지 않았을 수 있습니다.';
         }
@@ -49,20 +330,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $shortcut_keys = isset($_POST['shortcut_keys']) && is_array($_POST['shortcut_keys']) ? $_POST['shortcut_keys'] : array();
         ieum_dashboard_save_shortcuts($academy_id, $shortcut_keys);
         $message = '대시보드 바로가기를 저장했습니다.';
+    } elseif ($action === 'save_dashboard_today_tasks') {
+        $task_keys = isset($_POST['task_preset']) && $_POST['task_preset'] === 'default'
+            ? ieum_dashboard_default_today_task_keys()
+            : (isset($_POST['task_keys']) && is_array($_POST['task_keys']) ? $_POST['task_keys'] : array());
+        ieum_dashboard_save_today_tasks($academy_id, $task_keys);
+        $message = isset($_POST['task_preset']) && $_POST['task_preset'] === 'default'
+            ? '오늘 알림 기본 구성을 적용했습니다.'
+            : '오늘 할 일 구성을 저장했습니다.';
+    } elseif ($action === 'resolve_dashboard_task') {
+        $task_key = isset($_POST['task_key']) ? trim((string) $_POST['task_key']) : '';
+        $result = ieum_dashboard_resolve_current_task($academy, $task_key, $today, $billing_month, isset($member['mb_id']) ? $member['mb_id'] : '');
+        if (empty($result['ok'])) {
+            $error = isset($result['message']) ? $result['message'] : '확인 처리할 수 없습니다.';
+        } else {
+            $message = isset($result['message']) ? $result['message'] : '오늘 알림을 확인 처리했습니다.';
+        }
+    } elseif ($action === 'bulk_attendance_class') {
+        $class_time_id = isset($_POST['quick_class_time_id']) ? (int) $_POST['quick_class_time_id'] : 0;
+        $alert_mode = isset($_POST['attendance_alert_mode']) ? trim((string) $_POST['attendance_alert_mode']) : 'send';
+        $result = ieum_dashboard_bulk_attendance_for_class($academy, $class_time_id, $alert_mode !== 'skip', isset($member['mb_id']) ? $member['mb_id'] : '');
+        if (empty($result['ok'])) {
+            $error = isset($result['message']) ? $result['message'] : '출석 처리할 수 없습니다.';
+        } elseif ((int) $result['created'] <= 0) {
+            $message = $result['class_label'] . '은 처리할 미등원 학생이 없습니다.';
+        } else {
+            $message = $result['class_label'] . ' 미등원 ' . number_format((int) $result['created']) . '명을 출석 처리했습니다.';
+            if (!empty($result['send_sms'])) {
+                $message .= ' 알림 문자 ' . number_format((int) $result['sms_count']) . '건을 발송 대기 목록에 등록했습니다.';
+            } else {
+                $message .= ' 알림은 발송하지 않았습니다.';
+            }
+        }
+    } elseif ($action === 'save_dashboard_calendar_memo') {
+        $memo_date = isset($_POST['memo_date']) ? trim($_POST['memo_date']) : '';
+        $memo = isset($_POST['calendar_memo']) ? trim($_POST['calendar_memo']) : '';
+        $member_id = isset($member['mb_id']) ? $member['mb_id'] : '';
+        $alert_offset_days = isset($_POST['alert_offset_days']) ? (int) $_POST['alert_offset_days'] : 0;
+        $alert_period = isset($_POST['alert_period']) && $_POST['alert_period'] === 'pm' ? 'pm' : 'am';
+        $alert_hour = isset($_POST['alert_hour']) ? max(0, min(11, (int) $_POST['alert_hour'])) : 9;
+        $alert_hour_24 = $alert_period === 'pm' ? $alert_hour + 12 : $alert_hour;
+        $alert_time = str_pad((string) $alert_hour_24, 2, '0', STR_PAD_LEFT) . ':00';
+        $alert_options = array(
+            'alert_enabled' => isset($_POST['alert_enabled']) ? 1 : 0,
+            'alert_offset_days' => $alert_offset_days,
+            'alert_time' => $alert_time,
+        );
+
+        $save_result = ieum_dashboard_save_calendar_memo($academy_id, $memo_date, $memo, $member_id, $alert_options, isset($academy['academy_name']) ? $academy['academy_name'] : '아이이음');
+        if ($save_result) {
+            if ($memo === '') {
+                $message = '달력 메모를 비웠습니다.';
+            } elseif (!empty($alert_options['alert_enabled'])) {
+                if (is_array($save_result) && !empty($save_result['skipped_past'])) {
+                    $message = '달력 메모를 저장했습니다. 알림 시간이 이미 지나 문자 예약은 만들지 않았습니다.';
+                } elseif (is_array($save_result) && (int) $save_result['queued'] > 0) {
+                    $message = '달력 메모를 저장하고 담당자 문자 알림 ' . number_format((int) $save_result['queued']) . '건을 예약했습니다.';
+                } else {
+                    $message = '달력 메모를 저장했습니다. 메모 알림을 받을 담당자가 없어 문자 예약은 만들지 않았습니다.';
+                }
+            } else {
+                $message = '달력 메모를 저장했습니다.';
+            }
+        } else {
+            $error = '달력 메모 날짜를 확인해 주세요.';
+        }
     }
 }
 
 $csrf_token = ieum_new_csrf_token();
+ieum_dashboard_ensure_auto_check_table();
 ieum_tuition_ensure_month($academy_id, $billing_month);
 $dashboard_shortcut_catalog = ieum_dashboard_shortcut_catalog();
 $dashboard_shortcut_keys = ieum_dashboard_get_shortcut_keys($academy_id);
 $dashboard_shortcuts = ieum_dashboard_resolve_shortcuts($dashboard_shortcut_keys);
 
-$weekday_map = array(1 => 'mon', 2 => 'tue', 3 => 'wed', 4 => 'thu', 5 => 'fri', 6 => 'sat', 7 => 'sun');
 $weekday_label_map = array('mon' => '월', 'tue' => '화', 'wed' => '수', 'thu' => '목', 'fri' => '금', 'sat' => '토', 'sun' => '일');
-$today_weekday = isset($weekday_map[(int) date('N', $now_ts)]) ? $weekday_map[(int) date('N', $now_ts)] : '';
+$today_context = function_exists('ieum_attendance_day_context') ? ieum_attendance_day_context($academy_id, $today) : array();
+$today_weekday = isset($today_context['weekday']) ? $today_context['weekday'] : '';
 $today_weekday_sql = sql_escape_string($today_weekday);
 $today_label = isset($weekday_label_map[$today_weekday]) ? $weekday_label_map[$today_weekday] : '';
+$today_public_holiday_label = isset($today_context['public_holiday_label']) ? $today_context['public_holiday_label'] : '';
+$is_today_closed = !empty($today_context['is_closed']);
+$is_today_makeup = !empty($today_context['is_makeup']);
+$today_lesson_label = isset($today_context['lesson_label']) ? $today_context['lesson_label'] : '수업 대상 없음';
+$today_lesson_desc = isset($today_context['lesson_desc']) ? $today_context['lesson_desc'] : '오늘 수업 기준을 확인해 주세요.';
+
+$dashboard_student_day_filter_sql = function_exists('ieum_attendance_student_day_filter_sql') ? ieum_attendance_student_day_filter_sql($academy_id, $today, 's') : " and find_in_set('{$today_weekday_sql}', s.attendance_days) > 0 ";
 
 function ieum_dashboard_grade_label($value)
 {
@@ -205,7 +559,7 @@ $onboarding_steps = array(
     array(
         'done' => (int) $total_attendance['cnt'] > 0,
         'label' => '첫 출석 테스트',
-        'desc' => '학생번호 입력 후 출석 저장과 문자 큐를 확인합니다.',
+        'desc' => '학생번호 입력 후 출석 저장과 문자 발송 대기를 확인합니다.',
         'url' => IEUM_URL . '/admin/attendance_today.php',
     ),
     array(
@@ -232,10 +586,10 @@ $attendance = sql_fetch("
 
 $expected_today = sql_fetch("
     select count(*) as cnt
-      from " . IEUM_STUDENT_TABLE . "
-     where academy_id = '{$academy_id}'
-       and is_active = 1
-       and find_in_set('{$today_weekday_sql}', attendance_days) > 0
+      from " . IEUM_STUDENT_TABLE . " s
+     where s.academy_id = '{$academy_id}'
+       and s.is_active = 1
+       {$dashboard_student_day_filter_sql}
 ", false);
 
 $missing_today = sql_fetch("
@@ -246,7 +600,7 @@ $missing_today = sql_fetch("
        and a.attendance_date = '{$today}'
      where s.academy_id = '{$academy_id}'
        and s.is_active = 1
-       and find_in_set('{$today_weekday_sql}', s.attendance_days) > 0
+       {$dashboard_student_day_filter_sql}
        and a.attendance_id is null
 ", false);
 
@@ -258,37 +612,66 @@ $sms = sql_fetch("
       from " . IEUM_SMS_QUEUE_TABLE . "
      where academy_id = '{$academy_id}'
 ", false);
+$sms_failed_open = sql_fetch("
+    select count(*) as cnt
+      from " . IEUM_SMS_QUEUE_TABLE . " q
+     where q.academy_id = '{$academy_id}'
+       and q.status = 'failed'
+       and not exists (
+           select 1
+             from " . IEUM_AUTO_CHECK_RESOLVE_TABLE . " acr
+            where acr.academy_id = q.academy_id
+              and acr.check_type = 'sms_failed'
+              and acr.target_key = cast(q.sms_id as char)
+              and acr.target_date = left(q.created_at, 10)
+       )
+", false);
+$sms['failed_count'] = isset($sms_failed_open['cnt']) ? (int) $sms_failed_open['cnt'] : 0;
 
 $tuition_settings = ieum_tuition_get_settings($academy_id);
 $tuition_overdue_days = max(1, min(30, (int) (isset($tuition_settings['overdue_after_days']) ? $tuition_settings['overdue_after_days'] : 5)));
+$billing_month_sql = sql_escape_string($billing_month);
 $tuition = sql_fetch("
     select
         count(*) as total_count,
-        sum(case when status = 'paid' then 1 else 0 end) as paid_count,
-        coalesce(sum(case when status = 'paid' then amount_paid else 0 end), 0) as paid_amount,
-        sum(case when status in ('unpaid', 'partial') and due_date = '{$today}' then 1 else 0 end) as due_today_count,
-        sum(case when status in ('unpaid', 'partial') and datediff('{$today}', due_date) between 0 and '{$tuition_overdue_days}' then 1 else 0 end) as unpaid_soon_count,
-        sum(case when status in ('unpaid', 'partial') and datediff('{$today}', due_date) > '{$tuition_overdue_days}' then 1 else 0 end) as unpaid_over_count
-      from " . IEUM_TUITION_PAYMENT_TABLE . "
-     where academy_id = '{$academy_id}'
-       and billing_month = '" . sql_escape_string($billing_month) . "'
+        sum(case when p.status = 'paid' then 1 else 0 end) as paid_count,
+        coalesce(sum(case when p.status = 'paid' then p.amount_paid else 0 end), 0) as paid_amount,
+        sum(case when p.status in ('unpaid', 'partial') then 1 else 0 end) as unpaid_count,
+        sum(case when p.status in ('unpaid', 'partial') and p.due_date = '{$today}' then 1 else 0 end) as due_today_count,
+        sum(case when p.status in ('unpaid', 'partial') and p.due_date >= '{$today}' then 1 else 0 end) as due_upcoming_count,
+        sum(case when p.status in ('unpaid', 'partial') and datediff('{$today}', p.due_date) between 0 and '{$tuition_overdue_days}' then 1 else 0 end) as unpaid_soon_count,
+        sum(case when p.status in ('unpaid', 'partial') and datediff('{$today}', p.due_date) > '{$tuition_overdue_days}' then 1 else 0 end) as unpaid_over_count
+      from " . IEUM_TUITION_PAYMENT_TABLE . " p
+      join " . IEUM_STUDENT_TABLE . " s on s.student_id = p.student_id
+       and s.academy_id = p.academy_id
+       and s.is_active = 1
+     where p.academy_id = '{$academy_id}'
+       and p.billing_month = '{$billing_month_sql}'
 ", false);
 
 $tuition_notice_due_pending = sql_fetch("
     select count(*) as cnt
-      from " . IEUM_TUITION_PAYMENT_TABLE . "
-     where academy_id = '{$academy_id}'
-       and status in ('unpaid', 'partial')
-       and due_date = '{$today}'
-       and (notice_sent_at is null or notice_sent_at < '{$today} 00:00:00')
+      from " . IEUM_TUITION_PAYMENT_TABLE . " p
+      join " . IEUM_STUDENT_TABLE . " s on s.student_id = p.student_id
+       and s.academy_id = p.academy_id
+       and s.is_active = 1
+     where p.academy_id = '{$academy_id}'
+       and p.status in ('unpaid', 'partial')
+       and p.due_date = '{$today}'
+       and (p.notice_sent_at is null or p.notice_sent_at < '{$today} 00:00:00')
+       " . ieum_dashboard_auto_check_not_resolved_sql('acr', $academy_id, 'tuition_notice', 'cast(p.payment_id as char)', $today) . "
 ", false);
 $tuition_notice_overdue_pending = sql_fetch("
     select count(*) as cnt
-      from " . IEUM_TUITION_PAYMENT_TABLE . "
-     where academy_id = '{$academy_id}'
-       and status in ('unpaid', 'partial')
-        and datediff('{$today}', due_date) > '{$tuition_overdue_days}'
-       and (notice_sent_at is null or notice_sent_at < '{$today} 00:00:00')
+      from " . IEUM_TUITION_PAYMENT_TABLE . " p
+      join " . IEUM_STUDENT_TABLE . " s on s.student_id = p.student_id
+       and s.academy_id = p.academy_id
+       and s.is_active = 1
+     where p.academy_id = '{$academy_id}'
+       and p.status in ('unpaid', 'partial')
+        and datediff('{$today}', p.due_date) > '{$tuition_overdue_days}'
+       and (p.notice_sent_at is null or p.notice_sent_at < '{$today} 00:00:00')
+       " . ieum_dashboard_auto_check_not_resolved_sql('acr', $academy_id, 'tuition_notice', 'cast(p.payment_id as char)', $today) . "
 ", false);
 $tuition_notice_pending_count = (!empty($tuition_settings['due_notice_enabled']) ? (int) $tuition_notice_due_pending['cnt'] : 0) + (!empty($tuition_settings['overdue_notice_enabled']) ? (int) $tuition_notice_overdue_pending['cnt'] : 0);
 
@@ -334,7 +717,7 @@ $missing_students = sql_query("
        and a.attendance_date = '{$today}'
      where s.academy_id = '{$academy_id}'
        and s.is_active = 1
-       and find_in_set('{$today_weekday_sql}', s.attendance_days) > 0
+       {$dashboard_student_day_filter_sql}
        and a.attendance_id is null
   order by c.sort_order asc, c.start_time asc, s.student_name asc
      limit 12
@@ -348,7 +731,7 @@ $class_today = sql_query("
  left join " . IEUM_STUDENT_TABLE . " s on s.class_time_id = c.class_time_id
        and s.academy_id = c.academy_id
        and s.is_active = 1
-       and find_in_set('{$today_weekday_sql}', s.attendance_days) > 0
+       {$dashboard_student_day_filter_sql}
  left join " . IEUM_ATTENDANCE_TABLE . " a on a.academy_id = s.academy_id
        and a.student_id = s.student_id
        and a.attendance_date = '{$today}'
@@ -393,6 +776,40 @@ $birthday_upcoming_count = sql_fetch("
            between '{$today}' and date_add('{$today}', interval 7 day)
 ", false);
 
+$no_guardian_count = sql_fetch("
+    select count(*) as cnt
+      from " . IEUM_STUDENT_TABLE . " s
+     where s.academy_id = '{$academy_id}'
+       and s.is_active = 1
+       and not exists (
+           select 1
+             from " . IEUM_STUDENT_GUARDIAN_TABLE . " g
+            where g.academy_id = s.academy_id
+              and g.student_id = s.student_id
+              and g.is_active = 1
+              and g.guardian_phone <> ''
+       )
+", false);
+
+$report_blocked_count = sql_fetch("
+    select count(*) as cnt
+      from " . IEUM_STUDENT_TABLE . " s
+     where s.academy_id = '{$academy_id}'
+       and s.is_active = 1
+       and (
+            s.birth_date is null
+         or s.birth_date = '0000-00-00'
+         or not exists (
+             select 1
+               from " . IEUM_STUDENT_GUARDIAN_TABLE . " g
+              where g.academy_id = s.academy_id
+                and g.student_id = s.student_id
+                and g.is_active = 1
+                and g.guardian_phone <> ''
+         )
+       )
+", false);
+
 $long_absent_count = sql_fetch("
     select count(*) as cnt
       from (
@@ -404,6 +821,7 @@ $long_absent_count = sql_fetch("
            and a.student_id = s.student_id
          where s.academy_id = '{$academy_id}'
            and s.is_active = 1
+           " . ieum_dashboard_auto_check_not_resolved_sql('acr', $academy_id, 'long_absent', 'cast(s.student_id as char)', $today) . "
       group by s.student_id
         having (last_attendance is null and datediff('{$today}', base_date) >= 14)
             or (last_attendance is not null and datediff('{$today}', last_attendance) >= 14)
@@ -420,6 +838,7 @@ $long_absent_students = sql_query("
        and a.student_id = s.student_id
      where s.academy_id = '{$academy_id}'
        and s.is_active = 1
+       " . ieum_dashboard_auto_check_not_resolved_sql('acr', $academy_id, 'long_absent', 'cast(s.student_id as char)', $today) . "
   group by s.student_id
     having (last_attendance is null and datediff('{$today}', base_date) >= 14)
         or (last_attendance is not null and datediff('{$today}', last_attendance) >= 14)
@@ -438,6 +857,9 @@ $birthday_students = sql_query("
   order by day(birth_date) asc, student_name asc
      limit 12
 ", false);
+
+require IEUM_PATH . '/views/dashboard_home.php';
+exit;
 ?>
 <!doctype html>
 <html lang="ko">
@@ -461,8 +883,8 @@ $birthday_students = sql_query("
 .auto-check{background:#fff;border:1px solid #d9dee7;border-radius:12px;padding:18px;box-shadow:0 10px 24px rgba(15,23,42,.06);margin-bottom:18px}.auto-check-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;margin-bottom:14px;flex-wrap:wrap}.auto-check-head h2{margin-bottom:4px}.auto-check-head p{margin:0;color:#667085;line-height:1.45}.auto-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.auto-card{border:1px solid #d9dee7;border-radius:10px;padding:14px;background:#fff;color:#111827;text-decoration:none}.auto-card:hover{border-color:#9bb7df;background:#f8fbff}.auto-card.warn{border-color:#f4c27a;background:#fffaf0}.auto-card.danger{border-color:#efb2b2;background:#fff5f5}.auto-label{color:#667085;font-size:13px;font-weight:900}.auto-number{display:block;font-size:30px;font-weight:1000;margin:4px 0}.auto-card p{margin:0;color:#475467;font-size:13px;line-height:1.45}.auto-list{display:grid;gap:7px;margin-top:12px}.auto-list-row{display:flex;justify-content:space-between;gap:10px;border-top:1px solid #edf1f7;padding-top:7px;font-size:13px}.auto-list-row strong{font-size:14px}.auto-list-row span{color:#667085;text-align:right}.auto-empty{color:#667085;font-size:13px;margin-top:10px}@media(max-width:900px){.auto-grid{grid-template-columns:1fr 1fr}}@media(max-width:560px){.auto-grid{grid-template-columns:1fr}.auto-list-row{display:grid}.auto-list-row span{text-align:left}}
 </style>
 </head>
-<body>
-<?php echo ieum_admin_header('dashboard'); ?>
+<body class="ieum-side-layout ieum-dashboard-page">
+<?php echo ieum_admin_header('dashboard', 'side'); ?>
 <main class="wrap">
     <section class="hero">
         <div>
@@ -471,7 +893,7 @@ $birthday_students = sql_query("
         </div>
         <div class="actions">
             <a class="btn tablet" href="<?php echo IEUM_URL; ?>/admin/tablet_devices.php">앱 출석기</a>
-            <a class="btn primary" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form">학생 등록</a>
+            <a class="btn primary" href="<?php echo IEUM_URL; ?>/admin/students.php?mode=form">원생 등록</a>
         </div>
     </section>
     <?php if ($message) { ?><p class="notice ok"><?php echo get_text($message); ?></p><?php } ?>
@@ -593,16 +1015,16 @@ $birthday_students = sql_query("
 
     <section class="grid">
         <article class="card"><div class="label"><?php echo get_text($billing_month); ?> 수련비 결제</div><div class="num"><?php echo number_format((int) $tuition['paid_count']); ?>명</div><div class="hint"><?php echo number_format((int) $tuition['paid_amount']); ?>원 입금 기록</div></article>
-        <article class="card"><div class="label">오늘 납부 예정</div><div class="num"><?php echo number_format((int) $tuition['due_today_count']); ?></div><div class="hint">오늘 결제일인 학생</div></article>
+        <article class="card"><div class="label">납부 예정</div><div class="num"><?php echo number_format((int) $tuition['due_upcoming_count']); ?></div><div class="hint">다가오는 납부일 학생</div></article>
         <article class="card"><div class="label">미결제 <?php echo (int) $tuition_overdue_days; ?>일 이하</div><div class="num"><?php echo number_format((int) $tuition['unpaid_soon_count']); ?></div><div class="hint">결제일 경과 0~<?php echo (int) $tuition_overdue_days; ?>일</div></article>
         <article class="card"><div class="label">미납 <?php echo (int) $tuition_overdue_days; ?>일 초과</div><div class="num"><?php echo number_format((int) $tuition['unpaid_over_count']); ?></div><div class="hint">관리자 확인 필요</div></article>
         <article class="card"><div class="label">오늘 수련비 문자 예정</div><div class="num"><?php echo number_format($tuition_notice_pending_count); ?></div><div class="hint">납부일/미납 자동문자</div></article>
     </section>
 
     <section class="tuition-overview">
-        <article class="tuition-pill <?php echo (int) $tuition['due_today_count'] ? 'warn' : ''; ?>">
-            <strong><?php echo number_format((int) $tuition['due_today_count']); ?>명</strong>
-            <span>오늘 납부일 학생</span>
+        <article class="tuition-pill <?php echo (int) $tuition['due_upcoming_count'] ? 'warn' : ''; ?>">
+            <strong><?php echo number_format((int) $tuition['due_upcoming_count']); ?>명</strong>
+            <span>다가오는 납부일 학생</span>
         </article>
         <article class="tuition-pill <?php echo (int) $tuition['unpaid_over_count'] ? 'danger' : ''; ?>">
             <strong><?php echo number_format((int) $tuition['unpaid_over_count']); ?>명</strong>
@@ -653,7 +1075,7 @@ $birthday_students = sql_query("
                     <form method="post" class="todo todo-form <?php echo (int) $missing_today['cnt'] ? 'warn' : ''; ?>">
                         <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                         <input type="hidden" name="action" value="run_absent_alerts">
-                        <div><strong>미등원 알림 생성</strong><span>수업 시작 후 설정 시간이 지난 반만 관리자 문자 큐 생성</span></div>
+                        <div><strong>미등원 알림 생성</strong><span>수업 시작 후 설정 시간이 지난 반만 관리자 문자 발송 대기 등록</span></div>
                         <button type="submit" class="btn">실행</button>
                     </form>
                     <a class="todo <?php echo (int) $vehicle_note_count['cnt'] ? 'warn' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/vehicle_boarding.php">
@@ -787,7 +1209,7 @@ $birthday_students = sql_query("
                 <h2>수련비/문자</h2>
                 <div class="link-list">
                     <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php"><strong>수련비 납부</strong><span>월별 결제/미결제</span></a>
-                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/sms_queue.php"><strong>문자 큐</strong><span>발송 상태 확인</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/sms_queue.php"><strong>문자 발송 대기</strong><span>발송 상태 확인</span></a>
                 </div>
             </section>
             <section class="link-section">

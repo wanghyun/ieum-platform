@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif ($action === 'preview' || $action === 'test_queue') {
                 $sample = ieum_tuition_sample_payment($academy_id);
                 if (!$sample) {
-                    $error = '미리보기에 사용할 학생 또는 수련비 대상이 없습니다.';
+                    $error = '미리보기에 사용할 원생 또는 수련비 대상이 없습니다.';
                 } else {
                     $preview_title = $title !== '' ? $title : $defaults[$template_key]['title'];
                     $preview_message = ieum_tuition_render_notice_message_from_template(
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($action === 'test_queue') {
                         $recipients = ieum_tuition_notice_recipients($academy_id, (int) $sample['student_id']);
                         if (!$recipients) {
-                            $error = '테스트 큐를 만들 보호자 수련비 문자 수신 연락처가 없습니다.';
+                            $error = '테스트 문자를 보낼 보호자 수련비 문자 수신 연락처가 없습니다.';
                         } else {
                             $sms_type = $template_key === 'tuition_overdue' ? 'tuition_overdue' : 'tuition_due';
                             $created = 0;
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $created++;
                                 }
                             }
-                            $message = '테스트 문자 큐 ' . number_format($created) . '건을 생성했습니다. 실제 발송은 안드로이드 게이트웨이가 실행할 때 진행됩니다.';
+                            $message = '테스트 문자 ' . number_format($created) . '건을 발송 준비했습니다. 실제 발송은 문자 발송폰이 실행 중일 때 진행됩니다.';
                         }
                     }
                 }
@@ -112,15 +112,182 @@ $settings = ieum_tuition_get_settings($academy_id);
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1120px;margin:28px auto;padding:0 20px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px}h1{margin:0 0 8px;font-size:26px}.meta{color:#667085;margin-bottom:16px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.grid{display:grid;grid-template-columns:1fr 1fr 150px;gap:10px;align-items:center}.template{display:grid;gap:10px;border-top:1px solid #e2e8f0;padding-top:18px;margin-top:18px}input,textarea{width:100%;border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}textarea{min-height:100px;resize:vertical}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.tokens{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;color:#344054;font-size:13px;line-height:1.6}.tokens code{background:#eef2f7;border-radius:4px;padding:2px 5px}.row{display:grid;grid-template-columns:180px 1fr;gap:10px;align-items:center}@media(max-width:800px){.grid,.row{grid-template-columns:1fr}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1900px;margin:28px auto;padding:0 20px}body.ieum-side-layout .wrap{max-width:1900px;margin:0;padding:28px 24px 44px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px}h1{margin:0 0 8px;font-size:26px}.meta{color:#667085;margin-bottom:16px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}.grid{display:grid;grid-template-columns:1fr 1fr 150px;gap:10px;align-items:center}.template{display:grid;gap:10px;border-top:1px solid #e2e8f0;padding-top:18px;margin-top:18px}input,textarea{width:100%;border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}textarea{min-height:100px;resize:vertical}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}.tokens{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;color:#344054;font-size:13px;line-height:1.6}.tokens code{background:#eef2f7;border-radius:4px;padding:2px 5px}.row{display:grid;grid-template-columns:180px 1fr;gap:10px;align-items:center}@media(max-width:800px){.grid,.row{grid-template-columns:1fr}}
 </style>
 <style>
-.preview{background:#f0f7ff;border:1px solid #b9d7ff;border-radius:8px;padding:14px;margin-bottom:18px;white-space:pre-wrap;font-size:15px;line-height:1.6}.soft{background:#eef2f7}.danger{background:#fff5f5;border-color:#f2b8b8;color:#a4262c}.template-actions{display:flex;gap:8px;flex-wrap:wrap}input[type=checkbox]{width:auto}.setting-card{border:1px solid #e2e8f0;border-radius:8px;padding:14px;background:#fbfcff}.setting-card strong{display:block;margin-bottom:8px}.setting-card select{width:100%;border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.setting-help{margin:8px 0 0;color:#667085;font-size:13px;line-height:1.55}
+.preview{background:#f0f7ff;border:1px solid #b9d7ff;border-radius:12px;padding:16px;margin-bottom:18px;white-space:pre-wrap;font-size:15px;line-height:1.6}.soft{background:#eef2f7}.danger{background:#fff5f5;border-color:#f2b8b8;color:#a4262c}.template-actions{display:flex;gap:8px;flex-wrap:wrap}.template-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}.template-head h3{margin:0;font-size:18px}.template-head p{margin:5px 0 0;color:#667085;font-size:13px}.template-use{display:inline-flex;align-items:center;gap:6px;border:1px solid #d9e3f2;border-radius:999px;background:#f8fbff;padding:7px 10px;font-size:13px;font-weight:800}input[type=checkbox]{width:auto}.setting-card{border:1px solid #e2e8f0;border-radius:12px;padding:16px;background:#fbfcff}.setting-card strong{display:block;margin-bottom:8px}.setting-card select{width:100%;border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.setting-help{margin:8px 0 0;color:#667085;font-size:13px;line-height:1.55}.template-guide{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}.tokens{border-radius:12px}.tokens-title{display:block;margin-bottom:8px;font-weight:900;color:#111827}.tokens-help{margin:8px 0 0;color:#667085;font-size:13px}.template textarea{border-radius:12px;line-height:1.55}.template .row{grid-template-columns:1fr}.template .row label{font-weight:900;color:#334155}.template-note{border:1px solid #e2e8f0;border-radius:12px;background:#fff;padding:14px;color:#475467;font-size:14px;line-height:1.55}.template-note strong{display:block;color:#111827;margin-bottom:6px}@media(max-width:1000px){.template-guide{grid-template-columns:1fr}}
 </style>
+<style>
+/* Dashboard shell alignment: SMS templates keep the dashboard navigation frame. */
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune{
+    --ieum-side-width:260px;
+    --ieum-top-height:64px;
+    --ieum-rail-width:0px;
+    background:#f5f7fb!important;
+    color:#111827!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .ieum-side{
+    width:260px!important;
+    background:#fff!important;
+    border-right:1px solid #e2e8f0!important;
+    box-shadow:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-brand{
+    display:flex!important;
+    height:144px!important;
+    min-height:144px!important;
+    padding:0 28px!important;
+    background:#fff!important;
+    color:#0f172a!important;
+    font-size:29px!important;
+    letter-spacing:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-brand-mark,
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-profile,
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-search{
+    display:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-nav{
+    padding:0 14px 24px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-main-link,
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-menu>summary{
+    min-height:42px!important;
+    border-radius:6px!important;
+    padding:0 12px!important;
+    color:#0f172a!important;
+    font-size:15px!important;
+    font-weight:900!important;
+    letter-spacing:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-main-link:hover,
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-main-link.active,
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-menu[open]>summary,
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-menu>summary:hover{
+    background:#f1f5f9!important;
+    color:#0f172a!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .ieum-nav-label{
+    gap:10px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .ieum-nav-icon{
+    width:18px!important;
+    height:18px!important;
+    color:#334155!important;
+    opacity:1!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-sub{
+    margin:2px 0 8px!important;
+    padding:0 0 0 28px!important;
+    background:transparent!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-sub a{
+    min-height:34px!important;
+    border-radius:6px!important;
+    color:#475569!important;
+    font-size:14px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-sub a:hover,
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .side-sub a.active{
+    background:#f1f5f9!important;
+    color:#0f172a!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .ieum-shell-top{
+    left:260px!important;
+    right:0!important;
+    width:auto!important;
+    height:64px!important;
+    padding:0 40px!important;
+    background:#fff!important;
+    border-bottom:1px solid #e2e8f0!important;
+    box-shadow:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .ieum-shell-link{
+    flex:0 0 auto!important;
+    color:#0f172a!important;
+    font-weight:900!important;
+    text-decoration:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .ieum-shell-link:before{
+    display:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .ieum-shell-meta{
+    margin-left:auto!important;
+    color:#0f172a!important;
+    font-size:13px!important;
+    font-weight:900!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .dashboard-shell-meta-inner{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:8px!important;
+    white-space:nowrap!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .dashboard-shell-divider,
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .dashboard-shell-help-dot{
+    color:#94a3b8!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .dashboard-shell-support-link{
+    color:#0f172a!important;
+    text-decoration:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .dashboard-shell-support-link:hover,
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .ieum-shell-link:hover{
+    color:#1769c2!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .dashboard-shell-help-group{
+    display:inline-flex!important;
+    align-items:center!important;
+    gap:4px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .ieum-right-rail{
+    display:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .wrap{
+    margin:0 0 0 260px!important;
+    padding:96px 40px 42px!important;
+    max-width:none!important;
+    width:auto!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune h1{
+    margin:0 0 8px!important;
+    font-size:30px!important;
+    font-weight:1000!important;
+    letter-spacing:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .meta{
+    color:#64748b!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .panel,
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .tokens,
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .setting-card,
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .template-note{
+    border-radius:8px!important;
+    box-shadow:0 10px 24px rgba(15,23,42,.04)!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .btn{
+    min-height:38px!important;
+    border-radius:6px!important;
+    font-size:14px!important;
+    font-weight:900!important;
+}
+@media(max-width:980px){
+    body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .wrap{
+        margin:0!important;
+        padding:86px 14px 34px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.sms-templates-page-tune .ieum-shell-top{
+        left:0!important;
+        right:0!important;
+        padding:0 10px!important;
+    }
+}
+</style>
+<link rel="stylesheet" href="<?php echo IEUM_URL; ?>/assets/admin-send-confirm.css?v=20260527b">
 </head>
-<body>
-<?php echo ieum_admin_header('sms_templates'); ?>
-<?php echo ieum_admin_subnav('sms_templates'); ?>
+<body class="ieum-side-layout ieum-dashboard-page ieum-simple-page sms-templates-page-tune">
+<?php echo ieum_admin_header('sms_templates', 'side'); ?>
 <main class="wrap">
     <h1>문자 템플릿</h1>
     <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 수련비 납부/미납 문구와 자동발송 기준을 도장별로 관리합니다.</div>
@@ -140,7 +307,7 @@ $settings = ieum_tuition_get_settings($academy_id);
                 <strong>문자 안내</strong>
                 <label><input type="checkbox" name="due_notice_enabled" value="1" <?php echo !empty($settings['due_notice_enabled']) ? 'checked' : ''; ?>> 납부일 당일 문자 안내</label><br>
                 <label><input type="checkbox" name="overdue_notice_enabled" value="1" <?php echo !empty($settings['overdue_notice_enabled']) ? 'checked' : ''; ?>> 미납 문자 안내</label>
-                <p class="setting-help">문자 안내는 안드로이드 문자 게이트웨이 큐로 생성됩니다.</p>
+                <p class="setting-help">문자 안내는 문자 발송폰으로 보낼 수 있게 준비됩니다.</p>
             </div>
             <div class="setting-card">
                 <strong>미납 기준</strong>
@@ -152,28 +319,82 @@ $settings = ieum_tuition_get_settings($academy_id);
     </section>
 
     <section class="panel">
-        <h2>사용 가능한 변수</h2>
-        <div class="tokens">
-            <code>{academy_name}</code> 도장명 · <code>{student_name}</code> 학생명 · <code>{billing_month}</code> 청구월 · <code>{amount_due}</code> 청구액 · <code>{amount_paid}</code> 입금액 · <code>{balance}</code> 잔액 · <code>{due_date}</code> 납부일
+        <h2>수련비 문자 기본 문구</h2>
+        <div class="template-guide">
+            <div class="tokens">
+                <span class="tokens-title">자동으로 채워지는 항목</span>
+                <code>{도장명}</code> 도장명 · <code>{원생명}</code> 원생명 · <code>{청구월}</code> 청구월 · <code>{청구액}</code> 청구액 · <code>{입금액}</code> 입금액 · <code>{잔액}</code> 잔액 · <code>{납부일}</code> 납부일
+                <p class="tokens-help">문구 안에 넣어두면 원생별 발송 시 실제 정보로 자동 변경됩니다.</p>
+            </div>
+            <div class="template-note">
+                <strong>현장에서 빠르게 쓰는 방법</strong>
+                평소에는 이 기본 문구를 사용하고, 특정 계절 인사말이나 행사 안내는 수련비 납부 화면의 발송 팝업에서 바로 수정해 저장할 수 있습니다.
+            </div>
         </div>
         <?php foreach ($defaults as $key => $default) { $template = ieum_tuition_get_sms_template($academy_id, $key); ?>
         <form method="post" class="template">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <input type="hidden" name="template_key" value="<?php echo get_text($key); ?>">
+            <div class="template-head">
+                <div>
+                    <h3><?php echo get_text($default['title']); ?></h3>
+                    <p>보호자에게 보낼 기본 문구입니다. 실제 발송 전 팝업에서 한 번 더 확인할 수 있습니다.</p>
+                </div>
+                <label class="template-use"><input type="checkbox" name="is_active" value="1" <?php echo !empty($template['is_active']) ? 'checked' : ''; ?>> 사용</label>
+            </div>
             <div class="row">
-                <label><?php echo get_text($default['title']); ?></label>
+                <label>관리자용 제목</label>
                 <input type="text" name="title" value="<?php echo get_text($template['title']); ?>">
             </div>
             <textarea name="message"><?php echo get_text($template['message']); ?></textarea>
-            <label><input type="checkbox" name="is_active" value="1" <?php echo !empty($template['is_active']) ? 'checked' : ''; ?>> 사용</label>
             <div class="template-actions">
-                <button type="submit" name="action" value="template" class="btn primary">템플릿 저장</button>
-                <button type="submit" name="action" value="preview" class="btn soft">미리보기</button>
-                <button type="submit" name="action" value="test_queue" class="btn danger" onclick="return confirm('테스트 문자 큐를 생성할까요? 실제 발송은 안드로이드 게이트웨이가 실행할 때 진행됩니다.');">테스트 큐 생성</button>
+                <button type="submit" name="action" value="template" class="btn primary">기본 문구 저장</button>
+                <button type="submit" name="action" value="preview" class="btn soft">예시 보기</button>
+                <button type="submit" name="action" value="test_queue" class="btn danger send-confirm-trigger" data-send-title="테스트 문자 발송 확인" data-send-message="대표 보호자에게 테스트용 수련비 문자를 발송 준비합니다." data-send-count="1" data-send-summary="info:샘플 원생 1명 기준|warn:실제 발송은 문자 발송폰이 실행|ok:문구 확인용 테스트 문자">테스트 문자 발송</button>
             </div>
         </form>
         <?php } ?>
     </section>
 </main>
+<script>
+(function(){
+    var rootSelector = '.sms-templates-page-tune.ieum-dashboard-page';
+    var brandText = document.querySelector(rootSelector + ' .side-brand span:last-child');
+    if (brandText) {
+        brandText.textContent = <?php echo json_encode($academy['academy_name']); ?>;
+    }
+
+    var homeLink = document.querySelector(rootSelector + ' .ieum-shell-link');
+    if (homeLink) {
+        homeLink.textContent = '아이이음 교육페이지';
+    }
+
+    var meta = document.querySelector(rootSelector + ' .ieum-shell-meta');
+    if (meta) {
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2, '0');
+        var mm = String(now.getMinutes()).padStart(2, '0');
+        meta.innerHTML = ''
+            + '<span class="dashboard-shell-meta-inner">'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php">개발지원센터</a>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span class="dashboard-shell-help-group">'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#qna">Q&A</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#faq">자주하는 질문</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#contact">문의하기</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#chatbot">AI 챗봇</a>'
+            + '</span>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span><?php echo get_text($academy['academy_name']); ?></span>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span class="dashboard-shell-clock">' + hh + ':' + mm + '</span>'
+            + '</span>';
+    }
+})();
+</script>
+<script src="<?php echo IEUM_URL; ?>/assets/admin-send-confirm.js?v=20260530d"></script>
 </body>
 </html>

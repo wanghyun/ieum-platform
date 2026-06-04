@@ -7,6 +7,7 @@ require_once IEUM_PATH . '/lib/program.php';
 $g5['title'] = '아이이음 인성 체크표';
 $academy = ieum_require_academy_page();
 $academy_id = (int) $academy['academy_id'];
+ieum_character_ensure_table();
 $week_start = isset($_GET['week_start']) ? preg_replace('/[^0-9\-]/', '', trim($_GET['week_start'])) : date('Y-m-d', strtotime('monday this week', strtotime(G5_TIME_YMD)));
 if (!preg_match('/^\d{4}\-\d{2}\-\d{2}$/', $week_start)) {
     $week_start = date('Y-m-d', strtotime('monday this week', strtotime(G5_TIME_YMD)));
@@ -78,6 +79,7 @@ $students = sql_query("
  left join " . IEUM_CLASS_TIME_TABLE . " c on c.class_time_id = s.class_time_id and c.academy_id = s.academy_id
      where s.academy_id = '{$academy_id}'
        and s.is_active = 1
+       and coalesce(s.character_report_enabled, 1) = 1
        {$program_filter_sql}
        {$class_filter_sql}
   order by c.sort_order asc, c.start_time asc, s.student_name asc
@@ -103,7 +105,7 @@ $students = sql_query("
         </div>
         <button type="button" class="btn print-hide" onclick="window.print()">인쇄</button>
     </section>
-    <div class="guide print-hide">주 1회 출력해서 수업 중 바로 기록하는 체크표입니다. 인성 칸에는 바를 정(正) 방식으로 누적하고, 입력 화면에서는 기본 4점에서 포인트와 메모를 보고 필요한 학생만 수정하세요.</div>
+    <div class="guide print-hide">주 1회 출력해서 수업 중 바로 기록하는 체크표입니다. 인성 칸에는 바를 정(正) 방식으로 누적하고, 입력 화면에서는 기본 3점에서 눈에 띈 성장과 지도진 특별 칭찬만 빠르게 수정하세요.</div>
     <table class="sheet">
         <thead>
             <tr>
@@ -138,3 +140,4 @@ $students = sql_query("
 </main>
 </body>
 </html>
+

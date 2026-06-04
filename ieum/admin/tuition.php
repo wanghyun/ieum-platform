@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $sub_menu = '950170';
 require_once './_common.php';
 
@@ -92,17 +92,224 @@ $plans = sql_query("
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}
-.wrap{max-width:1120px;margin:28px auto;padding:0 20px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px}
+.wrap{max-width:1900px;margin:28px auto;padding:0 20px}body.ieum-side-layout .wrap{max-width:1900px;margin:0;padding:28px 24px 44px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-bottom:18px;overflow-x:auto}
 h1{margin:0 0 8px;font-size:26px}.meta{color:#667085;margin-bottom:16px}.notice{padding:12px;border-radius:8px}.ok{background:#eef9f1;color:#176b2c}.err{background:#fdecec;color:#a4262c}
-input,select{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid{display:grid;grid-template-columns:130px 1fr 150px 150px 130px 90px 90px;gap:8px;align-items:center}
+input,select{border:1px solid #cfd6df;border-radius:6px;padding:10px;font-size:15px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;align-items:center}.grid .primary{min-width:160px}
 .btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:700;cursor:pointer}.primary{background:#1769c2;border-color:#1769c2;color:#fff}
-table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}th{background:#72829d;color:#fff}.left{text-align:left}
+table{width:100%;min-width:1120px;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding:10px;text-align:center}th{background:#72829d;color:#fff}.left{text-align:left}
 @media(max-width:900px){.grid{grid-template-columns:1fr}table{display:block;overflow-x:auto;white-space:nowrap}}
 </style>
+<style>
+/* Dashboard shell alignment: tuition policy is the source for payment checks. */
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune{
+    --ieum-side-width:260px;
+    --ieum-top-height:64px;
+    --ieum-rail-width:0px;
+    background:#f5f7fb!important;
+    color:#111827!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .ieum-side{
+    width:260px!important;
+    background:#fff!important;
+    border-right:1px solid #e2e8f0!important;
+    box-shadow:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-brand{
+    display:flex!important;
+    height:144px!important;
+    min-height:144px!important;
+    padding:0 28px!important;
+    background:#fff!important;
+    color:#0f172a!important;
+    font-size:29px!important;
+    letter-spacing:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-brand-mark,
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-profile,
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-search{
+    display:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-nav{
+    padding:0 14px 24px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-main-link,
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-menu>summary{
+    min-height:42px!important;
+    border-radius:6px!important;
+    padding:0 12px!important;
+    color:#0f172a!important;
+    font-size:15px!important;
+    font-weight:900!important;
+    letter-spacing:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-main-link:hover,
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-main-link.active,
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-menu[open]>summary,
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-menu>summary:hover{
+    background:#f1f5f9!important;
+    color:#0f172a!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .ieum-nav-label{
+    gap:10px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .ieum-nav-icon{
+    width:18px!important;
+    height:18px!important;
+    color:#334155!important;
+    opacity:1!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-sub{
+    margin:2px 0 8px!important;
+    padding:0 0 0 28px!important;
+    background:transparent!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-sub a{
+    min-height:34px!important;
+    border-radius:6px!important;
+    color:#475569!important;
+    font-size:14px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-sub a:hover,
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .side-sub a.active{
+    background:#f1f5f9!important;
+    color:#0f172a!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .ieum-shell-top{
+    left:260px!important;
+    right:0!important;
+    width:auto!important;
+    height:64px!important;
+    padding:0 40px!important;
+    background:#fff!important;
+    border-bottom:1px solid #e2e8f0!important;
+    box-shadow:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .ieum-shell-link{
+    flex:0 0 auto!important;
+    color:#0f172a!important;
+    font-weight:900!important;
+    text-decoration:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .ieum-shell-link:before{
+    display:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .ieum-shell-meta{
+    margin-left:auto!important;
+    color:#0f172a!important;
+    font-size:13px!important;
+    font-weight:900!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .dashboard-shell-meta-inner{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:8px!important;
+    white-space:nowrap!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .dashboard-shell-divider,
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .dashboard-shell-help-dot{
+    color:#94a3b8!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .dashboard-shell-support-link{
+    color:#0f172a!important;
+    text-decoration:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .dashboard-shell-support-link:hover,
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .ieum-shell-link:hover{
+    color:#1769c2!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .dashboard-shell-help-group{
+    display:inline-flex!important;
+    align-items:center!important;
+    gap:4px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .ieum-right-rail{
+    display:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .wrap{
+    margin:0 0 0 260px!important;
+    padding:96px 40px 42px!important;
+    max-width:none!important;
+    width:auto!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune h1{
+    margin:0!important;
+    font-size:30px!important;
+    font-weight:1000!important;
+    letter-spacing:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .meta{
+    margin:8px 0 18px!important;
+    color:#64748b!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .panel{
+    border-color:#dfe5ee!important;
+    border-radius:8px!important;
+    box-shadow:0 10px 24px rgba(15,23,42,.04)!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .grid{
+    grid-template-columns:130px minmax(150px,1fr) 130px 120px 140px 86px 74px!important;
+    gap:8px!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune input,
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune select{
+    min-height:40px!important;
+    border-color:#cfd8e3!important;
+    border-radius:6px!important;
+    background:#fff!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune label{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    min-height:40px!important;
+    font-weight:900!important;
+    white-space:nowrap!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune label input{
+    min-height:auto!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .btn{
+    min-height:38px!important;
+    border-radius:6px!important;
+    font-size:14px!important;
+    font-weight:900!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .grid .primary{
+    min-width:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune th{
+    background:#f3f6fb!important;
+    color:#334155!important;
+    border-color:#e2e8f0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune td{
+    border-color:#e5ebf3!important;
+}
+@media(max-width:1500px){
+    body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .grid{
+        grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    }
+}
+@media(max-width:980px){
+    body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .wrap{
+        margin:0!important;
+        padding:86px 14px 34px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .ieum-shell-top{
+        left:0!important;
+        right:0!important;
+        padding:0 10px!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.tuition-policy-page-tune .grid{
+        grid-template-columns:1fr!important;
+    }
+}
+</style>
 </head>
-<body>
-<?php echo ieum_admin_header('tuition'); ?>
-<?php echo ieum_admin_subnav('tuition'); ?>
+<body class="ieum-side-layout ieum-dashboard-page tuition-policy-page-tune">
+<?php echo ieum_admin_header('tuition', 'side'); ?>
 <main class="wrap">
     <h1>수련비 설정</h1>
     <div class="meta"><?php echo get_text($academy['academy_name']); ?> · 주 횟수별 기본 금액과 형제 할인 기준입니다.</div>
@@ -166,5 +373,44 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d8dee9;padding
         </table>
     </section>
 </main>
+<script>
+(function(){
+    var rootSelector = '.tuition-policy-page-tune.ieum-dashboard-page';
+    var brandText = document.querySelector(rootSelector + ' .side-brand span:last-child');
+    if (brandText) {
+        brandText.textContent = <?php echo json_encode($academy['academy_name']); ?>;
+    }
+
+    var homeLink = document.querySelector(rootSelector + ' .ieum-shell-link');
+    if (homeLink) {
+        homeLink.textContent = '아이이음 교육페이지';
+    }
+
+    var meta = document.querySelector(rootSelector + ' .ieum-shell-meta');
+    if (meta) {
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2, '0');
+        var mm = String(now.getMinutes()).padStart(2, '0');
+        meta.innerHTML = ''
+            + '<span class="dashboard-shell-meta-inner">'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php">개발지원센터</a>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span class="dashboard-shell-help-group">'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#qna">Q&A</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#faq">자주하는 질문</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#contact">문의하기</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#chatbot">AI 챗봇</a>'
+            + '</span>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span><?php echo get_text($academy['academy_name']); ?></span>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span class="dashboard-shell-clock">' + hh + ':' + mm + '</span>'
+            + '</span>';
+    }
+})();
+</script>
 </body>
 </html>

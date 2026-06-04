@@ -5,6 +5,10 @@ if (!defined('_GNUBOARD_')) {
 
 function ieum_character_mission_ensure_tables()
 {
+    sql_query("alter table " . IEUM_STUDENT_TABLE . " add gender varchar(10) not null default 'all' after birth_date", false);
+    sql_query("alter table " . IEUM_STUDENT_TABLE . " add character_report_enabled tinyint(1) not null default 1 after gender", false);
+    sql_query("alter table " . IEUM_STUDENT_TABLE . " add fitness_report_enabled tinyint(1) not null default 1 after character_report_enabled", false);
+
     sql_query("
         create table if not exists " . IEUM_CHARACTER_MISSION_TABLE . " (
             mission_id int unsigned not null auto_increment,

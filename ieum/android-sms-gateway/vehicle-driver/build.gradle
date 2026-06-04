@@ -1,0 +1,43 @@
+plugins {
+    id "com.android.application"
+}
+
+def releaseStorePath = System.getenv("IEUM_DRIVER_STORE_FILE")
+def hasReleaseSigning = releaseStorePath != null && releaseStorePath.length() > 0
+
+android {
+    namespace "kr.ieum.vehicledriver"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "kr.co.ieum.vehicledriver"
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    if (hasReleaseSigning) {
+        signingConfigs {
+            release {
+                storeFile file(releaseStorePath)
+                storePassword System.getenv("IEUM_DRIVER_STORE_PASSWORD")
+                keyAlias System.getenv("IEUM_DRIVER_KEY_ALIAS")
+                keyPassword System.getenv("IEUM_DRIVER_KEY_PASSWORD")
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation "androidx.core:core:1.13.1"
+}

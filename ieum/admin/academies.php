@@ -236,7 +236,7 @@ $total = sql_fetch("
 *{box-sizing:border-box}
 body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}
-.wrap{max-width:1280px;margin:28px auto;padding:0 20px}
+.wrap{max-width:1900px;margin:28px auto;padding:0 20px}
 .bar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap}
 h1{margin:0;font-size:26px}.count{color:#5b6472}
 .panel{background:#fff;border:1px solid #d9dee7;border-radius:8px;padding:22px;box-shadow:0 8px 20px rgba(15,23,42,.06)}
@@ -252,6 +252,7 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid
 </head>
 <body>
 <?php echo ieum_admin_header('academies'); ?>
+<?php echo ieum_admin_subnav('academies'); ?>
 <main class="wrap">
     <div class="bar">
         <div>
@@ -300,7 +301,7 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid
                 <label for="academy_name">도장명</label>
                 <input type="text" name="academy_name" id="academy_name" value="<?php echo get_text($form['academy_name']); ?>" maxlength="100" required>
 
-                <label for="gateway_token">게이트웨이 토큰</label>
+                <label for="gateway_token">문자 발송 연결키</label>
                 <input type="text" name="gateway_token" id="gateway_token" value="<?php echo get_text($form['gateway_token']); ?>" maxlength="100" required>
 
                 <label for="service_status">아이리포트 상태</label>

@@ -88,3 +88,38 @@ function ieum_character_report_public_url($academy_id, $student_id, $month)
     $token = ieum_character_report_token($academy_id, $student_id, $month);
     return IEUM_URL . '/character_parent_report.php?t=' . rawurlencode($token);
 }
+
+function ieum_fitness_report_token($academy_id, $student_id, $month, $expires_at = 0)
+{
+    $payload = array(
+        'r' => 'fitness',
+        'a' => (int) $academy_id,
+        's' => (int) $student_id,
+        'm' => preg_replace('/[^0-9\-]/', '', $month),
+        'e' => $expires_at ? (int) $expires_at : strtotime('+180 days'),
+    );
+    $json = json_encode($payload);
+    $body = ieum_report_base64url_encode($json);
+    $signature = hash_hmac('sha256', $body, ieum_report_link_secret());
+
+    return $body . '.' . $signature;
+}
+
+function ieum_fitness_report_payload($token)
+{
+    $payload = ieum_character_report_payload($token);
+    if (!$payload) {
+        return null;
+    }
+    if (!isset($payload['r']) || $payload['r'] !== 'fitness') {
+        return null;
+    }
+
+    return $payload;
+}
+
+function ieum_fitness_report_public_url($academy_id, $student_id, $month)
+{
+    $token = ieum_fitness_report_token($academy_id, $student_id, $month);
+    return IEUM_URL . '/fitness_parent_report.php?t=' . rawurlencode($token);
+}

@@ -38,12 +38,12 @@ function ieum_character_level_steps()
     }
 
     $tiers = array(
-        array('key' => 'bronze', 'label' => '브론즈', 'color' => '#a66a35'),
-        array('key' => 'silver', 'label' => '실버', 'color' => '#8b98a8'),
-        array('key' => 'gold', 'label' => '골드', 'color' => '#d99b22'),
-        array('key' => 'platinum', 'label' => '플래티넘', 'color' => '#2f9eaa'),
-        array('key' => 'diamond', 'label' => '다이아', 'color' => '#4361ee'),
-        array('key' => 'master', 'label' => '마스터', 'color' => '#2c2a25'),
+        array('key' => 'bronze', 'label' => '브론즈', 'color' => '#8a5a3c', 'accent' => '#d5a171'),
+        array('key' => 'silver', 'label' => '실버', 'color' => '#8e8b86', 'accent' => '#e3ded8'),
+        array('key' => 'gold', 'label' => '골드', 'color' => '#c9962d', 'accent' => '#ffe08a'),
+        array('key' => 'master', 'label' => '마스터', 'color' => '#1188b8', 'accent' => '#65e5ff'),
+        array('key' => 'champion', 'label' => '챔피언', 'color' => '#b8193d', 'accent' => '#ff6b8a'),
+        array('key' => 'legend', 'label' => '레전드', 'color' => '#6d35d6', 'accent' => '#d59cff'),
     );
 
     $steps = array();
@@ -58,6 +58,7 @@ function ieum_character_level_steps()
                 'label' => $tier['label'] . ' ' . $rank . '단계',
                 'threshold' => $threshold,
                 'color' => $tier['color'],
+                'accent' => $tier['accent'],
             );
             $threshold += 120;
         }

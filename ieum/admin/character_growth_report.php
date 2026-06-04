@@ -109,6 +109,7 @@ $student_rows = sql_query("
  left join " . IEUM_CLASS_TIME_TABLE . " c on c.class_time_id = s.class_time_id and c.academy_id = s.academy_id
      where s.academy_id = '{$academy_id}'
        and s.is_active = 1
+       and coalesce(s.character_report_enabled, 1) = 1
        {$program_filter_sql}
        {$class_filter_sql}
   order by c.sort_order asc, c.start_time asc, s.student_name asc
@@ -220,6 +221,8 @@ $class_label = $student ? trim(($student['class_name'] ?: '미지정') . ' ' . (
 $grade_label = $student ? ieum_growth_report_grade_label($student['grade_group']) : '';
 $school_label = $student && $student['school_name'] !== '' ? $student['school_name'] : '학교 미입력';
 $period_label = $months ? $months[0] . ' ~ ' . $months[count($months) - 1] : $month;
+$level_color = $level_current && isset($level_current['current']['color']) ? $level_current['current']['color'] : '#1947ba';
+$level_accent = $level_current && isset($level_current['current']['accent']) ? $level_current['current']['accent'] : '#dbe6ff';
 ?>
 <!doctype html>
 <html lang="ko">
@@ -228,12 +231,74 @@ $period_label = $months ? $months[0] . ' ~ ' . $months[count($months) - 1] : $mo
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?php echo get_text($g5['title']); ?></title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1220px;margin:28px auto;padding:0 20px}.wrap.is-loading{opacity:.55;pointer-events:none}.hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:20px}.meta{color:#667085;margin-top:6px;line-height:1.45}.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:900;cursor:pointer}.primary{background:#1947ba;border-color:#1947ba;color:#fff}input,select{border:1px solid #cfd6df;border-radius:6px;padding:9px;font-size:14px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:20px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.cover{background:linear-gradient(135deg,#1947ba,#2c2a25);border:0;color:#fff;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}.profile{display:flex;gap:14px;align-items:center}.avatar{width:82px;height:82px;border-radius:22px;object-fit:cover;background:#e8eef7;border:3px solid rgba(255,255,255,.75)}.avatar-empty{display:flex;align-items:center;justify-content:center;color:#667085;font-weight:900}.cover .meta{color:#dbe6ff}.cover h1{font-size:32px}.level-emblem{min-width:150px;border-radius:24px;background:rgba(255,255,255,.14);padding:20px;text-align:center;box-shadow:inset 0 0 0 4px rgba(255,255,255,.14)}.level-emblem strong{display:block;font-size:24px}.level-emblem span{display:block;margin-top:6px;font-weight:900;color:#dbe6ff}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.kpi{border:1px solid #d9dee7;border-radius:10px;padding:16px;background:#fbfcff}.kpi span{display:block;color:#667085;font-weight:900;font-size:13px}.kpi strong{display:block;margin-top:6px;font-size:28px}.up{color:#087f5b}.down{color:#c92a2a}.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.timeline{display:grid;gap:10px}.month-row{display:grid;grid-template-columns:78px 1fr 95px;gap:10px;align-items:center}.bar{height:13px;background:#eef2f7;border-radius:999px;overflow:hidden}.fill{height:100%;border-radius:999px;background:#1947ba}.month-row strong{font-size:14px}.month-row span{text-align:right;font-weight:900}.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}.badge{display:inline-flex;border-radius:999px;background:#eef2f7;color:#344054;padding:4px 8px;font-size:12px;font-weight:900}.badge.ok{background:#e8f7ee;color:#087f5b}.badge.wait{background:#fff4e6;color:#9a5b00}.story{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;line-height:1.75}.story strong{color:#1947ba}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}.left{text-align:left}.print-note{color:#667085;font-size:12px;line-height:1.5}.student-summary table{min-width:820px}.student-summary tr.active{background:#eef6ff}.mini{display:block;color:#667085;font-size:12px;margin-top:3px}.pill{display:inline-flex;border-radius:999px;padding:4px 8px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900}.pill.up{background:#e8f7ee;color:#087f5b}.pill.down{background:#fdecec;color:#c92a2a}@media(max-width:900px){.cover,.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.ieum-user{margin-left:0}.month-row{grid-template-columns:66px 1fr 70px}}@media print{.top,.filters,.print-hide,.student-summary{display:none}.wrap{max-width:none;margin:0;padding:0}.panel{box-shadow:none;border-color:#aaa;break-inside:avoid}.cover{color:#fff}.grid{grid-template-columns:1.2fr .8fr}body{background:#fff}}
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{background:#15204a;color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}.ieum-brand{color:#fff;text-decoration:none;font-size:18px;font-weight:900}.ieum-nav{display:flex;gap:4px;flex-wrap:wrap;align-items:center}.top a{color:#d8e2ff;text-decoration:none}.ieum-nav a{padding:8px 10px;border-radius:6px}.ieum-nav a.active,.ieum-nav a:hover{background:#253469;color:#fff}.ieum-user{margin-left:auto;color:#cbd5e1;font-size:13px}.wrap{max-width:1900px;margin:28px auto;padding:0 20px}.wrap.is-loading{opacity:.55;pointer-events:none}.hero{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap}h1{margin:0;font-size:30px}h2{margin:0 0 14px;font-size:20px}.meta{color:#667085;margin-top:6px;line-height:1.45}.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:38px;border:1px solid #cfd6df;border-radius:6px;background:#fff;color:#111827;text-decoration:none;padding:8px 12px;font-weight:900;cursor:pointer}.primary{background:#1947ba;border-color:#1947ba;color:#fff}input,select{border:1px solid #cfd6df;border-radius:6px;padding:9px;font-size:14px}.panel{background:#fff;border:1px solid #d9dee7;border-radius:10px;padding:20px;box-shadow:0 8px 20px rgba(15,23,42,.06);margin-top:18px}.cover{background:linear-gradient(135deg,#1947ba,#2c2a25);border:0;color:#fff;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}.profile{display:flex;gap:14px;align-items:center}.avatar{width:82px;height:82px;border-radius:22px;object-fit:cover;background:#e8eef7;border:3px solid rgba(255,255,255,.75)}.avatar-empty{display:flex;align-items:center;justify-content:center;color:#667085;font-weight:900}.cover .meta{color:#dbe6ff}.cover h1{font-size:32px}.level-emblem{min-width:150px;border-radius:24px;background:rgba(255,255,255,.14);padding:20px;text-align:center;box-shadow:inset 0 0 0 4px rgba(255,255,255,.14)}.level-emblem strong{display:block;font-size:24px}.level-emblem span{display:block;margin-top:6px;font-weight:900;color:#dbe6ff}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.kpi{border:1px solid #d9dee7;border-radius:10px;padding:16px;background:#fbfcff}.kpi span{display:block;color:#667085;font-weight:900;font-size:13px}.kpi strong{display:block;margin-top:6px;font-size:28px}.up{color:#087f5b}.down{color:#c92a2a}.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}.timeline{display:grid;gap:10px}.month-row{display:grid;grid-template-columns:78px 1fr 95px;gap:10px;align-items:center}.bar{height:13px;background:#eef2f7;border-radius:999px;overflow:hidden}.fill{height:100%;border-radius:999px;background:#1947ba}.month-row strong{font-size:14px}.month-row span{text-align:right;font-weight:900}.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}.badge{display:inline-flex;border-radius:999px;background:#eef2f7;color:#344054;padding:4px 8px;font-size:12px;font-weight:900}.badge.ok{background:#e8f7ee;color:#087f5b}.badge.wait{background:#fff4e6;color:#9a5b00}.story{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px;line-height:1.75}.story strong{color:#1947ba}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;background:#fff}th,td{border:1px solid #d8dee9;padding:9px;text-align:center;font-size:14px}th{background:#72829d;color:#fff}.left{text-align:left}.print-note{color:#667085;font-size:12px;line-height:1.5}.student-summary table{min-width:820px}.student-summary tr.active{background:#eef6ff}.mini{display:block;color:#667085;font-size:12px;margin-top:3px}.pill{display:inline-flex;border-radius:999px;padding:4px 8px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900}.pill.up{background:#e8f7ee;color:#087f5b}.pill.down{background:#fdecec;color:#c92a2a}@media(max-width:900px){.cover,.grid{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.ieum-user{margin-left:0}.month-row{grid-template-columns:66px 1fr 70px}}@media print{.top,.filters,.print-hide,.student-summary{display:none}.wrap{max-width:none;margin:0;padding:0}.panel{box-shadow:none;border-color:#aaa;break-inside:avoid}.cover{color:#fff}.grid{grid-template-columns:1.2fr .8fr}body{background:#fff}}
+.rank-emblem{--rank-color:#1947ba;--rank-accent:#dbe6ff;position:relative;min-width:168px;min-height:168px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;overflow:hidden;background:radial-gradient(circle at 50% 18%,color-mix(in srgb,var(--rank-accent) 62%,#fff 18%),var(--rank-color) 45%,#141820 100%);border:1px solid color-mix(in srgb,var(--rank-accent) 60%,#fff 10%);box-shadow:0 20px 45px rgba(0,0,0,.22),inset 0 0 0 5px rgba(255,255,255,.12)}.rank-emblem:before{content:"";position:absolute;top:26px;width:92px;height:86px;border-radius:22px;transform:rotate(45deg);background:linear-gradient(135deg,color-mix(in srgb,var(--rank-color) 65%,#fff 15%),color-mix(in srgb,var(--rank-color) 82%,#111 18%));box-shadow:0 0 0 11px rgba(255,255,255,.15),0 0 0 22px rgba(0,0,0,.12)}.rank-emblem:after{content:"";position:absolute;top:50px;width:134px;height:56px;border-radius:50% 50% 12px 12px;background:linear-gradient(90deg,transparent 0 10%,color-mix(in srgb,var(--rank-accent) 70%,#fff 10%) 10% 35%,transparent 35% 65%,color-mix(in srgb,var(--rank-accent) 70%,#fff 10%) 65% 90%,transparent 90%);filter:drop-shadow(0 8px 8px rgba(0,0,0,.22))}.rank-core{position:absolute;top:62px;width:54px;height:54px;transform:rotate(45deg);background:linear-gradient(135deg,color-mix(in srgb,var(--rank-accent) 78%,#fff 14%),color-mix(in srgb,var(--rank-color) 72%,#000 12%));box-shadow:0 12px 24px rgba(0,0,0,.22);z-index:1}.rank-emblem strong,.rank-emblem span{position:relative;z-index:2}.rank-emblem strong{text-shadow:0 2px 6px rgba(0,0,0,.25)}.rank-emblem span{color:#eef4ff}
+</style>
+<style>
+body.ieum-side-layout.ieum-dashboard-page.character-growth-page-tune{
+    --ieum-side-width:260px;
+    --ieum-top-height:64px;
+    --ieum-rail-width:0px;
+    --ieum-shell-top:#fff;
+    background:#f5f7fb!important;
+    color:#111827!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.character-growth-page-tune .ieum-side{
+    width:260px!important;
+    background:#fff!important;
+    border-right:1px solid #e5e7eb!important;
+    box-shadow:none!important;
+}
+.character-growth-page-tune .side-brand{
+    height:144px!important;
+    padding:0 28px!important;
+    align-items:center!important;
+    font-size:30px!important;
+    font-weight:900!important;
+    letter-spacing:0!important;
+}
+.character-growth-page-tune .side-brand-mark,
+.character-growth-page-tune .side-profile,
+.character-growth-page-tune .side-search,
+.character-growth-page-tune .ieum-right-rail{display:none!important}
+.character-growth-page-tune .side-nav{padding:0 14px 22px!important}
+.character-growth-page-tune .side-nav a{border-radius:8px!important;color:#0f172a!important}
+.character-growth-page-tune .side-nav a.active{background:#f1f5f9!important;color:#0f172a!important}
+.character-growth-page-tune .ieum-shell-top{
+    left:260px!important;
+    right:0!important;
+    height:64px!important;
+    background:#fff!important;
+    border-bottom:1px solid #eef2f7!important;
+    color:#0f172a!important;
+    box-shadow:none!important;
+}
+.character-growth-page-tune .ieum-shell-link,
+.character-growth-page-tune .dashboard-shell-support-link{color:#0f172a!important;text-decoration:none!important;font-weight:800!important}
+.character-growth-page-tune .ieum-shell-link::before{display:none!important}
+.character-growth-page-tune .ieum-shell-meta{color:#0f172a!important}
+.character-growth-page-tune .dashboard-shell-meta-inner{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.character-growth-page-tune .dashboard-shell-divider,
+.character-growth-page-tune .dashboard-shell-help-dot{color:#94a3b8}
+body.ieum-side-layout.ieum-dashboard-page.character-growth-page-tune .wrap{
+    max-width:none!important;
+    width:auto!important;
+    margin:0 0 0 260px!important;
+    padding:96px 40px 42px!important;
+}
+.character-growth-page-tune .panel,
+.character-growth-page-tune .kpi{border-radius:8px!important;box-shadow:none!important}
+.character-growth-page-tune th{background:#f8fafc!important;color:#475569!important;border-color:#e5e7eb!important}
+.character-growth-page-tune td{border-color:#eef2f7!important}
+@media(max-width:980px){
+    body.ieum-side-layout.ieum-dashboard-page.character-growth-page-tune{--ieum-side-width:0px}
+    .character-growth-page-tune .ieum-shell-top{left:0!important}
+    body.ieum-side-layout.ieum-dashboard-page.character-growth-page-tune .wrap{margin-left:0!important;padding:88px 16px 32px!important}
+}
 </style>
 </head>
-<body>
-<?php echo ieum_admin_header('character_growth'); ?>
-<?php echo ieum_admin_subnav('character_growth'); ?>
+<body class="ieum-side-layout ieum-dashboard-page character-growth-page-tune">
+<?php echo ieum_admin_header('character_growth', 'side'); ?>
 <main class="wrap">
     <section class="hero">
         <div>
@@ -276,15 +341,15 @@ $period_label = $months ? $months[0] . ' ~ ' . $months[count($months) - 1] : $mo
     <section class="panel student-summary print-hide">
         <div class="hero">
             <div>
-                <h2>학생별 장기 흐름</h2>
-                <div class="meta">선택한 기간의 평균, 변화량, 아이잘해 참여를 먼저 보고 상담 대상 학생을 고릅니다.</div>
+                <h2>원생별 장기 흐름</h2>
+                <div class="meta">선택한 기간의 평균, 변화량, 아이잘해 참여를 먼저 보고 상담 대상 원생을 고릅니다.</div>
             </div>
             <span class="badge"><?php echo number_format(count($student_summaries)); ?>명</span>
         </div>
         <div class="table-wrap">
             <table>
                 <thead>
-                    <tr><th>학생</th><th>프로그램</th><th>부</th><th>평균 상태</th><th>변화</th><th>출석 흐름</th><th>아이잘해</th><th>관리</th></tr>
+                    <tr><th>원생</th><th>프로그램</th><th>부</th><th>평균 상태</th><th>변화</th><th>출석 흐름</th><th>아이잘해</th><th>관리</th></tr>
                 </thead>
                 <tbody>
                 <?php foreach ($student_summaries as $summary) {
@@ -302,14 +367,14 @@ $period_label = $months ? $months[0] . ' ~ ' . $months[count($months) - 1] : $mo
                     <td><a class="btn" href="<?php echo IEUM_URL; ?>/admin/character_growth_report.php?month=<?php echo get_text($month); ?>&amp;period=<?php echo (int) $period; ?>&amp;program_code=<?php echo get_text($program_code); ?>&amp;class_time_id=<?php echo (int) $class_time_id; ?>&amp;student_id=<?php echo (int) $option['student_id']; ?>">보기</a></td>
                 </tr>
                 <?php } ?>
-                <?php if (!$student_summaries) { ?><tr><td colspan="8">조건에 맞는 학생이 없습니다.</td></tr><?php } ?>
+                <?php if (!$student_summaries) { ?><tr><td colspan="8">조건에 맞는 원생이 없습니다.</td></tr><?php } ?>
                 </tbody>
             </table>
         </div>
     </section>
 
     <?php if (!$student) { ?>
-    <section class="panel">리포트를 볼 학생이 없습니다.</section>
+    <section class="panel">리포트를 볼 원생이 없습니다.</section>
     <?php } else { ?>
     <section class="panel cover">
         <div class="profile">
@@ -324,7 +389,8 @@ $period_label = $months ? $months[0] . ' ~ ' . $months[count($months) - 1] : $mo
             </div>
         </div>
         <?php if ($level_current) { ?>
-        <div class="level-emblem" style="background:<?php echo get_text($level_current['current']['color']); ?>">
+        <div class="level-emblem rank-emblem" style="--rank-color:<?php echo get_text($level_color); ?>;--rank-accent:<?php echo get_text($level_accent); ?>">
+            <div class="rank-core"></div>
             <strong><?php echo get_text($level_current['current']['tier_label']); ?></strong>
             <span><?php echo number_format((int) $level_current['current']['rank']); ?>단계 · 누적 <?php echo number_format((int) $level_current['points']); ?>점</span>
         </div>
@@ -415,6 +481,45 @@ $period_label = $months ? $months[0] . ' ~ ' . $months[count($months) - 1] : $mo
     <?php } ?>
 </main>
 <script>
+(function(){
+    var rootSelector = '.character-growth-page-tune.ieum-dashboard-page';
+    var brandText = document.querySelector(rootSelector + ' .side-brand span:last-child');
+    if (brandText) {
+        brandText.textContent = <?php echo json_encode($academy['academy_name']); ?>;
+    }
+
+    var homeLink = document.querySelector(rootSelector + ' .ieum-shell-link');
+    if (homeLink) {
+        homeLink.textContent = '아이이음 교육페이지';
+    }
+
+    var meta = document.querySelector(rootSelector + ' .ieum-shell-meta');
+    if (meta) {
+        var now = new Date();
+        var hh = String(now.getHours()).padStart(2, '0');
+        var mm = String(now.getMinutes()).padStart(2, '0');
+        meta.innerHTML = ''
+            + '<span class="dashboard-shell-meta-inner">'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php">개발지원센터</a>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span class="dashboard-shell-help-group">'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#qna">Q&A</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#faq">자주하는 질문</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#contact">문의하기</a>'
+            + '<span class="dashboard-shell-help-dot">·</span>'
+            + '<a class="dashboard-shell-support-link" href="<?php echo IEUM_URL; ?>/admin/support.php#chatbot">AI 챗봇</a>'
+            + '</span>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span><?php echo get_text($academy['academy_name']); ?></span>'
+            + '<span class="dashboard-shell-divider">|</span>'
+            + '<span class="dashboard-shell-clock">' + hh + ':' + mm + '</span>'
+            + '</span>';
+    }
+})();
+</script>
+<script>
 (function () {
     const main = document.querySelector('main.wrap');
     if (!main) return;
@@ -466,3 +571,4 @@ $period_label = $months ? $months[0] . ' ~ ' . $months[count($months) - 1] : $mo
 </script>
 </body>
 </html>
+

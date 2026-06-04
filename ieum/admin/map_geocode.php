@@ -18,7 +18,7 @@ if (empty($settings['use_geocoding']) || !ieum_map_has_api_key($settings) || !ie
     exit;
 }
 
-$url = 'https://naveropenapi.apigw.ntruss.com/map-geocode/v2/geocode?query=' . rawurlencode($query);
+$url = 'https://maps.apigw.ntruss.com/map-geocode/v2/geocode?query=' . rawurlencode($query);
 $headers = array(
     'X-NCP-APIGW-API-KEY-ID: ' . $settings['naver_client_id'],
     'X-NCP-APIGW-API-KEY: ' . $settings['naver_client_secret'],
@@ -60,7 +60,7 @@ if ($body === false || $status_code >= 400) {
     $message = '주소 검색 API 호출에 실패했습니다.';
     $error_data = json_decode((string) $body, true);
     if ($status_code === 401 || $status_code === 403) {
-        $message = '네이버 지도 API 구독 또는 권한 설정을 확인해 주세요.';
+        $message = '네이버 지도 API 구독, Geocoding 사용 권한, Client ID/Secret 값을 확인해 주세요.';
     } elseif (is_array($error_data) && !empty($error_data['error']['message'])) {
         $message = '주소 검색 API 오류: ' . $error_data['error']['message'];
     }
@@ -70,7 +70,7 @@ if ($body === false || $status_code >= 400) {
 
 $data = json_decode($body, true);
 if (!is_array($data) || empty($data['addresses'][0])) {
-    echo json_encode(array('success' => false, 'message' => '검색 결과가 없습니다.'), JSON_UNESCAPED_UNICODE);
+    echo json_encode(array('success' => false, 'message' => '검색 결과가 없습니다. 도로명 주소나 지번 주소로 다시 입력해 주세요.'), JSON_UNESCAPED_UNICODE);
     exit;
 }
 
