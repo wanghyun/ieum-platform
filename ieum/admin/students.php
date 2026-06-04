@@ -3312,7 +3312,7 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap{
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap table{
     width:100%!important;
-    min-width:1120px!important;
+    min-width:1240px!important;
     table-layout:fixed!important;
     border-collapse:collapse!important;
 }
@@ -3343,13 +3343,13 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap 
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(2),
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(2){width:9%!important}
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(3),
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(3){width:12%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(3){width:11%!important}
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(4),
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(4){width:20%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(4){width:18%!important}
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(5),
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(5){width:31%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(5){width:32%!important}
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap th:nth-child(6),
-body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(6){width:15%!important}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td:nth-child(6){width:17%!important}
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-table-wrap td.student-row-actions{
     padding:7px 8px!important;
 }
@@ -3386,7 +3386,7 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-signal-list
     justify-content:flex-start!important;
     align-content:flex-start!important;
     gap:5px!important;
-    max-height:44px!important;
+    max-height:48px!important;
     overflow:hidden!important;
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-badge{
@@ -3397,8 +3397,8 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-badge{
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box{
     display:grid!important;
-    grid-template-columns:48px minmax(80px,1fr) 40px!important;
-    gap:5px!important;
+    grid-template-columns:54px minmax(92px,1fr) 42px!important;
+    gap:5px 6px!important;
     align-items:start!important;
     width:100%!important;
 }
@@ -3412,16 +3412,24 @@ body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .status-change-form{
     grid-column:2 / -1!important;
     display:grid!important;
-    grid-template-columns:minmax(70px,1fr) 40px!important;
-    gap:5px!important;
+    grid-template-columns:minmax(88px,1fr) 42px!important;
+    gap:6px!important;
     margin:0!important;
+    width:100%!important;
+    min-width:0!important;
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .status-change-form select{
+    width:100%!important;
     height:31px!important;
     min-height:31px!important;
     border-radius:6px!important;
     font-size:12px!important;
     font-weight:900!important;
+    min-width:0!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.student-page-tune .status-change-form .btn{
+    width:100%!important;
+    min-width:0!important;
 }
 body.ieum-side-layout.ieum-dashboard-page.student-page-tune .student-row-action-box .care-actions{
     grid-column:1 / -1!important;

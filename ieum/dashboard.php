@@ -909,7 +909,7 @@ exit;
                     <span class="focus-count"><?php echo number_format((int) $missing_today['cnt']); ?>명</span>
                 </a>
                 <a class="focus-action <?php echo (int) $tuition['unpaid_over_count'] ? 'danger' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php">
-                    <div><strong>수련비 미결제</strong><span><?php echo (int) $tuition_overdue_days; ?>일 초과 관리 대상</span></div>
+                    <div><strong>수련비 미납</strong><span><?php echo (int) $tuition_overdue_days; ?>일 초과 관리 대상</span></div>
                     <span class="focus-count"><?php echo number_format((int) $tuition['unpaid_over_count']); ?>명</span>
                 </a>
                 <a class="focus-action <?php echo (int) $sms['failed_count'] ? 'danger' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/sms_queue.php?status=failed">
@@ -1014,9 +1014,9 @@ exit;
     </section>
 
     <section class="grid">
-        <article class="card"><div class="label"><?php echo get_text($billing_month); ?> 수련비 결제</div><div class="num"><?php echo number_format((int) $tuition['paid_count']); ?>명</div><div class="hint"><?php echo number_format((int) $tuition['paid_amount']); ?>원 입금 기록</div></article>
+        <article class="card"><div class="label"><?php echo get_text($billing_month); ?> 수련비 납부</div><div class="num"><?php echo number_format((int) $tuition['paid_count']); ?>명</div><div class="hint"><?php echo number_format((int) $tuition['paid_amount']); ?>원 입금 기록</div></article>
         <article class="card"><div class="label">납부 예정</div><div class="num"><?php echo number_format((int) $tuition['due_upcoming_count']); ?></div><div class="hint">다가오는 납부일 학생</div></article>
-        <article class="card"><div class="label">미결제 <?php echo (int) $tuition_overdue_days; ?>일 이하</div><div class="num"><?php echo number_format((int) $tuition['unpaid_soon_count']); ?></div><div class="hint">결제일 경과 0~<?php echo (int) $tuition_overdue_days; ?>일</div></article>
+        <article class="card"><div class="label">미납 <?php echo (int) $tuition_overdue_days; ?>일 이하</div><div class="num"><?php echo number_format((int) $tuition['unpaid_soon_count']); ?></div><div class="hint">납부일 경과 0~<?php echo (int) $tuition_overdue_days; ?>일</div></article>
         <article class="card"><div class="label">미납 <?php echo (int) $tuition_overdue_days; ?>일 초과</div><div class="num"><?php echo number_format((int) $tuition['unpaid_over_count']); ?></div><div class="hint">관리자 확인 필요</div></article>
         <article class="card"><div class="label">오늘 수련비 문자 예정</div><div class="num"><?php echo number_format($tuition_notice_pending_count); ?></div><div class="hint">납부일/미납 자동문자</div></article>
     </section>
@@ -1087,7 +1087,7 @@ exit;
                         <strong><?php echo number_format((int) $sms['failed_count']); ?>건</strong>
                     </a>
                     <a class="todo <?php echo (int) $tuition['unpaid_over_count'] ? 'danger' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php">
-                        <div><strong>수련비 미결제 확인</strong><span><?php echo (int) $tuition_overdue_days; ?>일 초과 미결제 학생</span></div>
+                        <div><strong>수련비 미납 확인</strong><span><?php echo (int) $tuition_overdue_days; ?>일 초과 미납 원생</span></div>
                         <strong><?php echo number_format((int) $tuition['unpaid_over_count']); ?>명</strong>
                     </a>
                     <a class="todo <?php echo $tuition_notice_pending_count ? 'warn' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/sms_templates.php">
@@ -1208,7 +1208,7 @@ exit;
             <section class="link-section">
                 <h2>수련비/문자</h2>
                 <div class="link-list">
-                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php"><strong>수련비 납부</strong><span>월별 결제/미결제</span></a>
+                    <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php"><strong>수련비 납부</strong><span>월별 납부/미납</span></a>
                     <a class="link-card" href="<?php echo IEUM_URL; ?>/admin/sms_queue.php"><strong>문자 발송 대기</strong><span>발송 상태 확인</span></a>
                 </div>
             </section>

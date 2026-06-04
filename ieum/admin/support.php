@@ -189,7 +189,7 @@ body.ieum-side-layout.ieum-dashboard-page.support-page-tune .wrap{max-width:none
             </article>
             <article class="qa-item">
                 <h3>수련비 미납이 있는데 대시보드가 0명으로 보이면 어디를 봐야 하나요?</h3>
-                <p class="answer">대시보드는 이번 달 수련비 청구 내역에서 아직 완납되지 않은 원생을 봅니다. 먼저 <a href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php?payment_filter=unpaid#paymentList">수련비 미납 목록</a>에서 이번 달 청구가 만들어져 있는지, 납부완료로 잘못 처리되어 있지 않은지 확인합니다.</p>
+                <p class="answer">대시보드는 이번 달 수련비 청구 내역에서 아직 완납되지 않은 원생을 봅니다. 먼저 <a href="<?php echo IEUM_URL; ?>/admin/tuition_payments.php?payment_filter=unpaid#paymentList">수련비 미납 목록</a>에서 이번 달 청구가 만들어져 있는지, 납부 완료로 잘못 처리되어 있지 않은지 확인합니다.</p>
             </article>
             <article class="qa-item">
                 <h3>납부 예정과 수련비 미납은 왜 숫자가 다르게 나오나요?</h3>
@@ -557,7 +557,7 @@ body.ieum-side-layout.ieum-dashboard-page.support-page-tune .wrap{max-width:none
         {
             keywords: ['수련비', '미납', '부분납', '결제', '납부', '수련비 미납', '미납자', '미납 문자', '수련비 문자', '청구 문자', '납부 안내 문자'],
             title: '수련비 미납 확인',
-            answer: '수련비 미납은 이번 달 수련비가 아직 완납되지 않은 원생입니다. 수련비 관리에서 확인 필요를 누르면 미납 원생만 볼 수 있고, 원생을 선택해 안내 문자를 보낼 수 있습니다. 미납자가 있는데 대시보드가 0명이라면 이번 달 청구가 만들어져 있는지, 납부완료로 잘못 처리되어 있지 않은지 먼저 확인하세요.',
+            answer: '수련비 미납은 이번 달 수련비가 아직 완납되지 않은 원생입니다. 수련비 관리에서 확인 필요를 누르면 미납 원생만 볼 수 있고, 원생을 선택해 안내 문자를 보낼 수 있습니다. 미납자가 있는데 대시보드가 0명이라면 이번 달 청구가 만들어져 있는지, 납부 완료로 잘못 처리되어 있지 않은지 먼저 확인하세요.',
             links: [
                 ['수련비 미납 목록', urls.tuitionUnpaid],
                 ['납부 예정', urls.tuitionDueUpcoming]

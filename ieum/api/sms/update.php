@@ -36,7 +36,7 @@ $row = sql_fetch("
 ", false);
 
 if (!isset($row['sms_id'])) {
-    ieum_json_response(false, '문자 큐를 찾을 수 없습니다.', array(), 404);
+    ieum_json_response(false, '문자 발송 내역을 찾을 수 없습니다.', array(), 404);
 }
 
 $device_sql = sql_escape_string($device);
@@ -57,7 +57,7 @@ if ($gateway_device) {
     ieum_sms_gateway_touch((int) $gateway_device['device_id'], $status === 'sent' ? 'last_sent_at' : 'last_seen_at', $error_message);
 }
 
-ieum_json_response(true, '문자 큐 상태가 업데이트되었습니다.', array(
+ieum_json_response(true, '문자 발송 상태가 업데이트되었습니다.', array(
     'sms_id' => $sms_id,
     'academy_id' => $academy_id,
     'status' => $status,

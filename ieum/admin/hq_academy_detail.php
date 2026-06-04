@@ -306,7 +306,7 @@ if (!empty($latest['vehicle_assigned']) && empty($latest['boarding_count'])) {
         <article class="panel">
             <h2>최근 6개월 핵심 합계</h2>
             <p>신규 <?php echo number_format($totals['new_count']); ?>명 · 복귀 <?php echo number_format($totals['returned_count']); ?>명 · 휴관 <?php echo number_format($totals['paused_count']); ?>명 · 퇴관 <?php echo number_format($totals['withdrawn_count']); ?>명</p>
-            <p>차량 탑승기록 <?php echo number_format($totals['boarding_count']); ?>건 · 결제완료 <?php echo number_format($totals['paid_count']); ?>건 · 청구실패 <?php echo number_format($totals['failed_count']); ?>건</p>
+            <p>차량 탑승기록 <?php echo number_format($totals['boarding_count']); ?>건 · 납부 완료 <?php echo number_format($totals['paid_count']); ?>건 · 청구실패 <?php echo number_format($totals['failed_count']); ?>건</p>
         </article>
     </section>
 

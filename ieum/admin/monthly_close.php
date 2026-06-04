@@ -306,7 +306,7 @@ foreach ($students as $student) {
         $flags['tuition'] = true;
         $priority = min($priority, 20);
     } elseif ($tuition_unpaid) {
-        $reasons[] = '수련비 미결제';
+        $reasons[] = '수련비 미납';
         $flags['tuition'] = true;
         $priority = min($priority, 40);
     }
@@ -570,7 +570,7 @@ body.ieum-side-layout.ieum-dashboard-page.monthly-close-page-tune .signal-board 
         <article class="kpi"><span>체력 측정 부족</span><strong class="<?php echo $summary['fitness_missing'] ? 'warn' : 'good'; ?>"><?php echo number_format($summary['fitness_missing']); ?>명</strong></article>
         <article class="kpi"><span>대표 보호자 없음</span><strong class="<?php echo $summary['no_phone'] ? 'danger' : 'good'; ?>"><?php echo number_format($summary['no_phone']); ?>명</strong></article>
         <article class="kpi"><span>아이잘해 성공</span><strong><?php echo number_format($summary['mission_done']); ?>명</strong></article>
-        <article class="kpi"><span>수련비 미결제</span><strong class="<?php echo $summary['tuition_unpaid'] ? 'warn' : 'good'; ?>"><?php echo number_format($summary['tuition_unpaid']); ?>명</strong></article>
+        <article class="kpi"><span>수련비 미납</span><strong class="<?php echo $summary['tuition_unpaid'] ? 'warn' : 'good'; ?>"><?php echo number_format($summary['tuition_unpaid']); ?>명</strong></article>
         <article class="kpi"><span>미납 <?php echo number_format($overdue_days); ?>일 초과</span><strong class="<?php echo $summary['tuition_overdue'] ? 'danger' : 'good'; ?>"><?php echo number_format($summary['tuition_overdue']); ?>명</strong></article>
         <article class="kpi"><span>장기 미등원</span><strong class="<?php echo $summary['long_absent'] ? 'danger' : 'good'; ?>"><?php echo number_format($summary['long_absent']); ?>명</strong></article>
         <article class="kpi"><span>우선 처리</span><strong class="<?php echo $summary['critical'] ? 'danger' : 'good'; ?>"><?php echo number_format($summary['critical']); ?>명</strong></article>
@@ -675,7 +675,7 @@ body.ieum-side-layout.ieum-dashboard-page.monthly-close-page-tune .signal-board 
             <div class="routine">
                 <div class="routine-item"><div class="routine-no">!</div><div><strong>발송 불가 원인</strong><span>연락처 <?php echo number_format($summary['no_phone']); ?>명 · 인성 <?php echo number_format($summary['character_missing']); ?>명 · 체력 <?php echo number_format($summary['fitness_missing']); ?>명</span></div></div>
                 <div class="routine-item"><div class="routine-no">체</div><div><strong>체력 리포트</strong><span>측정 완료 <?php echo number_format($summary['fitness_completed']); ?>명 · 발송 가능 <?php echo number_format($summary['fitness_send_ready']); ?>명</span></div></div>
-                <div class="routine-item"><div class="routine-no">비</div><div><strong>수련비 관리</strong><span>미결제 <?php echo number_format($summary['tuition_unpaid']); ?>명 · <?php echo number_format($overdue_days); ?>일 초과 <?php echo number_format($summary['tuition_overdue']); ?>명</span></div></div>
+                <div class="routine-item"><div class="routine-no">비</div><div><strong>수련비 관리</strong><span>미납 <?php echo number_format($summary['tuition_unpaid']); ?>명 · <?php echo number_format($overdue_days); ?>일 초과 <?php echo number_format($summary['tuition_overdue']); ?>명</span></div></div>
                 <div class="routine-item"><div class="routine-no">미</div><div><strong>아이잘해 미션</strong><span>성공 <?php echo number_format($summary['mission_done']); ?>명 · 미참여 <?php echo number_format($summary['mission_wait']); ?>명</span></div></div>
                 <div class="routine-item"><div class="routine-no">상</div><div><strong>상담 신호</strong><span>최근 14일 이상 출석 기록 없음 <?php echo number_format($summary['long_absent']); ?>명</span></div></div>
             </div>

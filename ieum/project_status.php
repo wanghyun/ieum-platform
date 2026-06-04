@@ -76,7 +76,7 @@ function ieum_project_status_label($status)
 }
 
 $phase1_items = array(
-    array('area' => '출석/문자', 'status' => 'done', 'title' => '학생번호 등원, 중복 방지, 문자 큐', 'note' => '1구간 핵심 흐름은 동작 확인됨. 실제 문자 발송은 도장별 운영 전 최종 점검 필요.'),
+    array('area' => '출석/문자', 'status' => 'done', 'title' => '학생번호 등원, 중복 방지, 문자 발송 준비', 'note' => '1구간 핵심 흐름은 동작 확인됨. 실제 문자 발송은 도장별 운영 전 최종 점검 필요.'),
     array('area' => '출석 앱', 'status' => 'review', 'title' => '태블릿 앱 QR 연결과 등원 화면', 'note' => '연결/입력은 동작. 7인치/10인치 실기기 화면과 화면 고정 운영 안내가 추가 검증 포인트.'),
     array('area' => '학생 관리', 'status' => 'done', 'title' => '신규 등록, 등록 학생 수정, 대량 원생 목록', 'note' => '필수 정보 빠른 등록, 상세 패널, 필터, 일괄 변경, 엑셀 이동 준비까지 1차 운영 흐름이 잡힘.'),
     array('area' => '수련비', 'status' => 'review', 'title' => '정책, 납부, 자동 발송 설정', 'note' => '청구/미납 흐름은 준비됨. 비대면 결제 연동 전 상태값과 발송 로그 정리가 필요.'),
@@ -114,7 +114,7 @@ $scenario_items = array(
     array('status' => 'ready', 'title' => '학생 등록', 'detail' => '프로그램, 학년/부, 수업부, 보호자, 수련비, 차량 정보를 한 학생 기준으로 끝까지 입력'),
     array('status' => 'ready', 'title' => '학생 대량 이관', 'detail' => '에듀패밀리 원생 엑셀 업로드, 검토 화면, 프로그램/수업부 연결, 확인 필요 행 다운로드 확인'),
     array('status' => 'ready', 'title' => '출석 앱 연결', 'detail' => '태블릿 QR 연결, 기기명 확인, 잘못 입력/중복 번호/등원 완료 10초 표시 확인'),
-    array('status' => 'ready', 'title' => '출석 → 문자 큐', 'detail' => '등원 처리 후 보호자 문자 큐 생성, 수신 대상 체크, 중복 등원 방지 확인'),
+    array('status' => 'ready', 'title' => '출석 → 문자 발송 준비', 'detail' => '등원 처리 후 보호자 문자 발송 준비, 수신 대상 체크, 중복 등원 방지 확인'),
     array('status' => 'ready', 'title' => '차량 운영', 'detail' => '등원/하원 차량 배정, 차량 일지, 탑승 확인, 차량 메모 대시보드 노출 확인'),
     array('status' => 'ready', 'title' => '수련비 운영', 'detail' => '납부일 자동 발송 설정, 미리 납부자 제외, 미납 포함 청구 문구 확인'),
     array('status' => 'ready', 'title' => '인성 입력', 'detail' => '부별 인성 입력, 아이잘해 미션 참여 체크, 월간 학부모 리포트 확인'),

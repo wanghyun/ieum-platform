@@ -860,6 +860,29 @@ body.ieum-dashboard-page.ieum-dark .calendar-memo-form,body.ieum-dashboard-page.
 body.ieum-dashboard-page.ieum-dark .table-clean th{background:#1a2434!important;color:#cbd5e1!important}
 body.ieum-dashboard-page.ieum-dark .table-clean td{border-color:#2c3a4f!important}
 body.ieum-dashboard-page.ieum-dark .dashboard-footer a{color:#8fd0ff!important}
+body.ieum-dashboard-page.ieum-dark .calendar-memo-form input[type="date"],
+body.ieum-dashboard-page.ieum-dark .calendar-memo-form input[type="text"],
+body.ieum-dashboard-page.ieum-dark .calendar-memo-form select,
+body.ieum-dashboard-page.ieum-dark .quick-attendance-form select{
+    background:#111827!important;
+    border-color:#334155!important;
+    color:#f8fafc!important;
+}
+body.ieum-dashboard-page.ieum-dark .calendar-memo-form input[type="text"]::placeholder{
+    color:#b8c4d6!important;
+    opacity:1!important;
+}
+body.ieum-dashboard-page.ieum-dark .memo-alert-check,
+body.ieum-dashboard-page.ieum-dark .memo-alert-check *,
+body.ieum-dashboard-page.ieum-dark .quick-attendance-options,
+body.ieum-dashboard-page.ieum-dark .quick-attendance-options label,
+body.ieum-dashboard-page.ieum-dark .quick-attendance-options *{
+    color:#f8fafc!important;
+}
+body.ieum-dashboard-page.ieum-dark .memo-alert-check input,
+body.ieum-dashboard-page.ieum-dark .quick-attendance-options input{
+    accent-color:#1d7fe0!important;
+}
 @media(max-width:1280px){.today-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.three-grid,.progress-list{grid-template-columns:1fr 1fr}.lower-grid{grid-template-columns:1fr}.class-flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(min-width:1500px){.schedule-board{grid-template-columns:minmax(760px,1.38fr) minmax(560px,1fr);gap:22px}.calendar-memo-form{grid-template-columns:112px minmax(180px,1fr) 54px auto;gap:6px}.calendar-memo-form input,.calendar-memo-form select{min-height:34px;font-size:12px}.calendar-memo-form .dash-btn{min-height:34px;font-size:12px}.memo-alert-check{font-size:12px}.memo-alert-fields{grid-template-columns:54px 48px 54px;gap:4px}.today-class-stats{gap:8px}.today-class-stat{min-height:38px;padding:0 10px}.timeline-table-head,.timeline-row{grid-template-columns:62px 72px 70px 88px 94px;gap:10px}.timeline-count b,.timeline-missing b{font-size:13px}.quick-attendance-form{grid-template-columns:58px 100px minmax(190px,1fr) 136px 54px;gap:6px}.quick-attendance-title{font-size:12px}.quick-attendance-form select{min-height:34px;font-size:12px}.quick-attendance-target{min-height:34px;font-size:11.5px;padding:0 8px}.quick-attendance-options{font-size:11px;gap:8px}.quick-attendance-options input{width:13px;height:13px}.quick-attendance-form .dash-btn{min-height:34px;font-size:12px;padding:0 10px}}
 @media(max-width:1040px){.schedule-board{grid-template-columns:1fr}.today-class-panel{border-top:0;padding-top:0}}

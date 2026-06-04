@@ -1041,6 +1041,106 @@ body.ieum-dashboard-page.attendance-page-tune.ieum-dark .btn.primary{
     border-color:#1f7dd9!important;
     color:#fff!important;
 }
+body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .filters .btn,
+body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .missing-actions .btn,
+body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .vehicle-note .btn{
+    white-space:nowrap!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .stat-card,
+body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .class-chip,
+body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .missing-item,
+body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .vehicle-note{
+    box-shadow:none!important;
+}
+body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .student-link-button{
+    color:#1769c2!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .closed-lesson-note{
+    background:#2a2416!important;
+    border-color:#6d5421!important;
+    color:#ffd58a!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .stat-card.warn,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .signal.warn{
+    background:#2a2416!important;
+    border-color:#6d5421!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .stat-card.danger,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .signal.danger{
+    background:#2b1820!important;
+    border-color:#6f2d3b!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .class-chip.active{
+    background:#10283d!important;
+    border-color:#1c5b88!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .class-bar{
+    background:#263244!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .class-fill{
+    background:#1d7fe0!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .missing-tools,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .vehicle-note,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .empty,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .detail-head,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .detail-actions,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .edit-head,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .detail-field,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .detail-section{
+    background:#111827!important;
+    border-color:#2c3a4f!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark tr:hover td{
+    background:#182335!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .btn.muted{
+    background:#172132!important;
+    border-color:#334155!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark input::placeholder{
+    color:#9aa8bb!important;
+    opacity:1!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .muted,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .missing-meta,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .vehicle-note p,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .detail-code,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .detail-field strong,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .edit-head span{
+    color:#9aa8bb!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .student-link-button{
+    color:#8fd0ff!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .status-sent{
+    color:#8ee0a8!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .status-failed{
+    color:#ffb4c0!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .status-pending{
+    color:#ffd58a!important;
+}
+@media(max-width:720px){
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .stats,
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .class-strip{
+        grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .quick-input form{
+        grid-template-columns:1fr auto!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .missing-tools input{
+        width:100%!important;
+        min-width:0!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .vehicle-note{
+        align-items:flex-start!important;
+        flex-direction:column!important;
+    }
+}
 </style>
 </head>
 <body class="ieum-side-layout ieum-dashboard-page attendance-page-tune">

@@ -274,6 +274,54 @@ body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .btn.primary{
     border-color:#1f7dd9!important;
     color:#fff!important;
 }
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .chip.pending{
+    background:#2a2416!important;
+    border-color:#6d5421!important;
+    color:#ffd58a!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .chip.processing{
+    background:#10283d!important;
+    border-color:#1c5b88!important;
+    color:#8fd0ff!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .chip.sent{
+    background:#183425!important;
+    border-color:#24593a!important;
+    color:#8ee0a8!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .chip.failed{
+    background:#3a1f27!important;
+    border-color:#6f2d3b!important;
+    color:#ffb4c0!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .chip.canceled{
+    background:#172132!important;
+    border-color:#334155!important;
+    color:#9aa8bb!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .token summary{
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .token code{
+    background:#111827!important;
+    border:1px solid #334155!important;
+    color:#d9e2ef!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .status-pending{color:#ffd58a!important}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .status-processing{color:#8fd0ff!important}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .status-sent,
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .confirmed{color:#8ee0a8!important}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .status-failed{color:#ffb4c0!important}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .status-canceled{color:#9aa8bb!important}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .btn.resolve{
+    background:#0f766e!important;
+    border-color:#0f766e!important;
+    color:#fff!important;
+}
+body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark input::placeholder{
+    color:#9aa8bb!important;
+    opacity:1!important;
+}
 </style>
 </head>
 <body class="ieum-side-layout ieum-dashboard-page sms-queue-page-tune">
@@ -313,7 +361,7 @@ body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .btn.primary{
         </form>
 
         <details class="token">
-            <summary>문자앱 연동 토큰</summary>
+            <summary>문자앱 연결 코드</summary>
             <code><?php echo get_text(IEUM_SMS_GATEWAY_TOKEN); ?></code>
         </details>
     </section>
@@ -323,17 +371,17 @@ body.ieum-dashboard-page.sms-queue-page-tune.ieum-dark .btn.primary{
         <table class="sms-table">
             <thead>
             <tr>
-                <th scope="col">ID</th>
+                <th scope="col">번호</th>
                 <th scope="col">상태</th>
                 <th scope="col">종류</th>
                 <th scope="col">원생</th>
                 <th scope="col">수신번호</th>
                 <th scope="col">메시지</th>
-                <th scope="col">생성</th>
-                <th scope="col">예약</th>
-                <th scope="col">발송</th>
-                <th scope="col">기기</th>
-                <th scope="col">오류/메모</th>
+                <th scope="col">등록 시간</th>
+                <th scope="col">예약 시간</th>
+                <th scope="col">발송 시간</th>
+                <th scope="col">발송폰</th>
+                <th scope="col">확인 내용</th>
                 <th scope="col">확인</th>
             </tr>
             </thead>

@@ -13,15 +13,15 @@ function ieum_tuition_billing_month($time = null)
 function ieum_tuition_status_options()
 {
     return array(
-        'unpaid' => '미결제',
-        'paid' => '결제완료',
+        'unpaid' => '미납',
+        'paid' => '완납',
     );
 }
 
 function ieum_tuition_status_label($status)
 {
     if ($status === 'partial') {
-        return '미결제';
+        return '부분 납부';
     }
 
     $options = ieum_tuition_status_options();

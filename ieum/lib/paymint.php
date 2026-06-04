@@ -1224,14 +1224,14 @@ function ieum_paymint_bill_status_label($status, $appr_state = '')
     $appr_state = trim((string) $appr_state);
 
     if ($appr_state === 'F' || $status === 'paid') {
-        return '결제완료';
+        return '납부 완료';
     }
 
     $labels = array(
         'mock_sent' => '발송 준비',
         'sent' => '발송완료',
         'created' => '생성',
-        'unpaid' => '미결제',
+        'unpaid' => '미납',
         'callback_received' => '상태수신',
         'canceled' => '취소',
         'destroyed' => '폐기',

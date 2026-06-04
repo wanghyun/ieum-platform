@@ -41,7 +41,7 @@ $detail_status = isset($_GET['detail_status']) ? preg_replace('/[^a-z_]/', '', $
 $detail_status_options = array(
     'all' => '전체',
     'waiting' => '결제대기',
-    'paid' => '결제완료',
+    'paid' => '납부 완료',
     'failed' => '실패/폐기',
 );
 if (!isset($detail_status_options[$detail_status])) {
@@ -228,7 +228,7 @@ $logs = sql_query("
 function ieum_billing_bill_status_label($row)
 {
     if (isset($row['appr_state']) && $row['appr_state'] === 'F') {
-        return array('결제완료', 'paid');
+        return array('납부 완료', 'paid');
     }
     if (isset($row['status']) && $row['status'] === 'failed') {
         return array('발송실패', 'failed');
@@ -285,7 +285,7 @@ function ieum_billing_mask_phone($phone)
         <article class="card"><div class="label">청구서 발송 단가</div><div class="num"><?php echo number_format(IEUM_BILLING_SEND_FEE); ?>P</div><div class="sub">가맹점에는 노출하지 않는 본사 부담 비용</div></article>
         <article class="card"><div class="label"><?php echo get_text($month); ?> 발송</div><div class="num"><?php echo number_format($send_count); ?>건</div><div class="sub">청구서 생성/발송 기준</div></article>
         <article class="card"><div class="label"><?php echo get_text($month); ?> 청구금액</div><div class="num"><?php echo number_format($bill_amount); ?>원</div><div class="sub">도장별 수련비 청구 합계</div></article>
-        <article class="card"><div class="label">결제완료율</div><div class="num"><?php echo number_format($paid_rate); ?>%</div><div class="sub"><?php echo number_format($paid_count); ?>건 완료 · <?php echo number_format($waiting_count); ?>건 대기</div></article>
+        <article class="card"><div class="label">납부 완료율</div><div class="num"><?php echo number_format($paid_rate); ?>%</div><div class="sub"><?php echo number_format($paid_count); ?>건 완료 · <?php echo number_format($waiting_count); ?>건 대기</div></article>
         <article class="card"><div class="label">쌤포인트 사용</div><div class="num"><?php echo number_format($send_fee); ?>P</div><div class="sub">도장 화면에는 노출하지 않음</div></article>
     </section>
 
@@ -327,7 +327,7 @@ function ieum_billing_mask_phone($phone)
             </article>
         </div>
         <div class="stat-line">
-            <strong>결제완료</strong>
+            <strong>납부 완료</strong>
             <div class="bar"><div class="fill" style="width:<?php echo min(100, max(0, $paid_rate)); ?>%"></div></div>
             <span><?php echo number_format($paid_count); ?>/<?php echo number_format($send_count); ?>건</span>
         </div>
@@ -347,7 +347,7 @@ function ieum_billing_mask_phone($phone)
             </article>
             <article>
                 <strong>3. 결제 완료 콜백</strong>
-                <span>결제선생 콜백 URL로 결제완료가 들어오면 수련비 납부 상태를 자동 갱신하는 구조입니다.</span>
+                <span>결제선생 콜백 URL로 납부 완료가 들어오면 수련비 납부 상태를 자동 갱신하는 구조입니다.</span>
             </article>
             <article>
                 <strong>4. 본사 관리자 관리</strong>
@@ -368,7 +368,7 @@ function ieum_billing_mask_phone($phone)
                 <tr>
                     <th>도장</th>
                     <th>발송</th>
-                    <th>결제완료</th>
+                    <th>납부 완료</th>
                     <th>결제대기</th>
                     <th>실패/폐기</th>
                     <th>청구금액</th>
@@ -422,7 +422,7 @@ function ieum_billing_mask_phone($phone)
         <section class="cards detail-cards">
             <article class="card"><div class="label">청구서</div><div class="num"><?php echo number_format($detail_bill_count); ?>건</div><div class="sub">선택 월 기준</div></article>
             <article class="card"><div class="label">청구금액</div><div class="num"><?php echo number_format((int) $academy_detail_summary['bill_amount']); ?>원</div><div class="sub">수련비 청구 합계</div></article>
-            <article class="card"><div class="label">결제완료</div><div class="num"><?php echo number_format($detail_paid_count); ?>건</div><div class="sub">완료율 <?php echo number_format($detail_paid_rate); ?>%</div></article>
+            <article class="card"><div class="label">납부 완료</div><div class="num"><?php echo number_format($detail_paid_count); ?>건</div><div class="sub">완료율 <?php echo number_format($detail_paid_rate); ?>%</div></article>
             <article class="card"><div class="label">확인 필요</div><div class="num"><?php echo number_format($detail_waiting_count + $detail_failed_total); ?>건</div><div class="sub">대기 <?php echo number_format($detail_waiting_count); ?> · 실패/폐기 <?php echo number_format($detail_failed_total); ?></div></article>
         </section>
         <div class="table-wrap">

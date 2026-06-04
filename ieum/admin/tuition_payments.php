@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message .= ' 변경할 원생은 없습니다';
             }
             if ((int) $refresh['skipped_paid'] > 0 || (int) $refresh['skipped_sent'] > 0) {
-                $message .= ' · 제외: 결제/입금 확인 ' . number_format((int) $refresh['skipped_paid']) . '명, 청구서 발송 완료 ' . number_format((int) $refresh['skipped_sent']) . '명';
+                $message .= ' · 제외: 납부 확인 ' . number_format((int) $refresh['skipped_paid']) . '명, 청구서 발송 완료 ' . number_format((int) $refresh['skipped_sent']) . '명';
             }
         } elseif ($action === 'send_month_bills') {
             $confirm_bill_send = isset($_POST['confirm_bill_send']) ? (int) $_POST['confirm_bill_send'] : 0;
@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $message .= ' 본사 쌤포인트에서 ' . number_format($fee) . 'P가 사용되었습니다.';
                     }
                 } else {
-                    $error = '청구서 발송 처리된 건이 없습니다. 보호자 연락처, 결제 상태, 본사 쌤포인트 잔액을 확인하세요.';
+                    $error = '청구서 발송 처리된 건이 없습니다. 보호자 연락처, 납부 상태, 본사 쌤포인트 잔액을 확인하세요.';
                 }
             }
         } elseif ($action === 'bulk_mark_paid') {
@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                      where academy_id = '{$academy_id}'
                        and payment_id in ({$id_sql})
                 ");
-                $message = '선택한 수련비 ' . number_format(count($ids)) . '건을 결제완료 처리했습니다.';
+                $message = '선택한 수련비 ' . number_format(count($ids)) . '건을 완납 처리했습니다.';
             }
         } elseif ($action === 'bulk_send_bill') {
             $confirm_bill_send = isset($_POST['confirm_bill_send']) ? (int) $_POST['confirm_bill_send'] : 0;
@@ -205,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $message .= ' 본사 쌤포인트에서 ' . number_format($fee) . 'P가 사용되었습니다.';
                     }
                 } else {
-                    $error = '청구서 발송 처리된 건이 없습니다. 보호자 연락처, 결제 상태, 본사 쌤포인트 잔액을 확인하세요.';
+                    $error = '청구서 발송 처리된 건이 없습니다. 보호자 연락처, 납부 상태, 본사 쌤포인트 잔액을 확인하세요.';
                 }
             }
         } elseif ($action === 'mark_paid') {
@@ -226,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                      where academy_id = '{$academy_id}'
                        and payment_id = '{$payment_id}'
                 ");
-                $message = '결제완료 처리했습니다.';
+                $message = '완납 처리했습니다.';
             }
         } elseif ($action === 'send_notice') {
             $notice_type = isset($_POST['notice_type']) && $_POST['notice_type'] === 'overdue' ? 'overdue' : 'due';
@@ -262,7 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif ($result['message'] === 'no_recipient') {
                 $error = '청구서를 받을 보호자 연락처가 없습니다.';
             } elseif ($result['message'] === 'already_paid') {
-                $error = '이미 결제완료된 수련비입니다.';
+                $error = '이미 완납된 수련비입니다.';
             } elseif ($result['message'] === 'paymint_not_ready') {
                 $error = '결제선생 도장 결제 계정 연동 완료 후 청구서 발송이 가능합니다.';
             } else {
@@ -282,7 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ieum_hq_billing_use_send_fee(IEUM_BILLING_SEND_FEE, $academy_id, (int) $bill['payment_id'], $academy['academy_name'] . ' 청구서 재발송 ' . $bill['bill_id'], isset($member['mb_id']) ? $member['mb_id'] : '');
                     $message = '청구서를 재발송했습니다.';
                 } elseif (isset($result['message']) && $result['message'] === 'bill_not_resendable') {
-                    $error = '이미 결제완료/파기된 청구서는 재발송할 수 없습니다.';
+                    $error = '이미 납부 완료 또는 파기된 청구서는 재발송할 수 없습니다.';
                 } else {
                     $error = '청구서 재발송을 완료하지 못했습니다.';
                 }
@@ -297,7 +297,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (!empty($result['ok'])) {
                     $message = '청구서를 파기했습니다. 같은 수련비는 다시 청구서 발송이 가능합니다.';
                 } elseif (isset($result['message']) && $result['message'] === 'bill_already_paid') {
-                    $error = '이미 결제완료된 청구서는 파기할 수 없습니다.';
+                    $error = '이미 납부 완료된 청구서는 파기할 수 없습니다.';
                 } elseif (isset($result['message']) && $result['message'] === 'bill_already_destroyed') {
                     $error = '이미 파기된 청구서입니다.';
                 } else {
@@ -313,7 +313,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $result = ieum_paymint_read_bill($paymint_bill_row_id);
                 if (!empty($result['ok'])) {
                     if (isset($result['appr_state']) && $result['appr_state'] === 'F') {
-                        $message = '결제선생 결제완료를 확인했고 수련비를 완납 처리했습니다.';
+                        $message = '결제선생 납부 완료를 확인했고 수련비를 완납 처리했습니다.';
                     } else {
                         $message = '결제선생 청구서 상태를 확인했습니다. 현재 상태: ' . ieum_paymint_bill_status_label($result['status'], $result['appr_state']);
                     }
@@ -750,6 +750,112 @@ body.ieum-dashboard-page.tuition-page-tune.ieum-dark .btn.primary{
     border-color:#1f7dd9!important;
     color:#fff!important;
 }
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-box,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-item,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-group,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-detail,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-tools,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-filter-tabs,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .billing-settings,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .billing-settings .check,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .send-review,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .send-review li,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .bulk-bar,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .table-scroll,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .payment-filter-tab,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-filter-tab,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .payment-page{
+    background:#151f2e!important;
+    border-color:#2c3a4f!important;
+    color:#e5edf7!important;
+    box-shadow:none!important;
+}
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-detail summary,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-detail:not([open]) summary{
+    background:#111827!important;
+    border-color:#2c3a4f!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .label,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .help,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-meta,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-item .label,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-group .group-line,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .brief-title,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .brief-sub,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .billing-settings label,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .billing-settings .settings-title small,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .auto-billing-head p,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .settings-modal-head p,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .payment-list-tools,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .bulk-bar .bulk-copy,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .bill-state .bill-meta,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .paymint-gate p{
+    color:#9aa8bb!important;
+}
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .brief-card.warn-brief,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-warn,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .paymint-gate.locked{
+    background:#2a2416!important;
+    border-color:#6d5421!important;
+    color:#ffd58a!important;
+}
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .status-pill,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .bill-state .bill-status,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .payment-filter-tab strong,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-filter-tab strong,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .family-badge{
+    background:#1c2d44!important;
+    border-color:#2c3a4f!important;
+    color:#8fd0ff!important;
+}
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .status-pill.paid,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .bill-state .bill-status.paid,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .family-badge.primary,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .paymint-gate .gate-badge{
+    background:#183425!important;
+    color:#8ee0a8!important;
+    border-color:#24593a!important;
+}
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .status-pill.unpaid,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .bill-state .bill-status.failed,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .bill-state .bill-status.canceled,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .bill-state .bill-status.destroyed,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .paymint-gate.locked .gate-badge{
+    background:#3a1f27!important;
+    color:#ffb4c0!important;
+    border-color:#6f2d3b!important;
+}
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .status-pill.partial{
+    background:#3b2f16!important;
+    color:#ffd58a!important;
+}
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .soft,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .btn.soft{
+    background:#172132!important;
+    border-color:#334155!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .danger,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .btn.danger{
+    background:#3a1f27!important;
+    border-color:#6f2d3b!important;
+    color:#ffb4c0!important;
+}
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .payment-filter-tab.active,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .preview-filter-tab.active,
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark .payment-page.active{
+    background:#1f7dd9!important;
+    border-color:#1f7dd9!important;
+    color:#fff!important;
+}
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark input::placeholder{
+    color:#9aa8bb!important;
+    opacity:1!important;
+}
+body.ieum-dashboard-page.tuition-page-tune.ieum-dark input[type="checkbox"]{
+    accent-color:#1f7dd9!important;
+}
 </style>
 </head>
 <body class="ieum-side-layout ieum-dashboard-page tuition-page-tune">
@@ -817,7 +923,7 @@ body.ieum-dashboard-page.tuition-page-tune.ieum-dark .btn.primary{
             <div class="brief-title">청구서 발송 예정</div>
             <div class="brief-main"><?php echo number_format((int) $bill_preview['target_count']); ?>건</div>
             <div class="brief-sub">
-                대상 원생 <?php echo number_format((int) (isset($bill_preview['target_student_count']) ? $bill_preview['target_student_count'] : $bill_preview['target_count'])); ?>명 · 결제완료자는 자동 제외되고, 형제/자매 청구 묶음은 1건으로 발송됩니다.
+                대상 원생 <?php echo number_format((int) (isset($bill_preview['target_student_count']) ? $bill_preview['target_student_count'] : $bill_preview['target_count'])); ?>명 · 완납자는 자동 제외되고, 형제/자매 청구 묶음은 1건으로 발송됩니다.
                 <?php if (!empty($bill_preview['include_arrears'])) { ?> 이전 미납 잔액은 함께 청구됩니다.<?php } ?>
             </div>
             <div class="brief-actions">
@@ -828,7 +934,7 @@ body.ieum-dashboard-page.tuition-page-tune.ieum-dark .btn.primary{
     </section>
 
     <section class="payment-flow" aria-label="수련비 처리 흐름">
-        <span><b>1</b> 미결제 확인</span>
+        <span><b>1</b> 미납 확인</span>
         <span><b>2</b> 청구서 발송</span>
         <span><b>3</b> 입금 확인</span>
         <span><b>4</b> 완납 처리</span>
@@ -857,14 +963,14 @@ body.ieum-dashboard-page.tuition-page-tune.ieum-dark .btn.primary{
                 <div class="settings-modal-head">
                     <div>
                         <h3 id="autoBillingSettingsTitle">자동 청구서 발송 설정</h3>
-                        <p>도장별 납부일에 맞춰 미결제 원생에게만 발송됩니다. 이미 완납된 원생은 발송 대상에서 빠집니다.</p>
+                        <p>도장별 납부일에 맞춰 미납 원생에게만 발송됩니다. 이미 완납된 원생은 발송 대상에서 빠집니다.</p>
                     </div>
                     <button type="button" class="btn soft js-close-settings">닫기</button>
                 </div>
         <form method="post" class="billing-settings">
             <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
             <input type="hidden" name="action" value="billing_settings">
-            <div class="settings-title">자동 청구서 발송 설정<small>도장별 납부일에 맞춰 미결제 원생에게만 발송됩니다. 이미 완납된 원생은 발송 대상에서 빠집니다.</small></div>
+            <div class="settings-title">자동 청구서 발송 설정<small>도장별 납부일에 맞춰 미납 원생에게만 발송됩니다. 이미 완납된 원생은 발송 대상에서 빠집니다.</small></div>
             <label class="check"><input type="checkbox" name="bill_auto_send_enabled" value="1" <?php echo !empty($settings['bill_auto_send_enabled']) ? 'checked' : ''; ?>> 자동발송 사용</label>
             <div class="field">
                 <label>자동 발송일</label>
@@ -877,7 +983,7 @@ body.ieum-dashboard-page.tuition-page-tune.ieum-dark .btn.primary{
             <div class="field">
                 <label>발송 대상</label>
                 <select name="bill_auto_send_scope">
-                    <option value="all" <?php echo isset($settings['bill_auto_send_scope']) && $settings['bill_auto_send_scope'] === 'all' ? 'selected' : ''; ?>>전체 미결제 원생</option>
+                    <option value="all" <?php echo isset($settings['bill_auto_send_scope']) && $settings['bill_auto_send_scope'] === 'all' ? 'selected' : ''; ?>>전체 미납 원생</option>
                     <option value="selected" <?php echo isset($settings['bill_auto_send_scope']) && $settings['bill_auto_send_scope'] === 'selected' ? 'selected' : ''; ?>>자동청구 체크 원생만</option>
                 </select>
             </div>
@@ -904,7 +1010,7 @@ body.ieum-dashboard-page.tuition-page-tune.ieum-dark .btn.primary{
                         <?php echo get_text($billing_month); ?> ·
                         <?php echo !empty($bill_preview['auto_enabled']) ? '자동발송 사용' : '자동발송 꺼짐'; ?> ·
                         매월 <?php echo number_format((int) $bill_preview['auto_send_day']); ?>일 ·
-                        <?php echo $bill_preview['scope'] === 'selected' ? '자동청구 체크 원생만' : '전체 미결제 원생'; ?> ·
+                        <?php echo $bill_preview['scope'] === 'selected' ? '자동청구 체크 원생만' : '전체 미납 원생'; ?> ·
                         <?php echo !empty($bill_preview['include_arrears']) ? '이전 미납 함께 청구' : '이번 달 수련비만'; ?>
                     </div>
                 </div>
@@ -921,7 +1027,7 @@ body.ieum-dashboard-page.tuition-page-tune.ieum-dark .btn.primary{
             <div class="preview-grid">
                 <article class="preview-item"><span class="label">발송 예정</span><strong><?php echo number_format((int) $bill_preview['target_count']); ?>건</strong></article>
                 <article class="preview-item"><span class="label">대상 원생</span><strong><?php echo number_format((int) (isset($bill_preview['target_student_count']) ? $bill_preview['target_student_count'] : $bill_preview['target_count'])); ?>명</strong></article>
-                <article class="preview-item"><span class="label">결제완료 제외</span><strong><?php echo number_format((int) $bill_preview['paid_excluded_count']); ?>명</strong></article>
+                <article class="preview-item"><span class="label">완납 제외</span><strong><?php echo number_format((int) $bill_preview['paid_excluded_count']); ?>명</strong></article>
                 <article class="preview-item"><span class="label">이전 미납 포함</span><strong><?php echo number_format((int) $bill_preview['arrears_student_count']); ?>명</strong></article>
                 <article class="preview-item"><span class="label">총 청구 예정</span><strong><?php echo number_format((int) $bill_preview['bill_amount']); ?>원</strong></article>
                 <?php if ($is_admin === 'super') { ?><article class="preview-item"><span class="label">본사 예상 사용 포인트</span><strong><?php echo number_format((int) $bill_preview['send_fee']); ?>P</strong></article><?php } ?>
@@ -1096,7 +1202,7 @@ body.ieum-dashboard-page.tuition-page-tune.ieum-dark .btn.primary{
                 <span class="bulk-copy">완납 원생은 선택되지 않습니다.</span>
             </div>
             <div class="actions">
-                <button type="submit" name="action" value="bulk_mark_paid" class="btn primary" onclick="return confirm('선택한 원생을 결제완료 처리할까요?');">선택 완납</button>
+                <button type="submit" name="action" value="bulk_mark_paid" class="btn primary" onclick="return confirm('선택한 원생을 완납 처리할까요?');">선택 완납</button>
                 <button type="submit" name="action" value="bulk_send_bill" class="btn soft send-confirm-trigger" data-send-title="선택 청구서 발송 확인" data-send-message="선택한 원생에게 결제선생 청구서를 발송 처리합니다." data-send-summary="warn:완납 원생은 자동 제외|info:수신 보호자는 서버에서 재확인|ok:선택한 원생만 청구서 발송" data-send-help="선택한 원생 중 발송 조건에 맞는 원생만 처리됩니다. 서버에서 완납, 잔액 0원, 연락처 여부를 한 번 더 확인합니다." <?php echo !$paymint_ready ? 'disabled' : ''; ?>>선택 청구서 발송</button>
             </div>
         </form>
@@ -1300,7 +1406,7 @@ body.ieum-dashboard-page.tuition-page-tune.ieum-dark .btn.primary{
             <a class="payment-page<?php echo $next_disabled; ?>" href="?<?php echo http_build_query($payment_page_query); ?>">다음</a>
         </nav>
         <?php } ?>
-        <p class="help">입금액이 청구액 이상이면 결제완료, 부족하면 미결제로 자동 정리됩니다. 자동발송은 이 화면에서 설정한 날짜에 실행되고, 미납 포함을 켜면 이전 달 미납 잔액을 이번 달 청구서에 합산합니다.</p>
+        <p class="help">입금액이 청구액 이상이면 완납, 부족하면 미납으로 자동 정리됩니다. 자동발송은 이 화면에서 설정한 날짜에 실행되고, 미납 포함을 켜면 이전 달 미납 잔액을 이번 달 청구서에 합산합니다.</p>
     </section>
 </main>
 <?php

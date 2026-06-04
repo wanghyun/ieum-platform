@@ -56,7 +56,7 @@ if (!$ids) {
     if ($gateway_device) {
         ieum_sms_gateway_touch((int) $gateway_device['device_id'], 'last_claim_at');
     }
-    ieum_json_response(true, '처리할 문자 큐가 없습니다.', array(
+    ieum_json_response(true, '발송할 문자가 없습니다.', array(
         'items' => array(),
         'count' => 0,
     ));
@@ -102,7 +102,7 @@ while ($row = sql_fetch_array($claimed)) {
     );
 }
 
-ieum_json_response(true, '문자 큐를 확보했습니다.', array(
+ieum_json_response(true, '발송할 문자를 가져왔습니다.', array(
     'academy_id' => $academy_id,
     'academy_code' => $academy['academy_code'],
     'academy_name' => $academy['academy_name'],

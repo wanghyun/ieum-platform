@@ -268,9 +268,10 @@ function ieum_admin_shell_script($academy_name = '')
         . 'function setTheme(theme){var isDark=theme==="dark";document.body.classList.toggle("ieum-dark",isDark);try{localStorage.setItem("ieumDashboardTheme",isDark?"dark":"light");}catch(e){}var btn=document.querySelector(".dashboard-theme-toggle[data-ieum-shell-theme]");if(!btn){return;}btn.setAttribute("aria-label",isDark?"라이트 모드로 변경":"다크 모드로 변경");btn.setAttribute("title",isDark?"라이트 모드로 변경":"다크 모드로 변경");btn.setAttribute("aria-pressed",isDark?"true":"false");btn.innerHTML=\'<svg viewBox="0 0 24 24" aria-hidden="true">\'+(isDark?themePaths.light:themePaths.dark)+"</svg>";}'
         . 'function tick(){var clock=document.querySelector(".dashboard-shell-clock[data-ieum-shell-clock]");if(!clock){return;}var now=new Date();clock.textContent=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");}'
         . 'function shellLooksCommon(meta){var root=meta&&meta.querySelector("[data-ieum-shell-meta]");var ai=meta&&meta.querySelector("a[href*=\'topic=ai\']");return !!(root&&ai&&ai.textContent==="AI 챗봇"&&meta.querySelector(".dashboard-shell-clock[data-ieum-shell-clock]")&&meta.querySelector(".dashboard-theme-toggle[data-ieum-shell-theme]"));}'
+        . 'function shellNeedsSync(){var brand=document.querySelector(".ieum-side .side-brand span:last-child");var home=document.querySelector(".ieum-shell-links .ieum-shell-link");var meta=document.querySelector(".ieum-shell-meta");if(brand&&academyName&&brand.textContent!==academyName){return true;}if(home&&(home.textContent!==homeText||home.href!==homeUrl)){return true;}if(meta&&!shellLooksCommon(meta)){return true;}return false;}'
         . 'function bindTheme(){var btn=document.querySelector(".dashboard-theme-toggle[data-ieum-shell-theme]");if(!btn||btn.dataset.ieumThemeBound==="1"){return;}btn.dataset.ieumThemeBound="1";btn.addEventListener("click",function(){setTheme(document.body.classList.contains("ieum-dark")?"light":"dark");});}'
         . 'function syncShell(){if(syncing){return;}syncing=true;var brand=document.querySelector(".ieum-side .side-brand span:last-child");if(brand&&academyName){brand.textContent=academyName;}var home=document.querySelector(".ieum-shell-links .ieum-shell-link");if(home){home.textContent=homeText;home.href=homeUrl;home.target="_blank";home.rel="noopener";}var meta=document.querySelector(".ieum-shell-meta");if(meta&&!shellLooksCommon(meta)){meta.innerHTML=metaHtml;}bindTheme();setTheme(savedTheme()==="dark"||document.body.classList.contains("ieum-dark")?"dark":"light");tick();syncing=false;}'
-        . 'ready(function(){syncShell();setTimeout(syncShell,0);setTimeout(syncShell,300);setTimeout(syncShell,1000);window.setInterval(tick,30000);var meta=document.querySelector(".ieum-shell-meta");if(meta&&window.MutationObserver){var observer=new MutationObserver(function(){if(!syncing&&!shellLooksCommon(meta)){syncShell();}});observer.observe(meta,{childList:true,subtree:true,characterData:true});}});'
+        . 'ready(function(){syncShell();setTimeout(syncShell,0);setTimeout(syncShell,300);setTimeout(syncShell,1000);window.setInterval(tick,30000);var shell=document.querySelector(".ieum-shell-top");var side=document.querySelector(".ieum-side");if(window.MutationObserver){var observer=new MutationObserver(function(){if(!syncing&&shellNeedsSync()){syncShell();}});if(shell){observer.observe(shell,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["href","target","rel"]});}if(side){observer.observe(side,{childList:true,subtree:true,characterData:true});}}});'
         . '})();</script>';
 }
 
@@ -1104,6 +1105,92 @@ html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .side-favorite-t
     border-color:#7c5a12!important;
     color:#f9d36b!important;
     box-shadow:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .panel,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .bar,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .hero,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .card,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .summary-card,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .brief-card,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .report-card,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .student-summary,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .student-list-panel,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .student-table-wrap,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .table-wrap,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .table-scroll,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .queue-table-wrap,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .filters,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .search,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .download-card,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .download-url,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .step,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .install-step,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .routine-box,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .panel,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .bar,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .hero,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .card,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .filters,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .table-wrap,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .table-scroll{
+    background:#151f2e!important;
+    border-color:#2c3a4f!important;
+    color:#e5edf7!important;
+    box-shadow:none!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .meta,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .help,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .hint,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .sub,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .muted,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .meta,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .help,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .hint,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .sub,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .muted{
+    color:#9aa8bb!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) th,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main th{
+    background:#1b2535!important;
+    border-color:#2c3a4f!important;
+    color:#d9e2ef!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) td,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main td{
+    background:#151f2e!important;
+    border-color:#263244!important;
+    color:#d9e2ef!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) input,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) select,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) textarea,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main input,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main select,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main textarea{
+    background:#111827!important;
+    border-color:#334155!important;
+    color:#e5edf7!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) input::placeholder,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) textarea::placeholder,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main input::placeholder,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main textarea::placeholder{
+    color:#718096!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .btn:not(.primary),
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .btn:not(.primary){
+    background:#111827!important;
+    border-color:#334155!important;
+    color:#e5edf7!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .primary,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .wrap:not(.dashboard-simple) .btn.primary,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .primary,
+html body.ieum-side-layout.ieum-dashboard-page[class].ieum-dark .ieum-main .btn.primary{
+    background:#1f7dd9!important;
+    border-color:#1f7dd9!important;
+    color:#fff!important;
 }
 @media(max-width:980px){
     html body.ieum-side-layout.ieum-dashboard-page[class]{
