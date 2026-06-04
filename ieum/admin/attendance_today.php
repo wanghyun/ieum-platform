@@ -635,6 +635,11 @@ body{margin:0;background:#f3f6fa;color:#0f172a;font-family:Arial,"Noto Sans KR",
 .attendance-page-tune{
     background:#f5f7fb;
 }
+.attendance-page-tune *,
+.attendance-page-tune *::before,
+.attendance-page-tune *::after{
+    box-sizing:border-box;
+}
 .attendance-page-tune .ieum-main{
     max-width:1760px;
 }
@@ -1007,6 +1012,7 @@ body.ieum-dashboard-page.attendance-page-tune.ieum-dark .bar,
 body.ieum-dashboard-page.attendance-page-tune.ieum-dark .panel,
 body.ieum-dashboard-page.attendance-page-tune.ieum-dark .quick-input,
 body.ieum-dashboard-page.attendance-page-tune.ieum-dark .stat-card,
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .class-chip,
 body.ieum-dashboard-page.attendance-page-tune.ieum-dark .filters,
 body.ieum-dashboard-page.attendance-page-tune.ieum-dark .table-wrap,
 body.ieum-dashboard-page.attendance-page-tune.ieum-dark .missing-item,
@@ -1074,6 +1080,16 @@ body.ieum-dashboard-page.attendance-page-tune.ieum-dark .class-chip.active{
     background:#10283d!important;
     border-color:#1c5b88!important;
 }
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .missing-class-tabs button{
+    background:#111827!important;
+    border-color:#334155!important;
+    color:#e5edf7!important;
+}
+body.ieum-dashboard-page.attendance-page-tune.ieum-dark .missing-class-tabs button.active{
+    background:#1f7dd9!important;
+    border-color:#1f7dd9!important;
+    color:#fff!important;
+}
 body.ieum-dashboard-page.attendance-page-tune.ieum-dark .class-bar{
     background:#263244!important;
 }
@@ -1125,12 +1141,33 @@ body.ieum-dashboard-page.attendance-page-tune.ieum-dark .status-pending{
     color:#ffd58a!important;
 }
 @media(max-width:720px){
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .ieum-main{
+        overflow:hidden!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .quick-check,
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .grid{
+        grid-template-columns:1fr!important;
+        min-width:0!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .quick-input,
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .grid>.panel,
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .stat-card{
+        min-width:0!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .quick-input input,
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .quick-input .btn{
+        min-width:0!important;
+    }
+    body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .quick-input input{
+        width:100%!important;
+        font-size:17px!important;
+    }
     body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .stats,
     body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .class-strip{
         grid-template-columns:repeat(2,minmax(0,1fr))!important;
     }
     body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .quick-input form{
-        grid-template-columns:1fr auto!important;
+        grid-template-columns:minmax(0,1fr) 72px!important;
     }
     body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .missing-tools input{
         width:100%!important;
@@ -1184,7 +1221,7 @@ body.ieum-dashboard-page.attendance-page-tune.ieum-dark .status-pending{
         <article class="stats">
             <a class="stat-card" href="#attendanceRecords"><span>등원 완료</span><strong><?php echo number_format($attended); ?>명</strong></a>
             <a class="stat-card <?php echo $missing ? 'warn' : ''; ?>" href="#missingStudents"><span>미등원</span><strong><?php echo number_format($missing); ?>명</strong></a>
-            <a class="stat-card" href="<?php echo IEUM_URL; ?>/admin/sms_queue.php?status=pending"><span>문자 대기</span><strong><?php echo number_format((int) $pending['pending_count']); ?>건</strong></a>
+            <a class="stat-card" href="<?php echo IEUM_URL; ?>/admin/sms_queue.php?status=pending"><span>발송 예정</span><strong><?php echo number_format((int) $pending['pending_count']); ?>건</strong></a>
             <a class="stat-card <?php echo (int) $failed_sms['failed_count'] ? 'danger' : ''; ?>" href="<?php echo IEUM_URL; ?>/admin/sms_queue.php?status=failed"><span>문자 실패</span><strong><?php echo number_format((int) $failed_sms['failed_count']); ?>건</strong></a>
         </article>
     </section>
