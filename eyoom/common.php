@@ -8,7 +8,7 @@ define('_EYOOM_COMMON_', true);
  * PHP 버전이 7.2.0 보다 높다면 에러 숨기기
  */
 if (version_compare(PHP_VERSION, '7.2.0', '>=')) {
-    error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
+    error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING & ~E_DEPRECATED & ~E_USER_DEPRECATED);
     ini_set('display_errors', '0');
 }
 
