@@ -1061,6 +1061,12 @@ body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .vehicle-note{
 body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .student-link-button{
     color:#1769c2!important;
 }
+body.ieum-side-layout.ieum-dashboard-page.attendance-page-tune .missing-class-tabs button.active{
+    background:#1769c2!important;
+    border-color:#1769c2!important;
+    color:#fff!important;
+    box-shadow:0 0 0 3px rgba(23,105,194,.14)!important;
+}
 body.ieum-dashboard-page.attendance-page-tune.ieum-dark .closed-lesson-note{
     background:#2a2416!important;
     border-color:#6d5421!important;
