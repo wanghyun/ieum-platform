@@ -1010,12 +1010,11 @@ html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-font-toggle{
     display:inline-flex!important;
     align-items:center!important;
     justify-content:center!important;
-    flex-direction:column!important;
-    gap:0!important;
+    position:relative!important;
     min-width:30px!important;
     height:30px!important;
     margin-left:2px!important;
-    padding:2px 7px 1px!important;
+    padding:0 7px!important;
     border:1px solid #d6dee8!important;
     border-radius:999px!important;
     background:#fff!important;
@@ -1027,20 +1026,25 @@ html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-font-toggle{
 }
 html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-font-toggle .font-toggle-letter{
     display:block!important;
-    height:13px!important;
+    height:auto!important;
     font-size:13px!important;
     font-weight:900!important;
-    line-height:13px!important;
+    line-height:1!important;
 }
 html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-font-toggle .font-toggle-dots{
+    position:absolute!important;
+    left:50%!important;
+    top:27px!important;
+    transform:translateX(-50%)!important;
     display:block!important;
-    height:7px!important;
-    margin-top:1px!important;
+    height:8px!important;
+    margin:0!important;
     color:#1583e9!important;
     font-size:12px!important;
     font-weight:1000!important;
-    line-height:5px!important;
+    line-height:8px!important;
     letter-spacing:1px!important;
+    pointer-events:none!important;
 }
 html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-font-toggle:hover{
     background:#f4f7fb!important;
