@@ -267,7 +267,7 @@ function ieum_admin_shell_script($academy_name = '')
         . 'function ready(fn){if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",fn);}else{fn();}}'
         . 'function savedTheme(){try{return localStorage.getItem("ieumDashboardTheme")||"";}catch(e){return "";}}'
         . 'function savedFont(){try{return localStorage.getItem("ieumShellFont")||"default";}catch(e){return "default";}}'
-        . 'function setFont(size){if(size!=="small"&&size!=="large"){size="default";}document.body.classList.toggle("ieum-font-small",size==="small");document.body.classList.toggle("ieum-font-large",size==="large");try{localStorage.setItem("ieumShellFont",size);}catch(e){}var btn=document.querySelector(".dashboard-font-toggle[data-ieum-shell-font]");if(!btn){return;}var label=size==="small"?"작게":(size==="large"?"크게":"기본");btn.setAttribute("aria-label","메뉴 글자 "+label);btn.setAttribute("title","메뉴 글자 "+label);btn.setAttribute("data-font-size",size);btn.textContent=size==="small"?"가":(size==="large"?"가+":"가");}'
+        . 'function setFont(size){if(size!=="small"&&size!=="large"){size="default";}document.body.classList.toggle("ieum-font-small",size==="small");document.body.classList.toggle("ieum-font-large",size==="large");try{localStorage.setItem("ieumShellFont",size);}catch(e){}var btn=document.querySelector(".dashboard-font-toggle[data-ieum-shell-font]");if(!btn){return;}var label=size==="small"?"작게":(size==="large"?"크게":"기본");var dots=size==="small"?".":(size==="large"?"...":"..");btn.setAttribute("aria-label","메뉴 글자 "+label);btn.setAttribute("title","메뉴 글자 "+label);btn.setAttribute("data-font-size",size);btn.innerHTML=\'<span class="font-toggle-letter">가</span><span class="font-toggle-dots">\'+dots+"</span>";}'
         . 'function setTheme(theme){var isDark=theme==="dark";document.body.classList.toggle("ieum-dark",isDark);try{localStorage.setItem("ieumDashboardTheme",isDark?"dark":"light");}catch(e){}var btn=document.querySelector(".dashboard-theme-toggle[data-ieum-shell-theme]");if(!btn){return;}btn.setAttribute("aria-label",isDark?"라이트 모드로 변경":"다크 모드로 변경");btn.setAttribute("title",isDark?"라이트 모드로 변경":"다크 모드로 변경");btn.setAttribute("aria-pressed",isDark?"true":"false");btn.innerHTML=\'<svg viewBox="0 0 24 24" aria-hidden="true">\'+(isDark?themePaths.light:themePaths.dark)+"</svg>";}'
         . 'function tick(){var clock=document.querySelector(".dashboard-shell-clock[data-ieum-shell-clock]");if(!clock){return;}var now=new Date();clock.textContent=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");}'
         . 'function shellLooksCommon(meta){var root=meta&&meta.querySelector("[data-ieum-shell-meta]");var ai=meta&&meta.querySelector("a[href*=\'topic=ai\']");return !!(root&&ai&&ai.textContent==="AI 챗봇"&&meta.querySelector(".dashboard-shell-clock[data-ieum-shell-clock]")&&meta.querySelector(".dashboard-font-toggle[data-ieum-shell-font]")&&meta.querySelector(".dashboard-theme-toggle[data-ieum-shell-theme]"));}'
@@ -1010,19 +1010,37 @@ html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-font-toggle{
     display:inline-flex!important;
     align-items:center!important;
     justify-content:center!important;
+    flex-direction:column!important;
+    gap:0!important;
     min-width:30px!important;
     height:30px!important;
     margin-left:2px!important;
-    padding:0 7px!important;
+    padding:2px 7px 1px!important;
     border:1px solid #d6dee8!important;
     border-radius:999px!important;
     background:#fff!important;
     color:#243142!important;
-    font-size:13px!important;
     font-weight:900!important;
     line-height:1!important;
     box-shadow:none!important;
     cursor:pointer!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-font-toggle .font-toggle-letter{
+    display:block!important;
+    height:13px!important;
+    font-size:13px!important;
+    font-weight:900!important;
+    line-height:13px!important;
+}
+html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-font-toggle .font-toggle-dots{
+    display:block!important;
+    height:7px!important;
+    margin-top:1px!important;
+    color:#1583e9!important;
+    font-size:12px!important;
+    font-weight:1000!important;
+    line-height:5px!important;
+    letter-spacing:1px!important;
 }
 html body.ieum-side-layout.ieum-dashboard-page[class] .dashboard-font-toggle:hover{
     background:#f4f7fb!important;
